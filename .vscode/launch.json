@@ -1,0 +1,43 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Flutter: Launch on Android Emulator",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5554" // 替换为你的设备ID
+        },
+        {
+            "name": "Flutter: Launch on Windows",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "windows"
+        },
+        {
+            "name": "Flutter: Launch on Web",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "chrome"
+        },
+        {
+            "name": "Flutter: Attach to Device",
+            "type": "dart",
+            "request": "attach"
+        },
+        {
+            "name": "Go: Launch Server",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "cwd": "${workspaceFolder}/server_go",
+            "program": "${workspaceFolder}/server_go/src",
+            "output" : "${workspaceFolder}/server_go/__debug_bin.exe" ,
+            "env": {
+                "CGO_ENABLED": "1"
+            }
+        }
+    ]
+}
