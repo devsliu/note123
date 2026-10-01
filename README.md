@@ -1,6 +1,7 @@
 # Note123
 
 > Self-hosted notes sync — Go + SQLite (**zero infrastructure**) + Flutter client.
+> Cross-platform: Windows · Linux · macOS · Android · iOS.
 > Version control, conflict resolution, and tombstone cleanup.
 > Suitable for personal and small team deployments.
 

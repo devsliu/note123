@@ -1,6 +1,7 @@
 # Note123
 
 > 自托管笔记同步 — Go + SQLite（**零基础设施**）+ Flutter 客户端。
+> 跨平台：Windows · Linux · macOS · Android · iOS。
 > 版本控制、冲突解决、墓碑清理。
 > 适合个人和小团队部署使用。
 
