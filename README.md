@@ -77,9 +77,9 @@ Core design:
 
 **Server:**
 ```bash
-cd server_go
+cd server_go/src
 go mod download
-go run main.go
+go run .
 ```
 
 **Client:**
@@ -92,23 +92,22 @@ flutter run
 ### Local Service Config
 
 ```ini
-[admin]
-username = admin
-password = admin
-
-[storage]
-dir = D://test/
-
-[server]
-port = 10001
-maxDevices = 5
-maxFileSize = 100
+[NOTE]
+NOTE_PORT = 10001
+NOTE_DATA_DIR = D://test/
+NOTE_ADMIN_USER = admin
+NOTE_ADMIN_PASS = admin
+NOTE_MAX_DEVICES = 5
+NOTE_MAX_FILE_SIZE = 100
 ```
 
 **Parameters:**
-- `admin.username` / `admin.password`: Admin UI login credentials
-- `server.maxDevices`: Max active tokens per account, oldest kicked when exceeded
-- `server.maxFileSize`: Max file upload size per record, in MB (default 100)
+- `NOTE_ADMIN_USER` / `NOTE_ADMIN_PASS`: Admin UI login credentials
+- `NOTE_PORT`: HTTP listen port (default 10001)
+- `NOTE_DATA_DIR`: Data directory for SQLite and uploaded files
+- `NOTE_MAX_DEVICES`: Max active tokens per account, oldest kicked when exceeded
+- `NOTE_MAX_FILE_SIZE`: Max file upload size per record, in MB (default 100)
+- Env vars with the same names take precedence over config.ini when `NOTE_ADMIN_USER` is set
 
 ### Docker Service Config
 

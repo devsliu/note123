@@ -77,9 +77,9 @@
 
 **服务端:**
 ```bash
-cd server_go
+cd server_go/src
 go mod download
-go run main.go
+go run .
 ```
 
 **客户端:**
@@ -92,23 +92,22 @@ flutter run
 ### 本地服务配置文件
 
 ```ini
-[admin]
-username = admin
-password = admin
-
-[storage]
-dir = D://test/
-
-[server]
-port = 10001
-maxDevices = 5
-maxFileSize = 100
+[NOTE]
+NOTE_PORT = 10001
+NOTE_DATA_DIR = D://test/
+NOTE_ADMIN_USER = admin
+NOTE_ADMIN_PASS = admin
+NOTE_MAX_DEVICES = 5
+NOTE_MAX_FILE_SIZE = 100
 ```
 
 **参数说明:**
-- `admin.username` / `admin.password`: 管理界面登录凭据
-- `server.maxDevices`: 同账号最多保留的活跃 token 数，超出后自动踢掉最老的 token
-- `server.maxFileSize`: 单条目最大上传文件大小，单位 MB（默认 100）
+- `NOTE_ADMIN_USER` / `NOTE_ADMIN_PASS`: 管理界面登录凭据
+- `NOTE_PORT`: HTTP 监听端口（默认 10001）
+- `NOTE_DATA_DIR`: 数据目录，存放 SQLite 和上传文件
+- `NOTE_MAX_DEVICES`: 同账号最多保留的活跃 token 数，超出后自动踢掉最老的 token
+- `NOTE_MAX_FILE_SIZE`: 单条目最大上传文件大小，单位 MB（默认 100）
+- 同名环境变量优先于 config.ini（以设置了 `NOTE_ADMIN_USER` 为准）
 
 ### Docker 服务配置文件
 
