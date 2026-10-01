@@ -1,0 +1,151 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  packages: write
+  contents: write
+
+jobs:
+  # ========== Docker 镜像 ==========
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push Docker image
+        run: |
+          docker build -t ghcr.io/${{ github.repository }}:${{ github.ref_name }} -t ghcr.io/${{ github.repository }}:latest -f server_go/src/Dockerfile server_go/src/
+          echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+          docker push ghcr.io/${{ github.repository }}:latest
+
+  # ========== Windows 客户端 ==========
+  client-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Flutter build windows
+        shell: pwsh
+        run: |
+          cd client_flutter
+          flutter pub get
+          flutter build windows --release
+      - name: Package
+        shell: pwsh
+        run: |
+          $ver = "${{ github.ref_name }}"
+          Compress-Archive -Path client_flutter\build\windows\x64\runner\Release\* -DestinationPath "note123-client-windows-x64-$ver.zip" -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-windows
+          path: note123-client-windows-x64-${{ github.ref_name }}.zip
+
+  # ========== Linux 客户端 ==========
+  client-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Flutter build linux
+        run: |
+          cd client_flutter
+          flutter pub get
+          flutter build linux --release
+      - name: Package
+        run: |
+          cd client_flutter/build/linux/x64/release
+          tar czf $GITHUB_WORKSPACE/note123-client-linux-x64-${{ github.ref_name }}.tar.gz bundle
+      - uses: actions/upload-artifact@v4
+        with:
+          name: client-linux
+          path: note123-client-linux-x64-${{ github.ref_name }}.tar.gz
+
+  # ========== Android APK ==========
+  client-android:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        flavor: [phone, pad]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Flutter build apk (${{ matrix.flavor }})
+        run: |
+          cd client_flutter
+          flutter pub get
+          flutter build apk --release --target-platform android-arm64 --flavor ${{ matrix.flavor }}
+      - name: Rename APK
+        run: |
+          ver="${{ github.ref_name }}"
+          cp client_flutter/build/app/outputs/flutter-apk/app-${{ matrix.flavor }}-release.apk "note123-android-${{ matrix.flavor }}-arm64-v8a-$ver.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.flavor }}
+          path: note123-android-${{ matrix.flavor }}-arm64-v8a-${{ github.ref_name }}.apk
+
+  # ========== Windows 服务端 EXE ==========
+  server-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'server_go/src/go.mod'
+      - name: Go build
+        shell: pwsh
+        run: |
+          cd server_go/src
+          go build -o note123_server.exe .
+      - name: Package
+        shell: pwsh
+        run: |
+          $ver = "${{ github.ref_name }}"
+          $tmp = "server-windows-tmp"
+          mkdir $tmp -Force
+          Copy-Item server_go/src/note123_server.exe $tmp
+          Copy-Item server_go/config.ini $tmp
+          Compress-Archive -Path $tmp\* -DestinationPath "note123-server-windows-x64-$ver.zip" -Force
+          Remove-Item $tmp -Recurse
+      - uses: actions/upload-artifact@v4
+        with:
+          name: server-windows
+          path: note123-server-windows-x64-${{ github.ref_name }}.zip
+
+  # ========== 创建 GitHub Release ==========
+  release:
+    needs: [docker, client-windows, client-linux, client-android, server-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Create Release
+        run: |
+          ver="${{ github.ref_name }}"
+          gh release create "$ver" \
+            --title "Note123 $ver" \
+            --notes "Note123 $ver - 自动构建产物" \
+            "artifacts/note123-client-windows-x64-$ver.zip" \
+            "artifacts/note123-client-linux-x64-$ver.tar.gz" \
+            "artifacts/note123-android-phone-arm64-v8a-$ver.apk" \
+            "artifacts/note123-android-pad-arm64-v8a-$ver.apk" \
+            "artifacts/note123-server-windows-x64-$ver.zip"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
