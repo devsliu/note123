@@ -92,7 +92,7 @@ EditorStyle buildEditorStyle(ThemeData theme, TextStyleConfiguration textStyleCo
 }
 
 class RecordFlowEditorPage extends BaseRecordEditPage {
-  const RecordFlowEditorPage({super.key, required super.record, super.onRecordDeleted});
+  const RecordFlowEditorPage({super.key, required super.record, super.closePageCallback});
 
   @override
   State<RecordFlowEditorPage> createState() => RecordFlowEditorPageState();

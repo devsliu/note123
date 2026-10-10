@@ -41,9 +41,9 @@ class PageState {
 abstract class BaseRecordEditPage extends StatefulWidget {
   final TreeContentFile record;
   // Callback when record is deleted remotely; desktop uses it to close tab, mobile defaults to Navigator.pop
-  final VoidCallback? onRecordDeleted;
+  final VoidCallback? closePageCallback;
 
-  const BaseRecordEditPage({super.key, required this.record, this.onRecordDeleted});
+  const BaseRecordEditPage({super.key, required this.record, this.closePageCallback});
 }
 
 abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends State<T>
@@ -113,8 +113,8 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     // Record has been deleted
     if (current == null) {
       if (isContentChanged) return; // Has unsaved edits, don't close
-      if (widget.onRecordDeleted != null) {
-        widget.onRecordDeleted!();
+      if (widget.closePageCallback != null) {
+        widget.closePageCallback!();
       } else {
         Navigator.of(context).maybePop();
       }

@@ -33,13 +33,14 @@ class EditorTab extends DesktopTab {
   }
 
   @override
-  Widget buildPage(GlobalKey key, {VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord}) {
-    return RecordFlowEditorPage(record: record, key: key, onRecordDeleted: onRecordDeleted);
+  Widget buildPage(GlobalKey key, {VoidCallback? closePageCallback}) {
+    return RecordFlowEditorPage(record: record, key: key, closePageCallback: closePageCallback);
   }
 }
 
 class CalendarTab extends DesktopTab {
-  CalendarTab() : super(id: '__calendar__');
+  final ValueChanged<TreeContentFile>? onOpenRecord;
+  CalendarTab({this.onOpenRecord}) : super(id: '__calendar__');
 
   @override
   String get title => l10n.calendarTasks;
@@ -55,7 +56,7 @@ class CalendarTab extends DesktopTab {
   }
 
   @override
-  Widget buildPage(GlobalKey key, {VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord}) {
+  Widget buildPage(GlobalKey key, {VoidCallback? closePageCallback}) {
     return CalendarPage(key: key, showAppBar: false, onOpenRecord: onOpenRecord);
   }
 }
@@ -169,18 +170,21 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver, Wi
                     detailKey.currentState?.openTab(EditorTab(id: record.uuid, title: record.name, record: record));
                   },
                   onOpenCalendar: () {
-                    detailKey.currentState?.openTab(CalendarTab());
+                    detailKey.currentState?.openTab(
+                      CalendarTab(
+                        onOpenRecord: (record) {
+                          detailKey.currentState?.openTab(
+                            EditorTab(id: record.uuid, title: record.name, record: record),
+                          );
+                        },
+                      ),
+                    );
                   },
                 ),
               ),
               LayoutId(
                 id: 'right',
-                child: DesktopTabsPage(
-                  key: detailKey,
-                  onOpenRecord: (record) {
-                    detailKey.currentState?.openTab(EditorTab(id: record.uuid, title: record.name, record: record));
-                  },
-                ),
+                child: DesktopTabsPage(key: detailKey),
               ),
               LayoutId(id: 'dragger', child: buildLeftSideDragger()),
             ],

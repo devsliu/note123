@@ -1,7 +1,6 @@
 import 'dart:math';
 import 'dart:math' as math;
 
-import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/theme.dart';
 import 'package:note123/config/app_config.dart';
@@ -50,11 +49,8 @@ abstract class DesktopTab {
   void close();
 
   /// Build the page widget for this tab. [key] is the state key the detail
-  /// page reserves for this tab, used to look up the page state for
-  /// foreground/background lifecycle signals. Callbacks the page may use
-  /// (close on remote delete, open a record) are supplied by the caller;
-  /// subclasses pick the ones they need. The result is cached by the caller.
-  Widget buildPage(GlobalKey key, {VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord});
+  /// closePageCallback page ifself can close the tab.
+  Widget buildPage(GlobalKey key, {VoidCallback? closePageCallback});
 
   @override
   String toString() => title;
@@ -72,12 +68,7 @@ class _DesktopTabImpl {
 }
 
 class DesktopTabsPage extends StatefulWidget {
-  /// Called when a page (e.g. the calendar) wants to open a record. The
-  /// parent is responsible for turning [record] into a [DesktopTab] and
-  /// calling [openTab], since tab subclasses live outside this file.
-  final ValueChanged<TreeContentFile>? onOpenRecord;
-
-  const DesktopTabsPage({super.key, this.onOpenRecord});
+  const DesktopTabsPage({super.key});
 
   @override
   DesktopTabsPageState createState() => DesktopTabsPageState();
@@ -228,11 +219,10 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
   void _buildTabPage(_DesktopTabImpl impl) {
     impl.page = impl.tab.buildPage(
       impl.key,
-      onRecordDeleted: () {
+      closePageCallback: () {
         final idx = _tabs.indexWhere((t) => t.tab.equal(impl.tab));
         if (idx != -1) closeTab(idx);
       },
-      onOpenRecord: widget.onOpenRecord,
     );
   }
 
