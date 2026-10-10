@@ -216,6 +216,7 @@ class AppDatabase extends _$AppDatabase {
       remoteFileVersion: 0,
       localVersion: 0,
       localFileVersion: 0,
+      baseFileVersion: 0,
     );
   }
 

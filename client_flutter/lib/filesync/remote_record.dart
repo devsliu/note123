@@ -30,10 +30,8 @@ class RemoteRecord {
   });
 
   /// RemoteRecord → LocalRecord: copy all remote_*, local_* = remote_* (synced baseline).
-  /// Optional [source]: existing LocalRecord, use copyWith to preserve baseFileVersion from source,
-  /// overwrite all others from current RemoteRecord.
-  /// When source is not provided, baseFileVersion defaults to 0 (new record).
-  LocalRecord toLocalRecord(int batchNo, {LocalRecord? source}) {
+  /// [baseFileVersion]: which file version the local base file corresponds to, default 0 (new record).
+  LocalRecord toLocalRecord(int batchNo, {int baseFileVersion = 0}) {
     String formattedPath = path;
     if (!formattedPath.endsWith('/')) formattedPath += '/';
     if (!formattedPath.startsWith('/')) formattedPath = '/$formattedPath';
@@ -52,8 +50,7 @@ class RemoteRecord {
       remoteName: name,
       remotePath: formattedPath,
       remoteFileVersion: fileVersion,
-      // baseFileVersion: pass through existing value, default 0 for new records
-      baseFileVersion: source?.baseFileVersion ?? 0,
+      baseFileVersion: baseFileVersion,
       // Local = remote (synced)
       localEditType: LocalEditType.none,
       localVersion: version,

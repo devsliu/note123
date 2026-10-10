@@ -199,7 +199,7 @@ class SyncEngine {
           // ---- Local deleted or local not modified ----
           if (remote.version > local.remoteVersion) {
             // Remote version updated, undo local delete / align local state (handled by one replaceLocalRecord)
-            var newRecord = remote.toLocalRecord(batchNo, source: local);
+            var newRecord = remote.toLocalRecord(batchNo, baseFileVersion: local.baseFileVersion);
             await db.replaceRecord(newRecord);
             upsertRecords.add(newRecord);
             await db.createOperate(
@@ -335,7 +335,7 @@ class SyncEngine {
       } else if (result.code == HttpApi.ResultErrorRecordConflict) {
         // Server rejected deletion (record modified by someone else), restore to latest remote state
         final remote = result.data!;
-        final newRecord = remote.toLocalRecord(0, source: localRecord);
+        final newRecord = remote.toLocalRecord(0, baseFileVersion: localRecord.baseFileVersion);
         int rows = await db.replaceRecord(newRecord);
         if (localRecord.baseFileVersion < remote.fileVersion) {
           await fileStore.downloadBaseFile(localRecord.uuid);
@@ -374,7 +374,12 @@ class SyncEngine {
 
       if (result.isSuccess()) {
         final newRemote = result.data!;
-        final newRecord = newRemote.toLocalRecord(0, source: localRecord);
+        // 若上传了文件, base 文件内容已更新为最新, baseFileVersion 必须跟随远端 fileVersion,
+        // 否则后续 pull 会因 baseFileVersion 陈旧而重复下载或漏下载
+        final newRecord = newRemote.toLocalRecord(
+          0,
+          baseFileVersion: fileExist ? newRemote.fileVersion : localRecord.baseFileVersion,
+        );
 
         int rows =
             await (db.update(db.localRecords)..where(
