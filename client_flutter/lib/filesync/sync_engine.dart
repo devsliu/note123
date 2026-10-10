@@ -273,20 +273,16 @@ class SyncEngine {
         if (fetchRecords.code == HttpApi.ResultErrorNeedFullSync) {
           isInFullPull = true;
           lastVersion = 0;
-          purgedVersion = 0; // 全量完成后通过远端 purgedVersion 重新确定
+          purgedVersion = 0; // 全量拉取时从返回结果中获取
           await db.createOperate(Operates.typeDownload, "server require full pull (537)");
           continue;
         }
         throw SyncException(fetchRecords.message, null, fetchRecords.code);
       }
 
-      final remotePurgedVersion = fetchRecords.data!.purgedVersion;
-      if (lastVersion < remotePurgedVersion && (!isInFullPull || remotePurgedVersion > purgedVersion)) {
-        isInFullPull = true;
-        lastVersion = 0;
-        purgedVersion = remotePurgedVersion;
-        await db.createOperate(Operates.typeDownload, "full pull begin, purge version:$purgedVersion");
-        continue;
+      // 全量模式下记录 purgedVersion, 用于同步完成后清理本地已被服务端 purge 的记录
+      if (isInFullPull && purgedVersion == 0) {
+        purgedVersion = fetchRecords.data!.purgedVersion;
       }
 
       final remoteRecords = fetchRecords.data!.records;
