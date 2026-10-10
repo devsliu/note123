@@ -2,6 +2,10 @@
 // folder path convention. These are pure functions with no dependency on
 // RecordTree state.
 
+import 'database.dart';
+
+import 'table_record.dart';
+
 /// Return the parent folder path of [path].
 ///
 /// e.g. "/work/flutter/" -> "/work/"
@@ -50,4 +54,26 @@ String ensurePathFormat(String path) {
   if (!path.endsWith('/')) path += '/';
   if (!path.startsWith('/')) path = '/$path';
   return path.replaceAll('//', '/'); // Guard against double slashes
+}
+
+// LocalRecord convenience extensions.
+// Only keep status-derived getters. Field values are read directly:
+//   Local-edit related: localName/localPath/localEditAt/localFileEditAt/localVersion/localEditType
+//   Remote authoritative: remoteVersion/remoteMd5/remoteCreateAt/remoteEditAt/remoteFileEditAt/remoteLocked/remoteName/remotePath
+
+extension LocalRecordExt on LocalRecord {
+  // ========= Status queries (derived, not direct field reads) =========
+
+  /// Local file/metadata edit status (edit only, not delete)
+  bool get isLocalEdit => localEditType == LocalEditType.edit;
+
+  /// Local deletion status
+  bool get isLocallyDeleted => localEditType == LocalEditType.delete;
+
+  /// Conflict detection: local has edit (non-delete) && local baseline version != server version
+  /// Local deletion is not considered a conflict (deletion is an independent push flow)
+  bool get syncConflict => localEditType == LocalEditType.edit && localVersion != remoteVersion;
+
+  /// Whether synced (no pending upload changes)
+  bool get isSynced => localEditType == LocalEditType.none;
 }

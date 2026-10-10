@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/record_tree.dart';
-import 'package:note123/filesync/local_record_ext.dart';
+import 'package:note123/filesync/record_utils.dart';
 import 'package:note123/model/record_utils.dart';
 import 'package:note123/ui/editor/flow_editor/flow_fixed_toolbar.dart';
 import 'package:note123/ui/editor/base_record_edit_page.dart';

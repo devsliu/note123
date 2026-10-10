@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:note123/filesync/database.dart';
-import 'package:note123/filesync/local_record_ext.dart';
 import 'package:note123/filesync/record_utils.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/filesync/table_record.dart';

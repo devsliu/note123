@@ -6,8 +6,6 @@ import 'package:note123/utils/app_logger.dart';
 import 'package:note123/filesync/remote_record.dart';
 
 import 'table_record.dart';
-import 'table_config.dart';
-import 'table_operate.dart';
 
 part 'database.g.dart';
 

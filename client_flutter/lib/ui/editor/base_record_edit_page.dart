@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 
 import 'package:note123/filesync/file_store.dart';
@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
-import 'package:note123/filesync/local_record_ext.dart';
+import 'package:note123/filesync/record_utils.dart';
 import 'package:note123/model/record_utils.dart';
 import 'package:note123/utils/app_logger.dart';
 import 'package:note123/config/language_manager.dart';

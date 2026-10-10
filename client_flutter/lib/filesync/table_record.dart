@@ -86,3 +86,28 @@ abstract class PathRecordCounts extends View {
   @override
   Query as() => select([records.localPath, recordCount]).from(records)..groupBy([records.localPath]);
 }
+
+@DataClassName('Operate')
+class Operates extends Table {
+  static const typeLocal = "local";
+  static const typeDownload = "download";
+  static const typeUpload = "upload";
+  static const typeError = "error";
+
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get type => text()();
+  TextColumn get value => text()();
+  IntColumn get time => integer()();
+}
+
+@DataClassName('KVConfig')
+class KVConfigs extends Table {
+  // Last synced maximum version number (inclusive)
+  static const String lastSyncedVersion = 'last_synced_version';
+
+  TextColumn get key => text()();
+  TextColumn get value => text()();
+
+  @override
+  Set<Column> get primaryKey => {key};
+}
