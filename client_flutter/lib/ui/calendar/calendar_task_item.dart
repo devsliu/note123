@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:note123/config/app_config.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/reminder_entry.dart';
+import 'package:note123/filesync/repository.dart';
 
 /// A clickable row shown at the top of record list pages, opening the calendar page.
 /// Shows the count of reminder tasks reminding today.
@@ -20,10 +21,17 @@ class _CalendarTaskItemState extends State<CalendarTaskItem> {
   void initState() {
     super.initState();
     _loadCount();
+    Repository.get().reminderTree.refreshNotifier.addListener(_loadCount);
   }
 
-  Future<void> _loadCount() async {
-    final entries = await collectAllReminders();
+  @override
+  void dispose() {
+    Repository.get().reminderTree.refreshNotifier.removeListener(_loadCount);
+    super.dispose();
+  }
+
+  void _loadCount() {
+    final entries = Repository.get().reminderTree.entries;
     final today = DateTime.now();
     final count = entries.where((e) {
       if (e.task.done) return false;

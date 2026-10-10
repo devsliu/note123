@@ -7,6 +7,7 @@ import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/table_operate.dart';
 import 'package:note123/filesync/file_store.dart';
 import 'package:note123/filesync/record_tree.dart';
+import 'package:note123/filesync/reminder_entry.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/filesync/local_record_ext.dart';
 import 'package:note123/filesync/sync_engine.dart' show SyncEngine, SyncState;
@@ -35,6 +36,9 @@ class Repository {
 
   final RecordTree recordTree = RecordTree();
   final ValueNotifier<SyncState> syncStateNotifier = ValueNotifier(SyncState(state: SyncState.idle));
+
+  /// Shortcut to the reminder tree held by [recordTree].
+  ReminderTree get reminderTree => recordTree.reminderTree;
 
   Repository._();
   static Repository get() => _instance!;

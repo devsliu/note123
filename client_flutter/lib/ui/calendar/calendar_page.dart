@@ -30,6 +30,13 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     super.initState();
     _selectedDay = _focusedDay;
     _load();
+    Repository.get().reminderTree.refreshNotifier.addListener(_load);
+  }
+
+  @override
+  void dispose() {
+    Repository.get().reminderTree.refreshNotifier.removeListener(_load);
+    super.dispose();
   }
 
   @override
@@ -38,13 +45,10 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     if (value) _load();
   }
 
-  Future<void> _load() async {
-    if (!mounted) return;
-    setState(() => _loading = true);
-    final entries = await collectAllReminders();
+  void _load() {
     if (!mounted) return;
     setState(() {
-      _entries = entries;
+      _entries = Repository.get().reminderTree.entries;
       _loading = false;
     });
   }

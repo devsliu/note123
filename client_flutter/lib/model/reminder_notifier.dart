@@ -114,14 +114,9 @@ class ReminderNotifier with WidgetsBindingObserver {
     // Cancel the previous notifications for this record first.
     _cancelRecord(recordUuid);
 
-    final file = Repository.get().recordTree.findFile(recordUuid);
-    final record = file?.record;
-    if (record == null) return;
+    final tasks = Repository.get().reminderTree.tasksForRecord(recordUuid);
+    if (tasks.isEmpty) return;
 
-    final json = record.localReminder.isNotEmpty ? record.localReminder : record.remoteReminder;
-    if (json.isEmpty) return;
-
-    final tasks = ReminderTask.fromJsonString(json);
     final detail = _notificationDetails();
     final now = DateTime.now().millisecondsSinceEpoch;
     final scheduledIds = <int>[];
@@ -232,37 +227,44 @@ class ReminderNotifier with WidgetsBindingObserver {
     return l10n.reminderDueBody;
   }
 
-  /// Full rescan: cancel everything and schedule all reminders from the DB.
-  /// Called once at startup. For recurring tasks the next several occurrences
-  /// are pre-scheduled so they keep firing even if the app stays closed.
+  /// Full rescan: cancel everything and schedule all reminders from the
+  /// reminder tree. Called once at startup. For recurring tasks the next
+  /// several occurrences are pre-scheduled so they keep firing even if the app
+  /// stays closed.
   Future<void> rescheduleAll() async {
-    final db = Repository.get().db;
-    if (db == null) return;
-
     await _plugin.cancelAll();
     _recordTaskIds.clear();
 
-    final records = await db.getRecordsWithReminders();
+    final entries = Repository.get().reminderTree.entries;
+    if (entries.isEmpty) {
+      AppLogger.d("[ReminderNotifier] rescheduleAll: no reminders");
+      return;
+    }
+
+    // Group tasks by record uuid so each record's notification ids are tracked
+    // together for later cancellation on update/delete.
+    final byRecord = <String, List<ReminderTask>>{};
+    for (final entry in entries) {
+      byRecord.putIfAbsent(entry.recordUuid, () => []).add(entry.task);
+    }
+
     final detail = _notificationDetails();
     final now = DateTime.now().millisecondsSinceEpoch;
     int scheduled = 0;
 
-    for (final record in records) {
-      final json = record.localReminder.isNotEmpty ? record.localReminder : record.remoteReminder;
-      if (json.isEmpty) continue;
-      final tasks = ReminderTask.fromJsonString(json);
+    for (final entry in byRecord.entries) {
       final ids = <int>[];
-      for (final task in tasks) {
+      for (final task in entry.value) {
         if (task.done) continue;
         final newIds = await _scheduleTask(task, now, detail);
         ids.addAll(newIds);
         scheduled += newIds.length;
       }
       if (ids.isNotEmpty) {
-        _recordTaskIds[record.uuid] = ids;
+        _recordTaskIds[entry.key] = ids;
       }
     }
-    AppLogger.d("[ReminderNotifier] rescheduleAll: $scheduled notifications across ${records.length} records");
+    AppLogger.d("[ReminderNotifier] rescheduleAll: $scheduled notifications across ${byRecord.length} records");
   }
 
   /// Show a notification immediately. Useful for verifying that the platform

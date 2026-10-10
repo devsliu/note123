@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/local_record_ext.dart';
 import 'package:note123/filesync/record_utils.dart';
+import 'package:note123/filesync/reminder_entry.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/utils/app_logger.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
@@ -133,6 +134,10 @@ class RecordTree extends TreeNode {
 
   final ValueNotifier<List<RecordEvent>> refreshNotifier = ValueNotifier<List<RecordEvent>>([]);
 
+  /// Reminder tree, kept in sync with record changes. Non-null and always
+  /// available; callers read reminders from here instead of scanning the DB.
+  final ReminderTree reminderTree = ReminderTree();
+
   RecordTree() : super(TreeContentFolder("/", ""));
 
   void build(List<LocalRecord> allRecords) {
@@ -154,6 +159,7 @@ class RecordTree extends TreeNode {
     }
     _sortedFiles.sort();
     _notifyEvents(eventList);
+    reminderTree.rebuild(allRecords);
   }
 
   int get recordsCount => _filesMap.length;
@@ -215,6 +221,7 @@ class RecordTree extends TreeNode {
 
   void _deleteRecord(String recordUuid, List<RecordEvent> eventList) {
     _conflictMap.remove(recordUuid);
+    reminderTree.deleteRecord(recordUuid);
     // 1. Get its parent folder path
     final TreeNode? file = _filesMap.remove(recordUuid);
     if (file == null) return;
@@ -293,6 +300,7 @@ class RecordTree extends TreeNode {
       isNew = true;
     }
 
+    reminderTree.upsertRecord(newRecord);
     eventList.add(RecordEvent(RecordEvent.typeUpsertRecord, value1: newRecord.localPath, value2: newRecord.uuid));
     return (node, isNew);
   }

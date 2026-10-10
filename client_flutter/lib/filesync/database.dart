@@ -32,11 +32,6 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<LocalRecord>> getAllLocalRecords() async => await select(localRecords).get();
 
-  /// Records that carry at least one reminder (local or remote).
-  Future<List<LocalRecord>> getRecordsWithReminders() async => await (select(
-    localRecords,
-  )..where((t) => t.localReminder.equals('').not() | t.remoteReminder.equals('').not())).get();
-
   /// Latest 15 non-deleted entries (ordered by remoteVersion descending)
   Future<List<LocalRecord>> getRecentRecords() async =>
       await (select(localRecords)
