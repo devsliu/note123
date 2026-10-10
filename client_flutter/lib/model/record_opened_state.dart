@@ -87,7 +87,14 @@ class RecordOpenedState {
   }
 
   void _syncOpenedFile() {
-    openedFileNotifier.value = openedUuids.isNotEmpty ? openedUuids.last : "";
+    final uuid = openedUuids.isNotEmpty ? openedUuids.last : "";
+    openedFileNotifier.value = uuid;
+    if (uuid.isNotEmpty) {
+      final file = _tree?.findFileNode(uuid)?.content as TreeContentFile?;
+      if (file != null) {
+        openedFolderNotifier.value = file.path;
+      }
+    }
   }
 
   void setOpenedFolder(String path) {

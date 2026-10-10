@@ -4,7 +4,7 @@ import 'package:note123/config/app_config.dart';
 
 import '../../config/language_manager.dart';
 
-class DesktopRecordTabBar extends StatelessWidget {
+class DesktopTabBar extends StatelessWidget {
   final List<dynamic> tabs;
   final int currentIndex;
   final Function(int) onSelectTab;
@@ -14,7 +14,7 @@ class DesktopRecordTabBar extends StatelessWidget {
   final Function(int)? onCloseTabsToRight;
   final Function(int)? onCloseTabsToLeft;
 
-  const DesktopRecordTabBar({
+  const DesktopTabBar({
     super.key,
     required this.tabs,
     required this.currentIndex,
@@ -259,10 +259,7 @@ class _TabItemState extends State<_TabItem> {
               bottom: BorderSide.none,
             ),
           ),
-          constraints: BoxConstraints(
-            minWidth: DesktopRecordTabBar.minTabWidth,
-            maxWidth: DesktopRecordTabBar.maxTabWidth,
-          ),
+          constraints: BoxConstraints(minWidth: DesktopTabBar.minTabWidth, maxWidth: DesktopTabBar.maxTabWidth),
           height: widget.height,
           padding: const EdgeInsets.only(left: 8, right: 2, top: 2, bottom: 0),
           child: Row(

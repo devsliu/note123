@@ -263,7 +263,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
           // Tab bar
           LayoutId(
             id: 'tabBar',
-            child: DesktopRecordTabBar(
+            child: DesktopTabBar(
               tabs: _tabs.map((impl) => impl.tab).toList(),
               currentIndex: currentIndex,
               onSelectTab: selectTab,
