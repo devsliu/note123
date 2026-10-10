@@ -223,6 +223,13 @@ func (s *Server) queryRecordsHandler(w http.ResponseWriter, r *http.Request, use
 		limit = maxFetchLimit
 	}
 
+	// 强制全量: 客户端 version 低于 purgedVersion 时, 该区间内的墓碑已被物理删除,
+	// 增量查询无法返回删除事件, 客户端会出现幽灵记录. 返回 537 让客户端必须走全量同步.
+	if version < user.PurgedVersion.Load() {
+		http.Error(w, ResultErrorNeedFullSync.Message, ResultErrorNeedFullSync.Value)
+		return
+	}
+
 	records, result := s.db.QueryRecordsByVersion(user.UserID, version, limit)
 	if result != ResultSuccess {
 		http.Error(w, result.Message, result.Value)

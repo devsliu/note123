@@ -268,6 +268,15 @@ class SyncEngine {
     while (true) {
       var fetchRecords = await HttpApi.fetchRecords(lastVersion, fetchLimit);
       if (!fetchRecords.isSuccess()) {
+        // 服务端 537: 客户端 version 低于 purgedVersion, 墓碑已被物理删除,
+        // 必须重置 lastVersion=0 走全量同步, 否则会出现幽灵记录
+        if (fetchRecords.code == HttpApi.ResultErrorNeedFullSync) {
+          isInFullPull = true;
+          lastVersion = 0;
+          purgedVersion = 0; // 全量完成后通过远端 purgedVersion 重新确定
+          await db.createOperate(Operates.typeDownload, "server require full pull (537)");
+          continue;
+        }
         throw SyncException(fetchRecords.message, null, fetchRecords.code);
       }
 

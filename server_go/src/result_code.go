@@ -27,6 +27,7 @@ var (
 	ResultErrorParams         = ResultCode{534, "invalid parameter"}
 	ResultErrorFileSave       = ResultCode{535, "file save error"}
 	ResultErrorFileNotFound   = ResultCode{536, "file not found"}
+	ResultErrorNeedFullSync   = ResultCode{537, "need full sync"} // client version < purgedVersion, must do a full pull
 
 	ResultErrorUserPasswordError = ResultCode{561, "invalid username or password"}
 )

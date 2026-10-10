@@ -19,6 +19,7 @@ class HttpApi {
   static int ResultErrorParams = 534; //, "Parameter error"}
   static int ResultErrorFileSave = 535; //, "File save error"}
   static int ResultErrorFileNotFound = 536; //, "File not found"}
+  static int ResultErrorNeedFullSync = 537; //, "Need full sync"} // client version < purgedVersion, must do a full pull
   static int ResultErrorUserPasswordError = 561; //, "User or password error"}
 
   // Client-side internal error codes (6xx range, avoid HTTP standard codes and server 531-561)
