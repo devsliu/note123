@@ -46,14 +46,10 @@ class CalendarTab extends DesktopTab {
   String get title => l10n.calendarTasks;
 
   @override
-  void select() {
-    RecordOpenedState.get().closeFile(RecordOpenedState.get().openedFileNotifier.value);
-  }
+  void select() {}
 
   @override
-  void close() {
-    // The calendar tab does not hold a record, so nothing to release.
-  }
+  void close() {}
 
   @override
   Widget buildPage(GlobalKey key, {VoidCallback? closePageCallback}) {
