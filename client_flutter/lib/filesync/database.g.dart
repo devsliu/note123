@@ -138,6 +138,18 @@ class $LocalRecordsTable extends LocalRecords
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _remoteReminderMeta = const VerificationMeta(
+    'remoteReminder',
+  );
+  @override
+  late final GeneratedColumn<String> remoteReminder = GeneratedColumn<String>(
+    'remote_reminder',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _remoteFileVersionMeta = const VerificationMeta(
     'remoteFileVersion',
   );
@@ -258,6 +270,18 @@ class $LocalRecordsTable extends LocalRecords
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _localReminderMeta = const VerificationMeta(
+    'localReminder',
+  );
+  @override
+  late final GeneratedColumn<String> localReminder = GeneratedColumn<String>(
+    'local_reminder',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _localPathMeta = const VerificationMeta(
     'localPath',
   );
@@ -288,6 +312,7 @@ class $LocalRecordsTable extends LocalRecords
     remoteMd5,
     remoteName,
     remotePath,
+    remoteReminder,
     remoteFileVersion,
     baseFileVersion,
     localEditType,
@@ -298,6 +323,7 @@ class $LocalRecordsTable extends LocalRecords
     localName,
     localMd5,
     localLocked,
+    localReminder,
     localPath,
   ];
   @override
@@ -398,6 +424,15 @@ class $LocalRecordsTable extends LocalRecords
         remotePath.isAcceptableOrUnknown(data['remote_path']!, _remotePathMeta),
       );
     }
+    if (data.containsKey('remote_reminder')) {
+      context.handle(
+        _remoteReminderMeta,
+        remoteReminder.isAcceptableOrUnknown(
+          data['remote_reminder']!,
+          _remoteReminderMeta,
+        ),
+      );
+    }
     if (data.containsKey('remote_file_version')) {
       context.handle(
         _remoteFileVersionMeta,
@@ -482,6 +517,15 @@ class $LocalRecordsTable extends LocalRecords
         ),
       );
     }
+    if (data.containsKey('local_reminder')) {
+      context.handle(
+        _localReminderMeta,
+        localReminder.isAcceptableOrUnknown(
+          data['local_reminder']!,
+          _localReminderMeta,
+        ),
+      );
+    }
     if (data.containsKey('local_path')) {
       context.handle(
         _localPathMeta,
@@ -543,6 +587,10 @@ class $LocalRecordsTable extends LocalRecords
         DriftSqlType.string,
         data['${effectivePrefix}remote_path'],
       )!,
+      remoteReminder: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_reminder'],
+      )!,
       remoteFileVersion: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}remote_file_version'],
@@ -583,6 +631,10 @@ class $LocalRecordsTable extends LocalRecords
         DriftSqlType.int,
         data['${effectivePrefix}local_locked'],
       )!,
+      localReminder: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_reminder'],
+      )!,
       localPath: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}local_path'],
@@ -608,6 +660,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
   final String remoteMd5;
   final String remoteName;
   final String remotePath;
+  final String remoteReminder;
 
   /// Server-side file version number (incremented independently per record, only +1 when file content changes, defaults to 0)
   final int remoteFileVersion;
@@ -636,6 +689,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
   final String localName;
   final String localMd5;
   final int localLocked;
+  final String localReminder;
 
   /// Local path: COLLATE BINARY ensures LIKE index works, CHECK constraint guarantees format
   final String localPath;
@@ -651,6 +705,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     required this.remoteMd5,
     required this.remoteName,
     required this.remotePath,
+    required this.remoteReminder,
     required this.remoteFileVersion,
     required this.baseFileVersion,
     required this.localEditType,
@@ -661,6 +716,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     required this.localName,
     required this.localMd5,
     required this.localLocked,
+    required this.localReminder,
     required this.localPath,
   });
   @override
@@ -677,6 +733,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     map['remote_md5'] = Variable<String>(remoteMd5);
     map['remote_name'] = Variable<String>(remoteName);
     map['remote_path'] = Variable<String>(remotePath);
+    map['remote_reminder'] = Variable<String>(remoteReminder);
     map['remote_file_version'] = Variable<int>(remoteFileVersion);
     map['base_file_version'] = Variable<int>(baseFileVersion);
     map['local_edit_type'] = Variable<int>(localEditType);
@@ -687,6 +744,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     map['local_name'] = Variable<String>(localName);
     map['local_md5'] = Variable<String>(localMd5);
     map['local_locked'] = Variable<int>(localLocked);
+    map['local_reminder'] = Variable<String>(localReminder);
     map['local_path'] = Variable<String>(localPath);
     return map;
   }
@@ -704,6 +762,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       remoteMd5: Value(remoteMd5),
       remoteName: Value(remoteName),
       remotePath: Value(remotePath),
+      remoteReminder: Value(remoteReminder),
       remoteFileVersion: Value(remoteFileVersion),
       baseFileVersion: Value(baseFileVersion),
       localEditType: Value(localEditType),
@@ -714,6 +773,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       localName: Value(localName),
       localMd5: Value(localMd5),
       localLocked: Value(localLocked),
+      localReminder: Value(localReminder),
       localPath: Value(localPath),
     );
   }
@@ -735,6 +795,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       remoteMd5: serializer.fromJson<String>(json['remoteMd5']),
       remoteName: serializer.fromJson<String>(json['remoteName']),
       remotePath: serializer.fromJson<String>(json['remotePath']),
+      remoteReminder: serializer.fromJson<String>(json['remoteReminder']),
       remoteFileVersion: serializer.fromJson<int>(json['remoteFileVersion']),
       baseFileVersion: serializer.fromJson<int>(json['baseFileVersion']),
       localEditType: serializer.fromJson<int>(json['localEditType']),
@@ -745,6 +806,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       localName: serializer.fromJson<String>(json['localName']),
       localMd5: serializer.fromJson<String>(json['localMd5']),
       localLocked: serializer.fromJson<int>(json['localLocked']),
+      localReminder: serializer.fromJson<String>(json['localReminder']),
       localPath: serializer.fromJson<String>(json['localPath']),
     );
   }
@@ -763,6 +825,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       'remoteMd5': serializer.toJson<String>(remoteMd5),
       'remoteName': serializer.toJson<String>(remoteName),
       'remotePath': serializer.toJson<String>(remotePath),
+      'remoteReminder': serializer.toJson<String>(remoteReminder),
       'remoteFileVersion': serializer.toJson<int>(remoteFileVersion),
       'baseFileVersion': serializer.toJson<int>(baseFileVersion),
       'localEditType': serializer.toJson<int>(localEditType),
@@ -773,6 +836,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       'localName': serializer.toJson<String>(localName),
       'localMd5': serializer.toJson<String>(localMd5),
       'localLocked': serializer.toJson<int>(localLocked),
+      'localReminder': serializer.toJson<String>(localReminder),
       'localPath': serializer.toJson<String>(localPath),
     };
   }
@@ -789,6 +853,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     String? remoteMd5,
     String? remoteName,
     String? remotePath,
+    String? remoteReminder,
     int? remoteFileVersion,
     int? baseFileVersion,
     int? localEditType,
@@ -799,6 +864,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     String? localName,
     String? localMd5,
     int? localLocked,
+    String? localReminder,
     String? localPath,
   }) => LocalRecord(
     uuid: uuid ?? this.uuid,
@@ -812,6 +878,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     remoteMd5: remoteMd5 ?? this.remoteMd5,
     remoteName: remoteName ?? this.remoteName,
     remotePath: remotePath ?? this.remotePath,
+    remoteReminder: remoteReminder ?? this.remoteReminder,
     remoteFileVersion: remoteFileVersion ?? this.remoteFileVersion,
     baseFileVersion: baseFileVersion ?? this.baseFileVersion,
     localEditType: localEditType ?? this.localEditType,
@@ -822,6 +889,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     localName: localName ?? this.localName,
     localMd5: localMd5 ?? this.localMd5,
     localLocked: localLocked ?? this.localLocked,
+    localReminder: localReminder ?? this.localReminder,
     localPath: localPath ?? this.localPath,
   );
   LocalRecord copyWithCompanion(LocalRecordsCompanion data) {
@@ -853,6 +921,9 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       remotePath: data.remotePath.present
           ? data.remotePath.value
           : this.remotePath,
+      remoteReminder: data.remoteReminder.present
+          ? data.remoteReminder.value
+          : this.remoteReminder,
       remoteFileVersion: data.remoteFileVersion.present
           ? data.remoteFileVersion.value
           : this.remoteFileVersion,
@@ -879,6 +950,9 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       localLocked: data.localLocked.present
           ? data.localLocked.value
           : this.localLocked,
+      localReminder: data.localReminder.present
+          ? data.localReminder.value
+          : this.localReminder,
       localPath: data.localPath.present ? data.localPath.value : this.localPath,
     );
   }
@@ -897,6 +971,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
           ..write('remoteMd5: $remoteMd5, ')
           ..write('remoteName: $remoteName, ')
           ..write('remotePath: $remotePath, ')
+          ..write('remoteReminder: $remoteReminder, ')
           ..write('remoteFileVersion: $remoteFileVersion, ')
           ..write('baseFileVersion: $baseFileVersion, ')
           ..write('localEditType: $localEditType, ')
@@ -907,6 +982,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
           ..write('localName: $localName, ')
           ..write('localMd5: $localMd5, ')
           ..write('localLocked: $localLocked, ')
+          ..write('localReminder: $localReminder, ')
           ..write('localPath: $localPath')
           ..write(')'))
         .toString();
@@ -925,6 +1001,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     remoteMd5,
     remoteName,
     remotePath,
+    remoteReminder,
     remoteFileVersion,
     baseFileVersion,
     localEditType,
@@ -935,6 +1012,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     localName,
     localMd5,
     localLocked,
+    localReminder,
     localPath,
   ]);
   @override
@@ -952,6 +1030,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
           other.remoteMd5 == this.remoteMd5 &&
           other.remoteName == this.remoteName &&
           other.remotePath == this.remotePath &&
+          other.remoteReminder == this.remoteReminder &&
           other.remoteFileVersion == this.remoteFileVersion &&
           other.baseFileVersion == this.baseFileVersion &&
           other.localEditType == this.localEditType &&
@@ -962,6 +1041,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
           other.localName == this.localName &&
           other.localMd5 == this.localMd5 &&
           other.localLocked == this.localLocked &&
+          other.localReminder == this.localReminder &&
           other.localPath == this.localPath);
 }
 
@@ -977,6 +1057,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
   final Value<String> remoteMd5;
   final Value<String> remoteName;
   final Value<String> remotePath;
+  final Value<String> remoteReminder;
   final Value<int> remoteFileVersion;
   final Value<int> baseFileVersion;
   final Value<int> localEditType;
@@ -987,6 +1068,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
   final Value<String> localName;
   final Value<String> localMd5;
   final Value<int> localLocked;
+  final Value<String> localReminder;
   final Value<String> localPath;
   final Value<int> rowid;
   const LocalRecordsCompanion({
@@ -1001,6 +1083,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     this.remoteMd5 = const Value.absent(),
     this.remoteName = const Value.absent(),
     this.remotePath = const Value.absent(),
+    this.remoteReminder = const Value.absent(),
     this.remoteFileVersion = const Value.absent(),
     this.baseFileVersion = const Value.absent(),
     this.localEditType = const Value.absent(),
@@ -1011,6 +1094,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     this.localName = const Value.absent(),
     this.localMd5 = const Value.absent(),
     this.localLocked = const Value.absent(),
+    this.localReminder = const Value.absent(),
     this.localPath = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1026,6 +1110,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     this.remoteMd5 = const Value.absent(),
     this.remoteName = const Value.absent(),
     this.remotePath = const Value.absent(),
+    this.remoteReminder = const Value.absent(),
     this.remoteFileVersion = const Value.absent(),
     this.baseFileVersion = const Value.absent(),
     this.localEditType = const Value.absent(),
@@ -1036,6 +1121,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     this.localName = const Value.absent(),
     this.localMd5 = const Value.absent(),
     this.localLocked = const Value.absent(),
+    this.localReminder = const Value.absent(),
     required String localPath,
     this.rowid = const Value.absent(),
   }) : uuid = Value(uuid),
@@ -1052,6 +1138,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     Expression<String>? remoteMd5,
     Expression<String>? remoteName,
     Expression<String>? remotePath,
+    Expression<String>? remoteReminder,
     Expression<int>? remoteFileVersion,
     Expression<int>? baseFileVersion,
     Expression<int>? localEditType,
@@ -1062,6 +1149,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     Expression<String>? localName,
     Expression<String>? localMd5,
     Expression<int>? localLocked,
+    Expression<String>? localReminder,
     Expression<String>? localPath,
     Expression<int>? rowid,
   }) {
@@ -1077,6 +1165,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
       if (remoteMd5 != null) 'remote_md5': remoteMd5,
       if (remoteName != null) 'remote_name': remoteName,
       if (remotePath != null) 'remote_path': remotePath,
+      if (remoteReminder != null) 'remote_reminder': remoteReminder,
       if (remoteFileVersion != null) 'remote_file_version': remoteFileVersion,
       if (baseFileVersion != null) 'base_file_version': baseFileVersion,
       if (localEditType != null) 'local_edit_type': localEditType,
@@ -1087,6 +1176,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
       if (localName != null) 'local_name': localName,
       if (localMd5 != null) 'local_md5': localMd5,
       if (localLocked != null) 'local_locked': localLocked,
+      if (localReminder != null) 'local_reminder': localReminder,
       if (localPath != null) 'local_path': localPath,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1104,6 +1194,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     Value<String>? remoteMd5,
     Value<String>? remoteName,
     Value<String>? remotePath,
+    Value<String>? remoteReminder,
     Value<int>? remoteFileVersion,
     Value<int>? baseFileVersion,
     Value<int>? localEditType,
@@ -1114,6 +1205,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     Value<String>? localName,
     Value<String>? localMd5,
     Value<int>? localLocked,
+    Value<String>? localReminder,
     Value<String>? localPath,
     Value<int>? rowid,
   }) {
@@ -1129,6 +1221,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
       remoteMd5: remoteMd5 ?? this.remoteMd5,
       remoteName: remoteName ?? this.remoteName,
       remotePath: remotePath ?? this.remotePath,
+      remoteReminder: remoteReminder ?? this.remoteReminder,
       remoteFileVersion: remoteFileVersion ?? this.remoteFileVersion,
       baseFileVersion: baseFileVersion ?? this.baseFileVersion,
       localEditType: localEditType ?? this.localEditType,
@@ -1139,6 +1232,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
       localName: localName ?? this.localName,
       localMd5: localMd5 ?? this.localMd5,
       localLocked: localLocked ?? this.localLocked,
+      localReminder: localReminder ?? this.localReminder,
       localPath: localPath ?? this.localPath,
       rowid: rowid ?? this.rowid,
     );
@@ -1180,6 +1274,9 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     if (remotePath.present) {
       map['remote_path'] = Variable<String>(remotePath.value);
     }
+    if (remoteReminder.present) {
+      map['remote_reminder'] = Variable<String>(remoteReminder.value);
+    }
     if (remoteFileVersion.present) {
       map['remote_file_version'] = Variable<int>(remoteFileVersion.value);
     }
@@ -1210,6 +1307,9 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     if (localLocked.present) {
       map['local_locked'] = Variable<int>(localLocked.value);
     }
+    if (localReminder.present) {
+      map['local_reminder'] = Variable<String>(localReminder.value);
+    }
     if (localPath.present) {
       map['local_path'] = Variable<String>(localPath.value);
     }
@@ -1233,6 +1333,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
           ..write('remoteMd5: $remoteMd5, ')
           ..write('remoteName: $remoteName, ')
           ..write('remotePath: $remotePath, ')
+          ..write('remoteReminder: $remoteReminder, ')
           ..write('remoteFileVersion: $remoteFileVersion, ')
           ..write('baseFileVersion: $baseFileVersion, ')
           ..write('localEditType: $localEditType, ')
@@ -1243,6 +1344,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
           ..write('localName: $localName, ')
           ..write('localMd5: $localMd5, ')
           ..write('localLocked: $localLocked, ')
+          ..write('localReminder: $localReminder, ')
           ..write('localPath: $localPath, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1902,6 +2004,7 @@ typedef $$LocalRecordsTableCreateCompanionBuilder =
       Value<String> remoteMd5,
       Value<String> remoteName,
       Value<String> remotePath,
+      Value<String> remoteReminder,
       Value<int> remoteFileVersion,
       Value<int> baseFileVersion,
       Value<int> localEditType,
@@ -1912,6 +2015,7 @@ typedef $$LocalRecordsTableCreateCompanionBuilder =
       Value<String> localName,
       Value<String> localMd5,
       Value<int> localLocked,
+      Value<String> localReminder,
       required String localPath,
       Value<int> rowid,
     });
@@ -1928,6 +2032,7 @@ typedef $$LocalRecordsTableUpdateCompanionBuilder =
       Value<String> remoteMd5,
       Value<String> remoteName,
       Value<String> remotePath,
+      Value<String> remoteReminder,
       Value<int> remoteFileVersion,
       Value<int> baseFileVersion,
       Value<int> localEditType,
@@ -1938,6 +2043,7 @@ typedef $$LocalRecordsTableUpdateCompanionBuilder =
       Value<String> localName,
       Value<String> localMd5,
       Value<int> localLocked,
+      Value<String> localReminder,
       Value<String> localPath,
       Value<int> rowid,
     });
@@ -2006,6 +2112,11 @@ class $$LocalRecordsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get remoteReminder => $composableBuilder(
+    column: $table.remoteReminder,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get remoteFileVersion => $composableBuilder(
     column: $table.remoteFileVersion,
     builder: (column) => ColumnFilters(column),
@@ -2053,6 +2164,11 @@ class $$LocalRecordsTableFilterComposer
 
   ColumnFilters<int> get localLocked => $composableBuilder(
     column: $table.localLocked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localReminder => $composableBuilder(
+    column: $table.localReminder,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2126,6 +2242,11 @@ class $$LocalRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remoteReminder => $composableBuilder(
+    column: $table.remoteReminder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get remoteFileVersion => $composableBuilder(
     column: $table.remoteFileVersion,
     builder: (column) => ColumnOrderings(column),
@@ -2173,6 +2294,11 @@ class $$LocalRecordsTableOrderingComposer
 
   ColumnOrderings<int> get localLocked => $composableBuilder(
     column: $table.localLocked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localReminder => $composableBuilder(
+    column: $table.localReminder,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2240,6 +2366,11 @@ class $$LocalRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get remoteReminder => $composableBuilder(
+    column: $table.remoteReminder,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get remoteFileVersion => $composableBuilder(
     column: $table.remoteFileVersion,
     builder: (column) => column,
@@ -2283,6 +2414,11 @@ class $$LocalRecordsTableAnnotationComposer
 
   GeneratedColumn<int> get localLocked => $composableBuilder(
     column: $table.localLocked,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get localReminder => $composableBuilder(
+    column: $table.localReminder,
     builder: (column) => column,
   );
 
@@ -2332,6 +2468,7 @@ class $$LocalRecordsTableTableManager
                 Value<String> remoteMd5 = const Value.absent(),
                 Value<String> remoteName = const Value.absent(),
                 Value<String> remotePath = const Value.absent(),
+                Value<String> remoteReminder = const Value.absent(),
                 Value<int> remoteFileVersion = const Value.absent(),
                 Value<int> baseFileVersion = const Value.absent(),
                 Value<int> localEditType = const Value.absent(),
@@ -2342,6 +2479,7 @@ class $$LocalRecordsTableTableManager
                 Value<String> localName = const Value.absent(),
                 Value<String> localMd5 = const Value.absent(),
                 Value<int> localLocked = const Value.absent(),
+                Value<String> localReminder = const Value.absent(),
                 Value<String> localPath = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalRecordsCompanion(
@@ -2356,6 +2494,7 @@ class $$LocalRecordsTableTableManager
                 remoteMd5: remoteMd5,
                 remoteName: remoteName,
                 remotePath: remotePath,
+                remoteReminder: remoteReminder,
                 remoteFileVersion: remoteFileVersion,
                 baseFileVersion: baseFileVersion,
                 localEditType: localEditType,
@@ -2366,6 +2505,7 @@ class $$LocalRecordsTableTableManager
                 localName: localName,
                 localMd5: localMd5,
                 localLocked: localLocked,
+                localReminder: localReminder,
                 localPath: localPath,
                 rowid: rowid,
               ),
@@ -2382,6 +2522,7 @@ class $$LocalRecordsTableTableManager
                 Value<String> remoteMd5 = const Value.absent(),
                 Value<String> remoteName = const Value.absent(),
                 Value<String> remotePath = const Value.absent(),
+                Value<String> remoteReminder = const Value.absent(),
                 Value<int> remoteFileVersion = const Value.absent(),
                 Value<int> baseFileVersion = const Value.absent(),
                 Value<int> localEditType = const Value.absent(),
@@ -2392,6 +2533,7 @@ class $$LocalRecordsTableTableManager
                 Value<String> localName = const Value.absent(),
                 Value<String> localMd5 = const Value.absent(),
                 Value<int> localLocked = const Value.absent(),
+                Value<String> localReminder = const Value.absent(),
                 required String localPath,
                 Value<int> rowid = const Value.absent(),
               }) => LocalRecordsCompanion.insert(
@@ -2406,6 +2548,7 @@ class $$LocalRecordsTableTableManager
                 remoteMd5: remoteMd5,
                 remoteName: remoteName,
                 remotePath: remotePath,
+                remoteReminder: remoteReminder,
                 remoteFileVersion: remoteFileVersion,
                 baseFileVersion: baseFileVersion,
                 localEditType: localEditType,
@@ -2416,6 +2559,7 @@ class $$LocalRecordsTableTableManager
                 localName: localName,
                 localMd5: localMd5,
                 localLocked: localLocked,
+                localReminder: localReminder,
                 localPath: localPath,
                 rowid: rowid,
               ),

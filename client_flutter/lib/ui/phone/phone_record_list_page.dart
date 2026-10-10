@@ -9,6 +9,8 @@ import 'package:note123/ui/files/record_files_tree_control.dart';
 import 'package:note123/ui/files/record_list_bottom_bar.dart';
 import 'package:note123/ui/files/record_list_top_bar.dart';
 import 'package:note123/ui/settings/settings_button.dart';
+import 'package:note123/ui/calendar/calendar_task_item.dart';
+import 'package:note123/ui/calendar/calendar_page.dart';
 import 'package:note123/config/layout_mode.dart';
 import 'package:note123/config/theme.dart';
 import 'package:note123/utils/utils.dart';
@@ -48,6 +50,22 @@ class PhoneRecordListPage extends StatelessWidget {
         children: [
           if (theme.appBarBackgroundColor == theme.colorScheme.surface)
             Divider(height: 1, color: theme.colorScheme.outline.withAlpha(80)),
+          CalendarTaskItem(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CalendarPage(
+                    showAppBar: true,
+                    onOpenRecord: (record) {
+                      recordTree.setOpenedFile(record.uuid);
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => PhoneRecordDetailPage(record: record)));
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
           Expanded(
             child: ValueListenableBuilder<int>(
               valueListenable: RecordListWidgetType.notifier,

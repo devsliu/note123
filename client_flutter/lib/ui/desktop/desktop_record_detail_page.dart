@@ -3,7 +3,7 @@ import 'dart:math' as math;
 
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
-import 'package:note123/ui/editor/base_record_edit_page.dart';
+import 'package:note123/ui/calendar/calendar_page.dart';
 import 'package:note123/ui/editor/record_flow_editor_page.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/theme.dart';
@@ -14,16 +14,75 @@ import 'package:note123/ui/desktop/desktop_record_tabbar.dart';
 
 import 'desktop_title_bar.dart';
 
-class EditorTab {
+/// Interface for states that live inside a [DesktopRecordDetailPage] tab and need
+/// foreground/background lifecycle signals when the user switches tabs.
+/// Both editor pages (BaseRecordEditPageState) and the calendar page implement
+/// this so the detail page can manage them uniformly.
+abstract class DetailTabPageState {
+  bool get mounted;
+  void setInForeground(bool value);
+}
+
+/// Base class for tabs shown in [DesktopRecordDetailPage].
+/// Subclasses: [EditorTab] (note editor) and [CalendarTab] (calendar page).
+///
+/// Each tab owns its [key] and the built [page] widget, so the detail page only
+/// manages a single [tabs] list (no parallel widget list to keep in sync).
+abstract class DetailTab {
   final String id;
   final String title;
-  final TreeContentFile record;
 
-  EditorTab({required this.id, required this.title, required this.record});
+  /// Key for the page widget's state, so the detail page can look it up for
+  /// foreground/background lifecycle signals on tab switch.
+  final GlobalKey key = GlobalKey();
+
+  /// The built page widget, set by [DesktopRecordDetailPageState] when the tab
+  /// is opened (via [buildPage]). Null before that.
+  Widget? page;
+
+  DetailTab({required this.id, required this.title});
+
+  /// Called when this tab becomes the selected one. Subclasses update the
+  /// record tree to reflect what is currently open (e.g. an editor tab opens
+  /// its record; the calendar tab clears the selection).
+  void setSelected(RecordTree recordTree);
+
+  /// Build the page widget for this tab, using [key]. The detail page supplies
+  /// optional callbacks the page may use (close on remote delete, open a
+  /// record). Subclasses pick the callbacks they need. The result is cached in
+  /// [page] by the caller.
+  Widget buildPage({VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord});
 
   @override
-  String toString() {
-    return title;
+  String toString() => title;
+}
+
+class EditorTab extends DetailTab {
+  final TreeContentFile record;
+  EditorTab({required super.id, required super.title, required this.record});
+
+  @override
+  void setSelected(RecordTree recordTree) {
+    recordTree.setOpenedFile(record.uuid);
+  }
+
+  @override
+  Widget buildPage({VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord}) {
+    return RecordFlowEditorPage(record: record, key: key, onRecordDeleted: onRecordDeleted);
+  }
+}
+
+class CalendarTab extends DetailTab {
+  CalendarTab() : super(id: '__calendar__', title: '日历任务');
+
+  @override
+  void setSelected(RecordTree recordTree) {
+    recordTree.setOpenedFile("");
+  }
+
+  @override
+  Widget buildPage({VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord}) {
+    return CalendarPage(key: key, showAppBar: false, onOpenRecord: onOpenRecord);
   }
 }
 
@@ -35,11 +94,9 @@ class DesktopRecordDetailPage extends StatefulWidget {
 }
 
 class DesktopRecordDetailPageState extends State<DesktopRecordDetailPage> {
-  final List<EditorTab> tabs = [];
-  final List<BaseRecordEditPage> _tabPages = [];
+  final List<DetailTab> tabs = [];
   int currentIndex = 0;
   final RecordTree recordTree = Repository.get().recordTree;
-  TreeContentFile? currentRecord;
   Size _lockedEditorSize = Size.zero;
   bool _wasAnimating = false;
 
@@ -54,7 +111,6 @@ class DesktopRecordDetailPageState extends State<DesktopRecordDetailPage> {
     isWindowAnimatingNotifier.removeListener(_onAnimatingChanged);
     recordTree.setOpenedFile("");
     tabs.clear();
-    _tabPages.clear();
     super.dispose();
   }
 
@@ -77,16 +133,26 @@ class DesktopRecordDetailPageState extends State<DesktopRecordDetailPage> {
       return;
     }
     tabs.add(EditorTab(id: record.uuid, title: record.name, record: record));
-    _tabPages.add(_buildEditorPageWidget(tabs.last));
+    _buildTabPage(tabs.last);
+    selectTab(tabs.length - 1);
+  }
+
+  /// Open (or focus) the calendar tab. There is at most one calendar tab.
+  void openCalendarTab() {
+    final idx = tabs.indexWhere((t) => t is CalendarTab);
+    if (idx != -1) {
+      selectTab(idx);
+      return;
+    }
+    tabs.add(CalendarTab());
+    _buildTabPage(tabs.last);
     selectTab(tabs.length - 1);
   }
 
   void closeTab(int index) {
     if (index < 0 || index >= tabs.length) return;
 
-    // Remove the tab and its corresponding widget
     tabs.removeAt(index);
-    _tabPages.removeAt(index);
     int newIndex = currentIndex;
     if (newIndex > index) {
       newIndex--;
@@ -96,55 +162,36 @@ class DesktopRecordDetailPageState extends State<DesktopRecordDetailPage> {
   }
 
   void closeOtherTabs(int keepIndex) {
-    // Close all tabs except the specified one
     if (keepIndex < 0 || keepIndex >= tabs.length) return;
 
-    // First save info about the tab to keep
     final keepTab = tabs[keepIndex];
-    final keepPage = _tabPages[keepIndex];
 
-    // Clear all tabs
     tabs.clear();
-    _tabPages.clear();
-
-    // Add back the kept tab
     tabs.add(keepTab);
-    _tabPages.add(keepPage);
 
-    // Select the only tab
     selectTab(0);
   }
 
   void closeAllTabs() {
-    // Close all tabs
     tabs.clear();
-    _tabPages.clear();
-    currentRecord = null;
-    recordTree.setOpenedFile("");
     selectTab(-1);
   }
 
   void closeTabsToRight(int startIndex) {
-    // Close all tabs to the right of the specified tab
     if (startIndex < 0 || startIndex >= tabs.length - 1) return;
 
     tabs.removeRange(startIndex + 1, tabs.length);
-    _tabPages.removeRange(startIndex + 1, _tabPages.length);
 
-    // If current selected tab is in removed range, select the last kept tab
     if (currentIndex > startIndex) {
       selectTab(startIndex);
     }
   }
 
   void closeTabsToLeft(int startIndex) {
-    // Close all tabs to the left of the specified tab
     if (startIndex <= 0) return;
 
-    // Record current selected index
     int newIndex = currentIndex;
 
-    // If current selected tab is in removed range, adjust index
     if (currentIndex < startIndex) {
       newIndex = 0;
     } else {
@@ -152,57 +199,48 @@ class DesktopRecordDetailPageState extends State<DesktopRecordDetailPage> {
     }
 
     tabs.removeRange(0, startIndex);
-    _tabPages.removeRange(0, startIndex);
 
     selectTab(newIndex.clamp(0, max(0, tabs.length - 1)));
   }
 
   void selectTab(int index) {
     // Save currently editing content before switching tabs
-    if (currentIndex >= 0 && currentIndex < _tabPages.length) {
-      final currentWidget = _tabPages[currentIndex];
-      final state = (currentWidget.key as GlobalKey?)?.currentState;
-      if (state != null && state.mounted) {
-        if (state is BaseRecordEditPageState) {
-          state.setInForeground(false);
-        }
+    if (currentIndex >= 0 && currentIndex < tabs.length) {
+      final state = tabs[currentIndex].key.currentState;
+      final tabState = state as DetailTabPageState?;
+      if (tabState?.mounted ?? false) {
+        tabState!.setInForeground(false);
       }
     }
 
     if (index >= 0 && index < tabs.length) {
-      currentRecord = tabs[index].record;
-      recordTree.setOpenedFile(currentRecord?.uuid ?? "");
-    } else if (tabs.isEmpty) {
-      currentRecord = null;
+      tabs[index].setSelected(recordTree);
+    } else {
       recordTree.setOpenedFile("");
     }
     setState(() {
       currentIndex = index;
     });
 
-    if (index >= 0 && index < _tabPages.length) {
+    if (index >= 0 && index < tabs.length) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        final newWidget = _tabPages[index];
-        final state = (newWidget.key as GlobalKey?)?.currentState;
-        if (state != null && state.mounted && state is BaseRecordEditPageState) {
-          state.setInForeground(true);
+        final state = tabs[index].key.currentState;
+        final tabState = state as DetailTabPageState?;
+        if (tabState?.mounted ?? false) {
+          tabState!.setInForeground(true);
         }
       });
     }
   }
 
-  BaseRecordEditPage _buildEditorPageWidget(EditorTab tab) {
-    // Add GlobalKey for each edit page so we can access their state
-    final key = GlobalKey();
-    return RecordFlowEditorPage(
-      record: tab.record,
-      key: key,
-      // Close corresponding tab when record is deleted remotely
+  void _buildTabPage(DetailTab tab) {
+    tab.page = tab.buildPage(
       onRecordDeleted: () {
         final idx = tabs.indexWhere((t) => t.id == tab.id);
         if (idx != -1) closeTab(idx);
       },
+      onOpenRecord: (record) => openRecordTab(record),
     );
   }
 
@@ -258,7 +296,7 @@ class DesktopRecordDetailPageState extends State<DesktopRecordDetailPage> {
             id: 'editorStack',
             child: tabs.isEmpty
                 ? Center(child: Text(l10n.noOpenRecords))
-                : IndexedStack(index: currentIndex, children: _tabPages),
+                : IndexedStack(index: currentIndex, children: tabs.map((t) => t.page!).toList()),
           ),
         ],
       ),
@@ -267,7 +305,7 @@ class DesktopRecordDetailPageState extends State<DesktopRecordDetailPage> {
 }
 
 class _TabDropdown extends StatefulWidget {
-  final List<EditorTab> tabs;
+  final List<DetailTab> tabs;
   final int currentIndex;
   final ValueChanged<int> onSelect;
   final ValueChanged<int> onCloseTab;

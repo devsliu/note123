@@ -186,6 +186,10 @@ class FileWidget extends _BaseItemWidget {
         ),
       ),
       if (file.locked != 0) ...[const SizedBox(width: 4.0), Icon(Icons.lock, size: 12, color: Colors.amber)],
+      if ((file.record.localReminder.isNotEmpty || file.record.remoteReminder.isNotEmpty)) ...[
+        const SizedBox(width: 4.0),
+        Icon(Icons.notifications_active, size: 12, color: Colors.blueAccent),
+      ],
       if (file.record.syncConflict) ...[const SizedBox(width: 4.0), Icon(Icons.warning, size: 14, color: Colors.red)],
       if (file.record.localEditType == LocalEditType.edit && !file.record.syncConflict) ...[
         const SizedBox(width: 4.0),

@@ -17,6 +17,7 @@ import 'package:note123/utils/utils.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_component.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_toolbar_item.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_newline.dart';
+import 'package:note123/ui/editor/reminder_panel.dart';
 
 /// Shared text style configuration (edit page + diff page).
 TextStyleConfiguration buildEditorTextStyle(ThemeData theme) {
@@ -296,6 +297,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
         ),
         Divider(height: 1, color: theme.colorScheme.outline.withAlpha(50)),
         Expanded(child: _buildEditorWidget(theme, _blockComponentBuilders, _textStyleConfiguration)),
+        ReminderPanel(uuid: widget.record.uuid),
         _LastModifyTimeWidget(uuid: widget.record.uuid),
       ],
     );

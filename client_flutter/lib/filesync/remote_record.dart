@@ -14,6 +14,7 @@ class RemoteRecord {
   final int deleteAt;
   final String md5;
   final int locked;
+  final String reminder;
 
   RemoteRecord({
     required this.uuid,
@@ -27,6 +28,7 @@ class RemoteRecord {
     required this.locked,
     required this.deleteAt,
     required this.md5,
+    this.reminder = '',
   });
 
   /// RemoteRecord → LocalRecord: copy all remote_*, local_* = remote_* (synced baseline).
@@ -49,6 +51,7 @@ class RemoteRecord {
       remoteMd5: md5,
       remoteName: name,
       remotePath: formattedPath,
+      remoteReminder: reminder,
       remoteFileVersion: fileVersion,
       baseFileVersion: baseFileVersion,
       // Local = remote (synced)
@@ -61,6 +64,7 @@ class RemoteRecord {
       localMd5: md5,
       localPath: formattedPath,
       localLocked: locked,
+      localReminder: reminder,
     );
   }
 
@@ -76,6 +80,7 @@ class RemoteRecord {
     locked: (json['locked'] as num?)?.toInt() ?? 0,
     deleteAt: (json['deleteAt'] as num?)?.toInt() ?? 0,
     md5: json['md5'] as String? ?? '',
+    reminder: json['reminder'] as String? ?? '',
   );
 
   Map<String, Object?> toJson() => {
@@ -90,6 +95,7 @@ class RemoteRecord {
     'deleteAt': deleteAt,
     'md5': md5,
     'locked': locked,
+    'reminder': reminder,
   };
 
   @override

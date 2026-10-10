@@ -133,12 +133,9 @@ void showFolderMoveDialog(BuildContext context, TreeContentFolder folder) {
 Future<void> moveRecordToPath(BuildContext context, TreeContentFile file, String newPath) async {
   var newRecord = await Repository.get().editRecord(
     file.uuid,
-    newPath,
-    file.name,
     false,
     DateTime.now().millisecondsSinceEpoch,
-    file.locked,
-    file.record.localMd5,
+    path: newPath,
   );
   if (newRecord == null) {
     if (context.mounted) {
@@ -188,12 +185,10 @@ Future<void> _lockRecord(BuildContext context, TreeContentFile record, String pa
 
     await Repository.get().editRecord(
       record.uuid,
-      record.path,
-      record.name,
       true,
       DateTime.now().millisecondsSinceEpoch,
-      lock ? 1 : 0,
-      Utils.generateMd5(encryptedContent),
+      locked: lock ? 1 : 0,
+      md5: Utils.generateMd5(encryptedContent),
     );
 
     if (context.mounted) {
@@ -232,15 +227,7 @@ Future<void> _renameRecord(BuildContext context, TreeContentFile record, String 
   String oldName = record.name;
   if (oldName == newName) return; // No actual change
 
-  await Repository.get().editRecord(
-    record.uuid,
-    record.path,
-    newName,
-    false,
-    DateTime.now().millisecondsSinceEpoch,
-    record.locked,
-    record.record.localMd5,
-  );
+  await Repository.get().editRecord(record.uuid, false, DateTime.now().millisecondsSinceEpoch, name: newName);
 }
 
 Future<void> _renameFolder(BuildContext context, TreeContentFolder folder, String newPath) async {

@@ -114,6 +114,7 @@ func (s *Server) updateRecordHandler(w http.ResponseWriter, r *http.Request, use
 	md5sum := ""
 	path := r.FormValue("path")
 	name := r.FormValue("name")
+	reminder := r.FormValue("reminder")
 	file, fileHeader, formFileErr := r.FormFile("file")
 	// Multipart parse failures (including size limit) must report an error; otherwise they would silently be treated as a "metadata-only update" and return success
 	if formFileErr != nil && formFileErr != http.ErrMissingFile {
@@ -148,7 +149,7 @@ func (s *Server) updateRecordHandler(w http.ResponseWriter, r *http.Request, use
 	// The DB transaction MUST complete BEFORE the file commit. Otherwise, on a concurrent conflict the disk file would be overwritten
 	// but the DB md5 would point to a different request's content, causing md5 mismatch during download (disk content ≠ DB md5).
 	// UpsertRecord already includes full conflict detection (atomicity is guaranteed by the transaction).
-	record, result := s.db.UpsertRecord(user.UserID, uuid, path, name, md5sum, createAt, editAt, fileEditAt, locked, baseVersion)
+	record, result := s.db.UpsertRecord(user.UserID, uuid, path, name, md5sum, reminder, createAt, editAt, fileEditAt, locked, baseVersion)
 	if result != ResultSuccess {
 		if hasTempFile {
 			os.Remove(tmpPath)

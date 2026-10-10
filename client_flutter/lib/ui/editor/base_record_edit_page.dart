@@ -13,6 +13,7 @@ import 'package:note123/utils/app_logger.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/utils/object_ref.dart';
+import 'package:note123/ui/desktop/desktop_record_detail_page.dart';
 
 /// Unified page state: mode + payload + buildCount.
 /// buildCount is reset to 0 by setStateMode on every state transition, then incremented
@@ -45,7 +46,9 @@ abstract class BaseRecordEditPage extends StatefulWidget {
   const BaseRecordEditPage({super.key, required this.record, this.onRecordDeleted});
 }
 
-abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends State<T> with WidgetsBindingObserver {
+abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends State<T>
+    with WidgetsBindingObserver
+    implements DetailTabPageState {
   PageState pageState = PageState(PageState.modeLoad);
   String? _password; // Save unlock password
   int _saveCount = 0; // Track save count
@@ -370,7 +373,14 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     }
     md5Ref.value = md5;
     await File(fileStore.getWorkFile(uuid)).writeAsString(writeContent);
-    await Repository.get().editRecord(uuid, path, name, true, DateTime.now().millisecondsSinceEpoch, effLocked, md5);
+    await Repository.get().editRecord(
+      uuid,
+      true,
+      DateTime.now().millisecondsSinceEpoch,
+      name: name,
+      locked: effLocked,
+      md5: md5,
+    );
   }
 
   Widget buildContentWidget(String plaintext, bool reload);

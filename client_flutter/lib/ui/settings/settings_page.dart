@@ -4,6 +4,7 @@ import 'package:note123/filesync/http_api.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/user.dart';
 import 'package:note123/ui/settings/record_operates_page.dart';
+import 'package:note123/model/reminder_notifier.dart';
 import 'package:note123/ui/common/platform_app_bar.dart';
 import 'package:note123/ui/settings/server_api_stats_page.dart';
 import 'package:note123/ui/settings/record_database_page.dart';
@@ -214,6 +215,12 @@ class _SettingsPageState extends State<SettingsPage> {
           ListTile(onTap: _onRecordsDbTap, title: Text(l10n.database)),
           AppConfig.listViewDivider(context),
           ListTile(onTap: _onOperatesDbTap, title: Text(l10n.operates)),
+          AppConfig.listViewDivider(context),
+          ListTile(
+            onTap: () => ReminderNotifier.instance.showTestNotification(),
+            title: const Text('测试通知'),
+            subtitle: const Text('立即发送一条本地通知'),
+          ),
         ],
       ),
     );

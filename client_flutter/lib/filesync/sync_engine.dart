@@ -373,6 +373,7 @@ class SyncEngine {
         localRecord.localEditAt > 0 ? localRecord.localEditAt : localRecord.remoteEditAt,
         uploadFileEditAt,
         localRecord.localLocked,
+        localRecord.localReminder,
         fileExist ? file.absolute.path : '',
         baseVersion,
       );

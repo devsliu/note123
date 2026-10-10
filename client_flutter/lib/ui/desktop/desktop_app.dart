@@ -123,6 +123,9 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver, Wi
                       rightState.openRecordTab(record);
                     }
                   },
+                  onOpenCalendar: () {
+                    detailKey.currentState?.openCalendarTab();
+                  },
                 ),
               ),
               LayoutId(

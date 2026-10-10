@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:note123/filesync/repository.dart';
 import 'package:flutter/material.dart';
 import 'package:note123/utils/utils.dart';
+import 'package:note123/model/reminder_notifier.dart';
 import 'package:note123/config/app_config.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/layout_mode.dart';
@@ -65,6 +68,8 @@ Future<void> main() async {
   await AppConfig.init();
   LanguageManager.init();
   await Repository.init(AppConfig.appRootDir);
+  // Schedule all pending reminder notifications after DB is ready
+  unawaited(ReminderNotifier.instance.rescheduleAll());
   RecordListWidgetType.notifier.value =
       Prefs.instance.getInt(PrefKeys.listType) ??
       (Utils.isDesktop() ? RecordListWidgetType.sTreeFolder : RecordListWidgetType.sFlatFolder);

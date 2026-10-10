@@ -7,6 +7,13 @@ import 'package:path_provider/path_provider.dart';
 class AppConfig {
   static const String appTitle = "Note123";
 
+  /// App package name.
+  /// - Android: applicationId (com.lhg.notes)
+  /// - Windows: AppUserModelID for local notification registration;
+  ///   flutter_local_notifications registers a Start Menu shortcut with this
+  ///   ID so toast notifications can display.
+  static const String packageName = "com.lhg.notes";
+
   /// Build info injected at compile time via --dart-define (empty when not provided)
   static const String buildGitCommit = String.fromEnvironment('GIT_COMMIT');
   static const String buildTime = String.fromEnvironment('BUILD_TIME');

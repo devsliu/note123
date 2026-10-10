@@ -78,7 +78,7 @@ class Repository {
     recordTree.build([]);
     if (userId != 0) {
       _fileStore = FileStore(join(appRootDir, userId.toString()));
-      _db = createRecordsDatabase(File(join(_fileStore!.rootDir, "records.db")));
+      _db = createRecordsDatabase(File(join(_fileStore!.rootDir, "records_v2.db")));
       _fileStore!.db = _db!;
       _syncEngine = SyncEngine(
         db: _db!,
@@ -117,16 +117,19 @@ class Repository {
   }
 
   /// Edit existing record. fileEdit=true means work file content also changed.
-  /// md5: md5 of the work file content (post-encryption if locked). Pass empty string if file unchanged.
+  /// md5: md5 of the work file content (post-encryption if locked).
+  /// path/name/locked/md5: optional; when null the field is left unchanged.
+  /// reminder: optional JSON string of reminder tasks; pass null to leave it unchanged.
   Future<LocalRecord?> editRecord(
     String uuid,
-    String path,
-    String name,
     bool fileEdit,
-    int time,
-    int locked,
-    String md5,
-  ) async {
+    int time, {
+    String? path,
+    String? name,
+    int? locked,
+    String? md5,
+    String? reminder,
+  }) async {
     if (_db == null) return null;
     AppDatabase db = _db!;
 
@@ -142,6 +145,7 @@ class Repository {
       localEditAt: time,
       localFileEditAt: fileEdit ? time : null,
       localLocked: locked,
+      localReminder: reminder,
     );
 
     final record = await db.getRecord(uuid);

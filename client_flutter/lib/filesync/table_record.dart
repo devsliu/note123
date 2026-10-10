@@ -36,6 +36,7 @@ class LocalRecords extends Table {
   TextColumn get remoteMd5 => text().withDefault(const Constant(''))();
   TextColumn get remoteName => text().withDefault(const Constant(''))();
   TextColumn get remotePath => text().withDefault(const Constant(''))();
+  TextColumn get remoteReminder => text().withDefault(const Constant(''))();
 
   /// Server-side file version number (incremented independently per record, only +1 when file content changes, defaults to 0)
   IntColumn get remoteFileVersion => integer().withDefault(const Constant(0))();
@@ -66,6 +67,7 @@ class LocalRecords extends Table {
   TextColumn get localName => text().withDefault(const Constant(''))();
   TextColumn get localMd5 => text().withDefault(const Constant(''))();
   IntColumn get localLocked => integer().withDefault(const Constant(0))();
+  TextColumn get localReminder => text().withDefault(const Constant(''))();
 
   /// Local path: COLLATE BINARY ensures LIKE index works, CHECK constraint guarantees format
   TextColumn get localPath =>

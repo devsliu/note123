@@ -32,6 +32,11 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<LocalRecord>> getAllLocalRecords() async => await select(localRecords).get();
 
+  /// Records that carry at least one reminder (local or remote).
+  Future<List<LocalRecord>> getRecordsWithReminders() async => await (select(
+    localRecords,
+  )..where((t) => t.localReminder.equals('').not() | t.remoteReminder.equals('').not())).get();
+
   /// Latest 15 non-deleted entries (ordered by remoteVersion descending)
   Future<List<LocalRecord>> getRecentRecords() async =>
       await (select(localRecords)
@@ -132,6 +137,7 @@ class AppDatabase extends _$AppDatabase {
     String? remoteMd5,
     String? remoteName,
     String? remotePath,
+    String? remoteReminder,
     // remote file version
     int? remoteFileVersion,
     // base file tracking
@@ -146,6 +152,7 @@ class AppDatabase extends _$AppDatabase {
     String? localMd5,
     String? localPath,
     int? localLocked,
+    String? localReminder,
   }) async {
     return await (update(localRecords)..where((t) => t.uuid.equals(uuid))).write(
       LocalRecordsCompanion(
@@ -159,6 +166,7 @@ class AppDatabase extends _$AppDatabase {
         remoteMd5: remoteMd5 != null ? Value(remoteMd5) : Value.absent(),
         remoteName: remoteName != null ? Value(remoteName) : Value.absent(),
         remotePath: remotePath != null ? Value(remotePath) : Value.absent(),
+        remoteReminder: remoteReminder != null ? Value(remoteReminder) : Value.absent(),
         remoteFileVersion: remoteFileVersion != null ? Value(remoteFileVersion) : Value.absent(),
         baseFileVersion: baseFileVersion != null ? Value(baseFileVersion) : Value.absent(),
         localEditType: localEditType != null ? Value(localEditType) : Value.absent(),
@@ -170,6 +178,7 @@ class AppDatabase extends _$AppDatabase {
         localMd5: localMd5 != null ? Value(localMd5) : Value.absent(),
         localPath: localPath != null ? Value(localPath) : Value.absent(),
         localLocked: localLocked != null ? Value(localLocked) : Value.absent(),
+        localReminder: localReminder != null ? Value(localReminder) : Value.absent(),
       ),
     );
   }
@@ -192,6 +201,7 @@ class AppDatabase extends _$AppDatabase {
       remoteMd5: remote.md5,
       remoteName: remote.name,
       remotePath: formattedPath,
+      remoteReminder: remote.reminder,
       remoteFileVersion: remote.fileVersion,
       localVersion: localVersion,
     );
@@ -213,6 +223,7 @@ class AppDatabase extends _$AppDatabase {
       remoteMd5: '',
       remoteName: '',
       remotePath: '',
+      remoteReminder: '',
       remoteFileVersion: 0,
       localVersion: 0,
       localFileVersion: 0,
@@ -240,6 +251,7 @@ class AppDatabase extends _$AppDatabase {
       localMd5: e.remoteMd5,
       localPath: e.remotePath,
       localLocked: e.remoteLocked,
+      localReminder: e.remoteReminder,
     );
   }
 }

@@ -19,22 +19,19 @@ type Record struct {
 	FileEditAt  int64  `json:"fileEditAt"`  // last-edit time of the note file, in milliseconds
 	FileVersion int64  `json:"fileVersion"` // note file version; 0 without file content, first content is 1, then +1 on each change
 	Locked      int64  `json:"locked"`      // whether the note is locked; 0 = unlocked, non-0 = lock timestamp
+	Reminder    string `json:"reminder"`    // JSON array of reminder tasks, "" means no reminders
 }
 
-// recordColumns is the fixed field order of the record table, shared by all SELECT / INSERT statements.
-// This avoids mismatched Scan or misaligned writes caused by hand-written field lists with wrong order or missing fields.
-// The order must match the Record struct Scan order exactly.
-const recordColumns = "uuid, path, name, md5, version, createAt, editAt, deleteAt, fileEditAt, fileVersion, locked"
+const recordColumns = "uuid, path, name, md5, version, createAt, editAt, deleteAt, fileEditAt, fileVersion, locked, reminder"
 
-// scanTargets returns a slice of pointers to each Record field, in the exact order of recordColumns.
 func (e *Record) scanTargets() []interface{} {
 	return []interface{}{
 		&e.UUID, &e.Path, &e.Name, &e.MD5, &e.Version,
-		&e.CreateAt, &e.EditAt, &e.DeleteAt, &e.FileEditAt, &e.FileVersion, &e.Locked,
+		&e.CreateAt, &e.EditAt, &e.DeleteAt, &e.FileEditAt, &e.FileVersion, &e.Locked, &e.Reminder,
 	}
 }
 
-func NewRecord(uuid, path, name, md5 string, createAt, editAt, deleteAt, version, fileEditAt, fileVersion, locked int64) *Record {
+func NewRecord(uuid, path, name, md5 string, createAt, editAt, deleteAt, version, fileEditAt, fileVersion, locked int64, reminder string) *Record {
 	return &Record{
 		UUID:        uuid,
 		Path:        path,
@@ -47,6 +44,7 @@ func NewRecord(uuid, path, name, md5 string, createAt, editAt, deleteAt, version
 		FileEditAt:  fileEditAt,
 		FileVersion: fileVersion,
 		Locked:      locked,
+		Reminder:    reminder,
 	}
 }
 
@@ -63,7 +61,8 @@ func createRecordTableSql(userId int64) string {
 			md5 TEXT NOT NULL DEFAULT '',
 			fileEditAt INTEGER NOT NULL DEFAULT 0,
 			fileVersion INTEGER NOT NULL DEFAULT 0,
-			locked INTEGER NOT NULL DEFAULT 0
+			locked INTEGER NOT NULL DEFAULT 0,
+			reminder TEXT NOT NULL DEFAULT ''
 		);
 		CREATE INDEX IF NOT EXISTS idx_record_version_%d ON record_%d (version);`, userId, userId, userId)
 }
@@ -75,7 +74,7 @@ func dropRecordTableSql(userId int64) string {
 // UpsertRecord inserts or updates a record.
 // baseVersion is the server-side version known locally by the client (pass 0 for a new record).
 // If the current server version > baseVersion, another device has already pushed; return ResultErrorRecordConflict.
-func (db *DB) UpsertRecord(userId int64, uuid, path, name, md5 string, createAt, editAt, fileEditAt, locked, baseVersion int64) (*Record, ResultCode) {
+func (db *DB) UpsertRecord(userId int64, uuid, path, name, md5, reminder string, createAt, editAt, fileEditAt, locked, baseVersion int64) (*Record, ResultCode) {
 	var resultRecord *Record
 	var conflictRecord *Record
 	var bizResult ResultCode = ResultSuccess
@@ -102,7 +101,7 @@ func (db *DB) UpsertRecord(userId int64, uuid, path, name, md5 string, createAt,
 		}
 		sqlStmt := fmt.Sprintf(`
 			INSERT INTO record_%d (`+recordColumns+`)
-			VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
+			VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
 			ON CONFLICT(uuid) DO UPDATE SET
 				path=excluded.path,
 				name=excluded.name,
@@ -113,9 +112,10 @@ func (db *DB) UpsertRecord(userId int64, uuid, path, name, md5 string, createAt,
 				createAt=excluded.createAt,
 				fileEditAt=CASE WHEN excluded.fileEditAt > 0 THEN excluded.fileEditAt ELSE record_%d.fileEditAt END,
 				fileVersion=CASE WHEN excluded.md5 != '' AND excluded.md5 != record_%d.md5 THEN record_%d.fileVersion + 1 ELSE record_%d.fileVersion END,
-				locked=excluded.locked
+				locked=excluded.locked,
+				reminder=excluded.reminder
 		`, userId, userId, userId, userId, userId, userId)
-		_, err = tx.Exec(sqlStmt, uuid, path, name, md5, version, createAt, editAt, fileEditAt, insertFileVersion, locked)
+		_, err = tx.Exec(sqlStmt, uuid, path, name, md5, version, createAt, editAt, fileEditAt, insertFileVersion, locked, reminder)
 		if err != nil {
 			return err
 		}

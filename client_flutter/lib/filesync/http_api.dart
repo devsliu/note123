@@ -246,6 +246,7 @@ class HttpApi {
     int editAt,
     int fileEditAt,
     int locked,
+    String reminder,
     String filePath,
     int version,
   ) async {
@@ -258,6 +259,7 @@ class HttpApi {
       req.fields['editAt'] = editAt.toString();
       req.fields['fileEditAt'] = fileEditAt.toString();
       req.fields['locked'] = locked.toString();
+      req.fields['reminder'] = reminder;
       req.fields['version'] = version.toString();
       if (filePath.isNotEmpty) {
         // If filePath is not empty, it means file needs to be uploaded

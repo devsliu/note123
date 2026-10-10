@@ -7,6 +7,7 @@ import 'package:note123/ui/files/record_list_bottom_bar.dart';
 import 'package:note123/ui/files/record_list_top_bar.dart';
 import 'package:note123/ui/settings/settings_button.dart';
 import 'package:note123/ui/files/sync_button.dart';
+import 'package:note123/ui/calendar/calendar_task_item.dart';
 import 'package:note123/config/layout_mode.dart';
 import 'package:note123/config/theme.dart';
 import 'package:note123/utils/utils.dart';
@@ -16,8 +17,9 @@ import 'package:note123/ui/files/record_files_tree_control.dart';
 
 class DesktopRecordListPage extends StatelessWidget {
   final ValueCallback2<BuildContext, TreeContentFile> onClickRecordAction;
+  final VoidCallback? onOpenCalendar;
 
-  const DesktopRecordListPage({super.key, required this.onClickRecordAction});
+  const DesktopRecordListPage({super.key, required this.onClickRecordAction, this.onOpenCalendar});
 
   Widget buildTitleBar(BuildContext context) {
     var theme = Theme.of(context);
@@ -62,6 +64,7 @@ class DesktopRecordListPage extends StatelessWidget {
           ),
           if (theme.appBarBackgroundColor == theme.colorScheme.surface)
             Divider(height: 1, color: theme.colorScheme.outline.withAlpha(80)),
+          CalendarTaskItem(onTap: () => onOpenCalendar?.call()),
           Expanded(
             child: ValueListenableBuilder<int>(
               valueListenable: RecordListWidgetType.notifier,
