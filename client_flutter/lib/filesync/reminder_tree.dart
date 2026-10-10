@@ -263,6 +263,22 @@ class ReminderEntry {
   int get sortAt => nextReminderOccurrence(task, DateTime.now())?.millisecondsSinceEpoch ?? 0;
 }
 
+/// A change event emitted by [ReminderTree.refreshNotifier].
+class ReminderEvent {
+  /// A single record's reminders were inserted or updated.
+  static const int typeUpsertRecord = 1;
+
+  /// A record's reminders were removed.
+  static const int typeDeleteRecord = 2;
+
+  /// The whole tree was rebuilt from scratch (e.g. initial load).
+  static const int typeRebuild = 3;
+
+  final int type;
+  final String? recordUuid;
+  ReminderEvent(this.type, {this.recordUuid});
+}
+
 /// Holds all reminder entries extracted from records, kept in sync with the
 /// owning [RecordTree]. Callers read reminders from here instead of scanning
 /// the database directly.
@@ -270,9 +286,9 @@ class ReminderTree {
   final List<ReminderEntry> _entries = [];
   final Map<String, List<ReminderEntry>> _byRecord = {};
 
-  /// Bumped whenever the reminder set changes. Listeners can re-read [entries]
-  /// to get the latest snapshot.
-  final ValueNotifier<int> refreshNotifier = ValueNotifier<int>(0);
+  /// Detailed events emitted on each change, so listeners can react
+  /// incrementally instead of rescanning everything.
+  final ValueNotifier<List<ReminderEvent>> refreshNotifier = ValueNotifier<List<ReminderEvent>>(const []);
 
   /// All reminder entries, sorted ascending by [ReminderEntry.sortAt].
   List<ReminderEntry> get entries => List.unmodifiable(_entries);
@@ -285,7 +301,7 @@ class ReminderTree {
       _addRecord(record);
     }
     _sort();
-    _notify();
+    _notify([ReminderEvent(ReminderEvent.typeRebuild)]);
   }
 
   /// Insert or update a single record's reminders.
@@ -298,7 +314,7 @@ class ReminderTree {
     // Only sort and notify when something actually changed.
     if (old != null || added) {
       _sort();
-      _notify();
+      _notify([ReminderEvent(ReminderEvent.typeUpsertRecord, recordUuid: record.uuid)]);
     }
   }
 
@@ -307,7 +323,7 @@ class ReminderTree {
     final removed = _byRecord.remove(uuid);
     if (removed == null) return;
     removed.forEach(_entries.remove);
-    _notify();
+    _notify([ReminderEvent(ReminderEvent.typeDeleteRecord, recordUuid: uuid)]);
   }
 
   /// Reminder tasks belonging to [uuid], or empty list if none.
@@ -320,8 +336,9 @@ class ReminderTree {
     return _entries.where((e) => reminderOccursOnDay(e.task, day)).toList();
   }
 
-  void _notify() {
-    refreshNotifier.value++;
+  void _notify(List<ReminderEvent> events) {
+    if (events.isEmpty) return;
+    refreshNotifier.value = List.unmodifiable(events);
   }
 
   /// Adds a record's reminders. Returns true if any entries were added.

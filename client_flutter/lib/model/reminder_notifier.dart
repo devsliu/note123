@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/config/app_config.dart';
@@ -15,7 +14,7 @@ import 'package:note123/utils/app_logger.dart';
 ///
 /// Strategy:
 /// - At startup [rescheduleAll] loads every reminder and schedules it.
-/// - Afterwards, [RecordTree.refreshNotifier] drives incremental updates:
+/// - Afterwards, [ReminderTree.refreshNotifier] drives incremental updates:
 ///   each upsert/delete event only touches the affected record's tasks
 ///   (cancel old notification ids, then schedule the new ones).
 class ReminderNotifier with WidgetsBindingObserver {
@@ -63,7 +62,7 @@ class ReminderNotifier with WidgetsBindingObserver {
     final androidPlugin = _plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.requestNotificationsPermission();
 
-    Repository.get().recordTree.refreshNotifier.addListener(_onTreeChanged);
+    Repository.get().reminderTree.refreshNotifier.addListener(_onTreeChanged);
     WidgetsBinding.instance.addObserver(this);
 
     _initialized = true;
@@ -83,15 +82,21 @@ class ReminderNotifier with WidgetsBindingObserver {
     }
   }
 
-  /// React to record tree changes. Folder events are ignored. Each record
-  /// upsert/delete is handled incrementally (no full rescan).
+  /// React to reminder tree changes. Each upsert/delete event is handled
+  /// incrementally (no full rescan); a rebuild event triggers a full pass.
   void _onTreeChanged() {
-    final events = Repository.get().recordTree.refreshNotifier.value;
+    final events = Repository.get().reminderTree.refreshNotifier.value;
     for (final e in events) {
-      if (e.type == RecordEvent.typeDeleteRecord) {
-        _cancelRecord(e.value2);
-      } else if (e.type == RecordEvent.typeUpsertRecord) {
-        unawaited(_upsertRecord(e.value2));
+      switch (e.type) {
+        case ReminderEvent.typeRebuild:
+          unawaited(rescheduleAll());
+          break;
+        case ReminderEvent.typeDeleteRecord:
+          _cancelRecord(e.recordUuid);
+          break;
+        case ReminderEvent.typeUpsertRecord:
+          unawaited(_upsertRecord(e.recordUuid));
+          break;
       }
     }
   }
