@@ -8,30 +8,20 @@ import 'package:note123/config/app_config.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/http_api.dart';
 import 'package:note123/utils/app_logger.dart';
-import 'package:note123/utils/utils.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// 从当前平台推断服务器 platform 参数
 /// 和 version.json 的 key 对应：windows / linux / macos / android / ios
-String? detectPlatform() {
-  if (Utils.isDesktop()) {
-    if (Platform.isWindows) return 'windows';
-    if (Platform.isLinux) return 'linux';
-    if (Platform.isMacOS) return 'macos';
-    return null;
-  }
-  if (Platform.isAndroid) return 'android';
-  if (Platform.isIOS) return 'ios';
-  return null;
+String detectPlatform() {
+  return Platform.operatingSystem;
 }
 
 /// 升级下载 + 各平台安装入口
 class UpgradeManager {
   /// 比较版本名 (如 "v1.0.4" vs "1.0.3"), remote 更新则返回 true
   static bool isNewerVersion(String remote, String current) {
-    List<int> parse(String v) =>
-        v.replaceFirst(RegExp(r'^v'), '').split('.').map((e) => int.tryParse(e) ?? 0).toList();
+    List<int> parse(String v) => v.replaceFirst(RegExp(r'^v'), '').split('.').map((e) => int.tryParse(e) ?? 0).toList();
     final r = parse(remote);
     final c = parse(current);
     for (var i = 0; i < r.length || i < c.length; i++) {
@@ -45,7 +35,6 @@ class UpgradeManager {
   /// 检查升级, 返回 VersionInfo (可能为 null)
   static Future<VersionInfo?> checkUpgrade() async {
     final platform = detectPlatform();
-    if (platform == null) return null;
     final baseUrl = HttpApi.baseUrl;
     if (baseUrl.isEmpty) return null;
 
@@ -66,14 +55,6 @@ class UpgradeManager {
     final baseUrl = HttpApi.baseUrl;
     final isIOS = platform == 'ios';
 
-    if (platform == null) {
-      _showDialog(
-        context,
-        title: Text('${AppConfig.appTitle} $currentVersion'),
-        content: Text(l10n.upgradeCheckFailed),
-      );
-      return;
-    }
     if (versionInfo == null) {
       final subtitle = baseUrl.isEmpty
           ? l10n.upgradeCheckFailed
