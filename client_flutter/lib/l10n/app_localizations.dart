@@ -1082,18 +1082,6 @@ abstract class AppLocalizations {
   /// **'日历任务'**
   String get calendarTasks;
 
-  /// No description provided for @calendarView.
-  ///
-  /// In zh, this message translates to:
-  /// **'日历'**
-  String get calendarView;
-
-  /// No description provided for @listView.
-  ///
-  /// In zh, this message translates to:
-  /// **'列表'**
-  String get listView;
-
   /// No description provided for @noRemindersToday.
   ///
   /// In zh, this message translates to:

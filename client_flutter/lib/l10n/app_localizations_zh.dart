@@ -529,12 +529,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get calendarTasks => '日历任务';
 
   @override
-  String get calendarView => '日历';
-
-  @override
-  String get listView => '列表';
-
-  @override
   String get noRemindersToday => '当天无提醒';
 
   @override

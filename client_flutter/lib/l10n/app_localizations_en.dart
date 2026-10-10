@@ -532,12 +532,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendarTasks => 'Calendar';
 
   @override
-  String get calendarView => 'Calendar';
-
-  @override
-  String get listView => 'List';
-
-  @override
   String get noRemindersToday => 'No reminders today';
 
   @override

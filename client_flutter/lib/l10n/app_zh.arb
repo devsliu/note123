@@ -171,8 +171,6 @@
   "addReminder":"添加提醒",
   "weekdays":"周一|周二|周三|周四|周五|周六|周日",
   "calendarTasks":"日历任务",
-  "calendarView":"日历",
-  "listView":"列表",
   "noRemindersToday":"当天无提醒",
   "reminder":"提醒",
   "today":"今",

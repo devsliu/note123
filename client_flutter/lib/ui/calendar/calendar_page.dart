@@ -83,9 +83,13 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
   Widget _buildSegmentedControl(BuildContext context) {
     return SegmentedButton<int>(
       showSelectedIcon: false,
+      style: const ButtonStyle(
+        visualDensity: VisualDensity.compact,
+        padding: WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 4)),
+      ),
       segments: [
-        ButtonSegment(value: 0, label: Text(l10n.calendarView), icon: const Icon(Icons.calendar_month, size: 18)),
-        ButtonSegment(value: 1, label: Text(l10n.listView), icon: const Icon(Icons.list, size: 18)),
+        ButtonSegment(value: 0, icon: const Icon(Icons.calendar_month, size: 18)),
+        ButtonSegment(value: 1, icon: const Icon(Icons.list, size: 18)),
       ],
       selected: {_viewMode},
       onSelectionChanged: (set) => setState(() => _viewMode = set.first),

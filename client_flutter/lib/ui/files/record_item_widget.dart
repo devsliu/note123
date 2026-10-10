@@ -1,6 +1,5 @@
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/local_record_ext.dart';
-import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/ui/files/record_context_menu.dart';
 import 'package:flutter/material.dart';
@@ -11,10 +10,9 @@ abstract class _BaseItemWidget extends StatelessWidget {
   final TreeContent content;
   final bool isSelected;
   final ValueCallback<TreeContent> onContentPressed;
-  final RecordTree recordTree = Repository.get().recordTree;
   final double horizontalPadding;
   final double verticalPadding;
-  _BaseItemWidget({
+  const _BaseItemWidget({
     super.key,
     required this.content,
     required this.isSelected,
@@ -155,7 +153,7 @@ class TreeFolderWidget extends FolderWidget {
 class FileWidget extends _BaseItemWidget {
   final bool showIcon;
 
-  FileWidget({
+  const FileWidget({
     super.key,
     required this.showIcon,
     required super.isSelected,
