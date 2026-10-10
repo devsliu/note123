@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:note123/config/app_config.dart';
 import 'package:note123/config/language_manager.dart';
-import 'package:note123/filesync/reminder_entry.dart';
+import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/filesync/repository.dart';
 
 /// A clickable row shown at the top of record list pages, opening the calendar page.

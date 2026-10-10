@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/repository.dart';
-import 'package:note123/filesync/reminder_entry.dart';
+import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:uuid/uuid.dart';
 

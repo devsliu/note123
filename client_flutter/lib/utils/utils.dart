@@ -6,7 +6,7 @@ import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:note123/config/language_manager.dart';
-import 'package:note123/filesync/reminder_entry.dart';
+import 'package:note123/filesync/reminder_tree.dart';
 import 'package:pointycastle/api.dart';
 import 'package:pointycastle/key_derivators/api.dart';
 import 'package:pointycastle/key_derivators/pbkdf2.dart';

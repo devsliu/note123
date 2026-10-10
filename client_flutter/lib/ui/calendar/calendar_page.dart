@@ -3,7 +3,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
-import 'package:note123/filesync/reminder_entry.dart';
+import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/ui/desktop/desktop_tabs_page.dart';
 import 'package:note123/utils/utils.dart';
 

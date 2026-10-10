@@ -7,7 +7,7 @@ import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/table_operate.dart';
 import 'package:note123/filesync/file_store.dart';
 import 'package:note123/filesync/record_tree.dart';
-import 'package:note123/filesync/reminder_entry.dart';
+import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/filesync/local_record_ext.dart';
 import 'package:note123/filesync/sync_engine.dart' show SyncEngine, SyncState;

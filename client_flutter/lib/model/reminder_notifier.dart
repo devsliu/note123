@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
-import 'package:note123/filesync/reminder_entry.dart';
+import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/config/app_config.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
