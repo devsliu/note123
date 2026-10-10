@@ -16,6 +16,7 @@ class CalendarTaskItem extends StatefulWidget {
 
 class _CalendarTaskItemState extends State<CalendarTaskItem> {
   int _todayCount = 0;
+  int _totalCount = 0;
 
   @override
   void initState() {
@@ -33,11 +34,19 @@ class _CalendarTaskItemState extends State<CalendarTaskItem> {
   void _loadCount() {
     final entries = Repository.get().reminderTree.entries;
     final today = DateTime.now();
-    final count = entries.where((e) {
-      if (e.task.done) return false;
-      return reminderOccursOnDay(e.task, today);
-    }).length;
-    if (mounted) setState(() => _todayCount = count);
+    var todayCount = 0;
+    var totalCount = 0;
+    for (final e in entries) {
+      totalCount++;
+      if (e.task.done) continue;
+      if (reminderOccursOnDay(e.task, today)) todayCount++;
+    }
+    if (mounted) {
+      setState(() {
+        _todayCount = todayCount;
+        _totalCount = totalCount;
+      });
+    }
   }
 
   @override
@@ -57,7 +66,10 @@ class _CalendarTaskItemState extends State<CalendarTaskItem> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(color: theme.colorScheme.primary, borderRadius: BorderRadius.circular(8)),
-                child: Text('$_todayCount', style: TextStyle(fontSize: 11, color: theme.colorScheme.onPrimary)),
+                child: Text(
+                  '$_todayCount/$_totalCount',
+                  style: TextStyle(fontSize: 11, color: theme.colorScheme.onPrimary),
+                ),
               ),
             Icon(Icons.chevron_right, size: 18, color: theme.colorScheme.onSurface.withAlpha(120)),
           ],
