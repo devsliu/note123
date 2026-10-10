@@ -23,8 +23,13 @@ class EditorTab extends DesktopTab {
   EditorTab({required super.id, required this.title, required this.record});
 
   @override
-  void setSelected(RecordTree recordTree) {
-    RecordOpenedState.instance.setOpenedFile(record.uuid);
+  void select() {
+    RecordOpenedState.get().openFile(record.uuid);
+  }
+
+  @override
+  void close() {
+    RecordOpenedState.get().closeFile(record.uuid);
   }
 
   @override
@@ -40,8 +45,13 @@ class CalendarTab extends DesktopTab {
   String get title => l10n.calendarTasks;
 
   @override
-  void setSelected(RecordTree recordTree) {
-    RecordOpenedState.instance.setOpenedFile("");
+  void select() {
+    RecordOpenedState.get().closeFile(RecordOpenedState.get().openedFileNotifier.value);
+  }
+
+  @override
+  void close() {
+    // The calendar tab does not hold a record, so nothing to release.
   }
 
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:note123/filesync/repository.dart';
 import 'package:flutter/material.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/model/reminder_notifier.dart';
 import 'package:note123/config/app_config.dart';
@@ -71,7 +72,9 @@ Future<void> main() async {
   RecordListWidgetType.notifier.value =
       Prefs.instance.getInt(PrefKeys.listType) ??
       (Utils.isDesktop() ? RecordListWidgetType.sTreeFolder : RecordListWidgetType.sFlatFolder);
-  Repository.get().recordTree.setSortListType(RecordListWidgetType.notifier.value);
+  final listType = RecordListWidgetType.notifier.value;
+  Repository.get().recordTree.setSortListType(listType);
+  if (listType != 0) RecordOpenedState.get().setOpenedFolder("/");
 
   // 根节点监听 Reboot, 切换布局模式后可在 PadApp/PhoneApp 之间重建
   runApp(ValueListenableBuilder<int>(valueListenable: Reboot.notifier, builder: (_, _, _) => _buildApp()));

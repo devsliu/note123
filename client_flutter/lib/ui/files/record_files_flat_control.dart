@@ -22,15 +22,15 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
   void initState() {
     super.initState();
     recordTree.refreshNotifier.addListener(onRefreshChanged);
-    RecordOpenedState.instance.openedFileNotifier.addListener(onRefreshChanged);
-    RecordOpenedState.instance.openedFolderNotifier.addListener(onOpenedFolderChanged);
+    RecordOpenedState.get().openedFileNotifier.addListener(onRefreshChanged);
+    RecordOpenedState.get().openedFolderNotifier.addListener(onOpenedFolderChanged);
   }
 
   @override
   void dispose() {
     recordTree.refreshNotifier.removeListener(onRefreshChanged);
-    RecordOpenedState.instance.openedFileNotifier.removeListener(onRefreshChanged);
-    RecordOpenedState.instance.openedFolderNotifier.removeListener(onOpenedFolderChanged);
+    RecordOpenedState.get().openedFileNotifier.removeListener(onRefreshChanged);
+    RecordOpenedState.get().openedFolderNotifier.removeListener(onOpenedFolderChanged);
     super.dispose();
   }
 
@@ -44,17 +44,17 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
   }
 
   void onClickFolder(int index, TreeContentFolder folder) {
-    RecordOpenedState.instance.setOpenedFolder(folder.path);
+    RecordOpenedState.get().setOpenedFolder(folder.path);
   }
 
   void onClickFile(TreeContentFile record) {
-    RecordOpenedState.instance.setOpenedFile(record.path);
+    RecordOpenedState.get().openFile(record.path);
     widget.onClickRecordAction(context, record);
   }
 
   @override
   Widget build(BuildContext context) {
-    final folder = recordTree.openedFolder;
+    final folder = RecordOpenedState.get().openedFolder;
     final node = recordTree.findFolder(folder.path);
     final count = node?.children.length ?? 0;
 
@@ -78,7 +78,7 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
         horizontalPadding: 16.0,
         verticalPadding: widget.shrink ? 4.0 : 12.0,
         content: file,
-        isSelected: recordTree.openedFile?.key == file.key,
+        isSelected: RecordOpenedState.get().openedFile?.key == file.key,
         onContentPressed: (content) {
           onClickFile(content as TreeContentFile);
         },

@@ -23,13 +23,13 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
   void initState() {
     super.initState();
     recordTree.refreshNotifier.addListener(onRefreshChanged);
-    RecordOpenedState.instance.openedFileNotifier.addListener(onRefreshChanged);
+    RecordOpenedState.get().openedFileNotifier.addListener(onRefreshChanged);
   }
 
   @override
   void dispose() {
     recordTree.refreshNotifier.removeListener(onRefreshChanged);
-    RecordOpenedState.instance.openedFileNotifier.removeListener(onRefreshChanged);
+    RecordOpenedState.get().openedFileNotifier.removeListener(onRefreshChanged);
     super.dispose();
   }
 
@@ -61,7 +61,7 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
           horizontalPadding: 16.0,
           verticalPadding: widget.shrink ? 4.0 : 10.0,
           content: list[index],
-          isSelected: recordTree.openedFile?.key == file.key,
+          isSelected: RecordOpenedState.get().openedFile?.key == file.key,
           onContentPressed: (content) {
             onClickFile(context, content as TreeContentFile);
           },

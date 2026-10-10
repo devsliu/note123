@@ -17,7 +17,7 @@ class RecordListTopBar {
         }
 
         return ValueListenableBuilder<String>(
-          valueListenable: RecordOpenedState.instance.openedFolderNotifier,
+          valueListenable: RecordOpenedState.get().openedFolderNotifier,
           builder: (context, path, _) {
             return Text(
               path == "/" ? AppConfig.appTitle : path,
@@ -38,14 +38,14 @@ class RecordListTopBar {
           return SizedBox.shrink();
         }
         return ValueListenableBuilder<String>(
-          valueListenable: RecordOpenedState.instance.openedFolderNotifier,
+          valueListenable: RecordOpenedState.get().openedFolderNotifier,
           builder: (context, path, _) {
             if (path == "/") return SizedBox.shrink();
             return IconButton(
               icon: Icon(Icons.arrow_upward),
               tooltip: l10n.upperLevel,
               onPressed: () {
-                RecordOpenedState.instance.setOpenedFolder(dirname(path));
+                RecordOpenedState.get().setOpenedFolder(dirname(path));
               },
             );
           },

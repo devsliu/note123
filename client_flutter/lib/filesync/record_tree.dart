@@ -3,7 +3,6 @@ import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/local_record_ext.dart';
 import 'package:note123/filesync/record_utils.dart';
 import 'package:note123/filesync/table_record.dart';
-import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/utils/app_logger.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
@@ -163,28 +162,15 @@ class RecordTree extends TreeNode {
   void setSortListType(int type) {
     _sortedFiles.setSortType(type);
     _sortedFiles.sort();
-    if (type != 0) {
-      RecordOpenedState.instance.setOpenedFolder("/");
-    }
   }
 
   TreeContentFile? findFile(String uuid) {
     return _filesMap[uuid]?.content as TreeContentFile?;
   }
 
-  TreeNode? get openedFileNode {
-    return _filesMap[RecordOpenedState.instance.openedFileNotifier.value];
+  TreeNode? findFileNode(String uuid) {
+    return _filesMap[uuid];
   }
-
-  TreeNode get openedFolderNode {
-    return _foldersMap[RecordOpenedState.instance.openedFolderNotifier.value] ?? this;
-  }
-
-  TreeContentFolder get openedFolder {
-    return openedFolderNode.content as TreeContentFolder;
-  }
-
-  TreeContentFile? get openedFile => openedFileNode?.content as TreeContentFile?;
 
   /// Helper: ensure a folder exists by path; if not, recursively create and attach to tree
   TreeNode _ensureFolderExists(String folderPath, List<RecordEvent> eventList) {
@@ -240,11 +226,11 @@ class RecordTree extends TreeNode {
     // 2. O(1) locate and physically delete the record
     parent.removeChild(recordUuid);
     // 3. 🧠 Smart cleanup: if this folder has neither records nor subfolders anymore, it's an empty shell; remove it too
-    _checkAndPurgeEmptyFolder(folder);
+    _checkAndPurgeEmptyFolder(folder, eventList);
   }
 
   // Recursively clean up empty folders
-  void _checkAndPurgeEmptyFolder(String folder) {
+  void _checkAndPurgeEmptyFolder(String folder, List<RecordEvent> eventList) {
     String current = folder;
     while (current != '/' && current != '') {
       final TreeNode? node = _foldersMap[current];
@@ -252,10 +238,8 @@ class RecordTree extends TreeNode {
       if (node.children.isNotEmpty) return;
 
       _foldersMap.remove(current);
+      eventList.add(RecordEvent(RecordEvent.typeDeleteFolder, value1: current));
       String parentDir = dirname(current);
-      if (RecordOpenedState.instance.openedFolderNotifier.value == current) {
-        RecordOpenedState.instance.setOpenedFolder(parentDir);
-      }
       _foldersMap[parentDir]?.removeChild(current);
 
       current = parentDir;
@@ -297,7 +281,7 @@ class RecordTree extends TreeNode {
       _filesMap[oldFile.uuid] = node;
 
       // 4. Clean up if old home is empty
-      _checkAndPurgeEmptyFolder(oldFolder);
+      _checkAndPurgeEmptyFolder(oldFolder, eventList);
     } else {
       // 🟢 Case C: absolute new record registration
       final newParent = _ensureFolderExists(newFolderPath, eventList);
@@ -372,10 +356,11 @@ class RecordTree extends TreeNode {
     folderPath = ensurePathFormat(folderPath);
     final folder = _foldersMap[folderPath];
     if (folder == null) return;
+    List<RecordEvent> eventList = [];
     _clearFolder(folder);
-    _checkAndPurgeEmptyFolder(folderPath);
+    _checkAndPurgeEmptyFolder(folderPath, eventList);
     _sortedFiles.deleteByPath(folderPath);
-    _notifyEvents([RecordEvent(RecordEvent.typeDeleteFolder, value1: folderPath)]);
+    _notifyEvents(eventList);
   }
 
   /// 👑 Main entry point for folder rename (perfectly adapts to virtual file structure)
@@ -387,6 +372,8 @@ class RecordTree extends TreeNode {
     // Defense: if paths are exactly same, or attempting to rename root directory, reject directly
     if (oldPath == newPath || oldPath == '/') return;
 
+    List<RecordEvent> eventList = [];
+
     // 2. Find the target source folder object to be renamed
     final sourceFolder = findFolder(oldPath);
     if (sourceFolder == null) return; // Old folder not found, safe exit
@@ -396,17 +383,18 @@ class RecordTree extends TreeNode {
 
     // _ensureFolderExists already guarantees newPath node exists (creates if missing),
     // therefore target must not be null; uniformly use merge logic: transfer source's descendants to target
-    _ensureFolderExists(newPath, []);
+    _ensureFolderExists(newPath, eventList);
     final targetFolder = findFolder(newPath)!;
     _mergeVirtualFolders(sourceFolder, targetFolder, time);
 
-    _checkAndPurgeEmptyFolder(sourceParent.content.path);
+    _checkAndPurgeEmptyFolder(sourceParent.content.path, eventList);
 
     // Folder modification does not involve content object add/delete, only update sortedFiles
     _sortedFiles.sort();
 
     // 4. Notify of state change
-    _notifyEvents([RecordEvent(RecordEvent.typeRenameFolder, value1: oldPath, value2: newPath)]);
+    eventList.add(RecordEvent(RecordEvent.typeRenameFolder, value1: oldPath, value2: newPath));
+    _notifyEvents(eventList);
   }
 
   /// 🧬 Merge same-named purely virtual structures

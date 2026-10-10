@@ -17,7 +17,12 @@ class PadRecordDetailPageState extends State<PadRecordDetailPage> {
 
   void setRecord(TreeContentFile? record) {
     _record = record;
-    RecordOpenedState.instance.setOpenedFile(_record?.uuid ?? "");
+    final uuid = record?.uuid;
+    if (uuid != null && uuid.isNotEmpty) {
+      RecordOpenedState.get().openFile(uuid);
+    } else {
+      RecordOpenedState.get().closeFile(RecordOpenedState.get().openedFileNotifier.value);
+    }
     setState(() {});
   }
 

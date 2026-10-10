@@ -14,13 +14,13 @@ class PhoneRecordDetailPageState<T extends PhoneRecordDetailPage> extends Record
   @override
   void initState() {
     super.initState();
-    RecordOpenedState.instance.setOpenedFile(widget.record.uuid);
+    RecordOpenedState.get().openFile(widget.record.uuid);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      RecordOpenedState.instance.setOpenedFile("");
+      RecordOpenedState.get().closeFile(widget.record.uuid);
     });
     super.dispose();
   }

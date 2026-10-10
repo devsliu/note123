@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/filesync/user.dart';
 import 'package:note123/model/record_utils.dart';
 import 'package:note123/ui/common/input_dialog.dart';
@@ -68,7 +69,7 @@ class RecordListBottomBar extends StatelessWidget {
               if (RecordListWidgetType.notifier.value == RecordListWidgetType.sTreeFolder) {
                 return "/";
               }
-              return recordTree.openedFolder.path;
+              return RecordOpenedState.get().openedFolder.path;
             }, (record) => onClickRecordFile(context, record)),
           ],
         ),
@@ -99,6 +100,7 @@ class RecordListBottomBar extends StatelessWidget {
           return;
         }
         Repository.get().recordTree.setSortListType(value);
+        if (value != 0) RecordOpenedState.get().setOpenedFolder("/");
         RecordListWidgetType.notifier.value = value;
         await Prefs.instance.setInt(PrefKeys.listType, value);
       },

@@ -33,7 +33,7 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
   }
 
   void onFolderChanged() {
-    final folder = recordTree.openedFolder;
+    final folder = RecordOpenedState.get().openedFolder;
     final treeViewNode = _treeController.getNodeFor(folder);
     if (treeViewNode != null) {
       if (!_treeController.isExpanded(treeViewNode) && _treeController.isActive(treeViewNode)) {
@@ -56,16 +56,16 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
   void initState() {
     super.initState();
     recordTree.refreshNotifier.addListener(onEventChanged);
-    RecordOpenedState.instance.openedFolderNotifier.addListener(onFolderChanged);
-    RecordOpenedState.instance.openedFileNotifier.addListener(onFileChanged);
+    RecordOpenedState.get().openedFolderNotifier.addListener(onFolderChanged);
+    RecordOpenedState.get().openedFileNotifier.addListener(onFileChanged);
     RecordFilesTreeControl.collapseAll.addListener(onCollapseAll);
   }
 
   @override
   void dispose() {
     recordTree.refreshNotifier.removeListener(onEventChanged);
-    RecordOpenedState.instance.openedFolderNotifier.removeListener(onFolderChanged);
-    RecordOpenedState.instance.openedFileNotifier.removeListener(onFileChanged);
+    RecordOpenedState.get().openedFolderNotifier.removeListener(onFolderChanged);
+    RecordOpenedState.get().openedFileNotifier.removeListener(onFileChanged);
     RecordFilesTreeControl.collapseAll.removeListener(onCollapseAll);
     super.dispose();
   }
@@ -100,23 +100,23 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
     if (treeViewNode != null) {
       _treeController.toggleNode(treeViewNode);
       if (!treeViewNode.isExpanded) {
-        RecordOpenedState.instance.setOpenedFolder(node.dir);
+        RecordOpenedState.get().setOpenedFolder(node.dir);
       } else {
-        RecordOpenedState.instance.setOpenedFolder(node.path);
+        RecordOpenedState.get().setOpenedFolder(node.path);
       }
     }
   }
 
   void onClickFile(TreeContentFile record) {
     if (widget.onClickRecordAction != null) {
-      RecordOpenedState.instance.setOpenedFile(record.path);
+      RecordOpenedState.get().openFile(record.path);
       widget.onClickRecordAction!(context, record);
     }
   }
 
   Widget buildItemWidget(BuildContext context, TreeViewNode<TreeContent> node, double width) {
     final TreeContent file = node.content;
-    final isSelected = recordTree.openedFile?.key == file.key;
+    final isSelected = RecordOpenedState.get().openedFile?.key == file.key;
     Widget child = (file is TreeContentFile)
         ? TreeFileWidget(
             node: node,

@@ -2,8 +2,6 @@ import 'dart:math';
 import 'dart:math' as math;
 
 import 'package:note123/filesync/record_tree.dart';
-import 'package:note123/filesync/repository.dart';
-import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/theme.dart';
 import 'package:note123/config/app_config.dart';
@@ -42,9 +40,14 @@ abstract class DesktopTab {
   bool equal(DesktopTab other) => runtimeType == other.runtimeType && id == other.id;
 
   /// Called when this tab becomes the selected one. Subclasses update the
-  /// record tree to reflect what is currently open (e.g. an editor tab opens
-  /// its record; the calendar tab clears the selection).
-  void setSelected(RecordTree recordTree);
+  /// record opened state to reflect what is currently open (e.g. an editor
+  /// tab opens its record; the calendar tab clears the selection).
+  void select();
+
+  /// Called when this tab is being closed. Subclasses release whatever
+  /// [select] claimed (e.g. an editor tab closes its record from the
+  /// opened-file stack).
+  void close();
 
   /// Build the page widget for this tab. [key] is the state key the detail
   /// page reserves for this tab, used to look up the page state for
@@ -83,7 +86,6 @@ class DesktopTabsPage extends StatefulWidget {
 class DesktopTabsPageState extends State<DesktopTabsPage> {
   final List<_DesktopTabImpl> _tabs = [];
   int currentIndex = 0;
-  final RecordTree recordTree = Repository.get().recordTree;
   Size _lockedEditorSize = Size.zero;
   bool _wasAnimating = false;
 
@@ -96,8 +98,11 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
   @override
   void dispose() {
     isWindowAnimatingNotifier.removeListener(_onAnimatingChanged);
-    RecordOpenedState.instance.setOpenedFile("");
-    _tabs.clear();
+    // Remove in three segments so the currently selected tab is closed last.
+    final idx = currentIndex.clamp(0, max(0, _tabs.length - 1)).toInt();
+    removeTabs(idx + 1, _tabs.length);
+    removeTabs(0, idx);
+    removeTabs(0, 1);
     super.dispose();
   }
 
@@ -127,10 +132,21 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
     selectTab(_tabs.length - 1);
   }
 
+  /// Remove tabs in the half-open range [from, to), closing each one.
+  /// Out-of-range arguments are clamped to the list bounds.
+  void removeTabs(int from, int to) {
+    final start = from.clamp(0, _tabs.length).toInt();
+    final end = to.clamp(start, _tabs.length).toInt();
+    for (int i = start; i < end; i++) {
+      _tabs[i].tab.close();
+    }
+    _tabs.removeRange(start, end);
+  }
+
   void closeTab(int index) {
     if (index < 0 || index >= _tabs.length) return;
 
-    _tabs.removeAt(index);
+    removeTabs(index, index + 1);
     int newIndex = currentIndex;
     if (newIndex > index) {
       newIndex--;
@@ -142,23 +158,22 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
   void closeOtherTabs(int keepIndex) {
     if (keepIndex < 0 || keepIndex >= _tabs.length) return;
 
-    final keepTab = _tabs[keepIndex];
-
-    _tabs.clear();
-    _tabs.add(keepTab);
+    // Remove the right part first so keepIndex stays valid for the left part.
+    removeTabs(keepIndex + 1, _tabs.length);
+    removeTabs(0, keepIndex);
 
     selectTab(0);
   }
 
   void closeAllTabs() {
-    _tabs.clear();
+    removeTabs(0, _tabs.length);
     selectTab(-1);
   }
 
   void closeTabsToRight(int startIndex) {
     if (startIndex < 0 || startIndex >= _tabs.length - 1) return;
 
-    _tabs.removeRange(startIndex + 1, _tabs.length);
+    removeTabs(startIndex + 1, _tabs.length);
 
     if (currentIndex > startIndex) {
       selectTab(startIndex);
@@ -176,7 +191,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
       newIndex = currentIndex - startIndex;
     }
 
-    _tabs.removeRange(0, startIndex);
+    removeTabs(0, startIndex);
 
     selectTab(newIndex.clamp(0, max(0, _tabs.length - 1)));
   }
@@ -192,9 +207,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
     }
 
     if (index >= 0 && index < _tabs.length) {
-      _tabs[index].tab.setSelected(recordTree);
-    } else {
-      RecordOpenedState.instance.setOpenedFile("");
+      _tabs[index].tab.select();
     }
     setState(() {
       currentIndex = index;

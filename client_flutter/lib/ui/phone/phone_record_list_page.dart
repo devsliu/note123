@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:note123/filesync/record_tree.dart';
-import 'package:note123/filesync/repository.dart';
 import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/ui/phone/phone_record_detail_page.dart';
 import 'package:note123/ui/files/record_files_flat_control.dart';
@@ -24,12 +23,11 @@ class PhoneRecordListPage extends StatelessWidget {
   const PhoneRecordListPage({super.key, this.onClickRecordFile = _staticOnClickRecordFile});
 
   static void _staticOnClickRecordFile(BuildContext context, TreeContentFile record) {
-    RecordOpenedState.instance.setOpenedFile(record.uuid);
+    RecordOpenedState.get().openFile(record.uuid);
     Navigator.push(context, MaterialPageRoute(builder: (context) => PhoneRecordDetailPage(record: record)));
   }
 
   Scaffold buildMainPage(BuildContext context) {
-    final RecordTree recordTree = Repository.get().recordTree;
     ThemeData theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
@@ -58,7 +56,7 @@ class PhoneRecordListPage extends StatelessWidget {
                   builder: (_) => CalendarPage(
                     showAppBar: true,
                     onOpenRecord: (record) {
-                      RecordOpenedState.instance.setOpenedFile(record.uuid);
+                      RecordOpenedState.get().openFile(record.uuid);
                       Navigator.push(context, MaterialPageRoute(builder: (_) => PhoneRecordDetailPage(record: record)));
                     },
                   ),
@@ -92,7 +90,7 @@ class PhoneRecordListPage extends StatelessWidget {
             buttonSpacing: 0,
             leftPadding: AppConfig.pageHorizontalPadding,
             rightPadding: AppConfig.pageHorizontalPadding,
-            getFolder: () => recordTree.openedFolder.path,
+            getFolder: () => RecordOpenedState.get().openedFolder.path,
             onClickRecordFile: onClickRecordFile,
           ),
         ],
@@ -102,12 +100,11 @@ class PhoneRecordListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final RecordTree recordTree = Repository.get().recordTree;
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return; // Return directly if already handled
-        if (recordTree.openedFolder.path == "/" ||
+        if (RecordOpenedState.get().openedFolder.path == "/" ||
             RecordListWidgetType.notifier.value != RecordListWidgetType.sFlatFolder) {
           if (!Navigator.canPop(context)) {
             SystemNavigator.pop();
@@ -115,7 +112,7 @@ class PhoneRecordListPage extends StatelessWidget {
             Navigator.pop(context);
           } // Manually trigger back navigation
         } else {
-          RecordOpenedState.instance.setOpenedFolder(recordTree.openedFolder.dir);
+          RecordOpenedState.get().setOpenedFolder(RecordOpenedState.get().openedFolder.dir);
         }
       },
       child: buildMainPage(context),
