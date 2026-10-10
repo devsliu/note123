@@ -6,7 +6,7 @@ import 'package:note123/config/theme.dart';
 import 'package:note123/config/app_config.dart';
 import 'package:note123/ui/desktop/window_state.dart';
 import 'package:flutter/material.dart';
-import 'package:note123/ui/desktop/desktop_record_tabbar.dart';
+import 'package:note123/ui/desktop/desktop_tabbar.dart';
 
 import 'desktop_title_bar.dart';
 
