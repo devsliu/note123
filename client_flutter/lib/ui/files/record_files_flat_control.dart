@@ -1,5 +1,6 @@
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:flutter/material.dart';
 import 'package:note123/ui/files/record_item_widget.dart';
 import 'package:note123/config/language_manager.dart';
@@ -21,15 +22,15 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
   void initState() {
     super.initState();
     recordTree.refreshNotifier.addListener(onRefreshChanged);
-    recordTree.openedFileNotifier.addListener(onRefreshChanged);
-    recordTree.openedFolderNotifier.addListener(onOpenedFolderChanged);
+    RecordOpenedState.instance.openedFileNotifier.addListener(onRefreshChanged);
+    RecordOpenedState.instance.openedFolderNotifier.addListener(onOpenedFolderChanged);
   }
 
   @override
   void dispose() {
     recordTree.refreshNotifier.removeListener(onRefreshChanged);
-    recordTree.openedFileNotifier.removeListener(onRefreshChanged);
-    recordTree.openedFolderNotifier.removeListener(onOpenedFolderChanged);
+    RecordOpenedState.instance.openedFileNotifier.removeListener(onRefreshChanged);
+    RecordOpenedState.instance.openedFolderNotifier.removeListener(onOpenedFolderChanged);
     super.dispose();
   }
 
@@ -43,11 +44,11 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
   }
 
   void onClickFolder(int index, TreeContentFolder folder) {
-    recordTree.setOpenedFolder(folder.path);
+    RecordOpenedState.instance.setOpenedFolder(folder.path);
   }
 
   void onClickFile(TreeContentFile record) {
-    recordTree.setOpenedFile(record.path);
+    RecordOpenedState.instance.setOpenedFile(record.path);
     widget.onClickRecordAction(context, record);
   }
 

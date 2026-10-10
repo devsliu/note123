@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/ui/phone/phone_record_detail_page.dart';
 import 'package:note123/ui/files/record_files_flat_control.dart';
 import 'package:note123/ui/files/record_files_list_control.dart';
@@ -23,8 +24,7 @@ class PhoneRecordListPage extends StatelessWidget {
   const PhoneRecordListPage({super.key, this.onClickRecordFile = _staticOnClickRecordFile});
 
   static void _staticOnClickRecordFile(BuildContext context, TreeContentFile record) {
-    final RecordTree recordTree = Repository.get().recordTree;
-    recordTree.setOpenedFile(record.uuid);
+    RecordOpenedState.instance.setOpenedFile(record.uuid);
     Navigator.push(context, MaterialPageRoute(builder: (context) => PhoneRecordDetailPage(record: record)));
   }
 
@@ -58,7 +58,7 @@ class PhoneRecordListPage extends StatelessWidget {
                   builder: (_) => CalendarPage(
                     showAppBar: true,
                     onOpenRecord: (record) {
-                      recordTree.setOpenedFile(record.uuid);
+                      RecordOpenedState.instance.setOpenedFile(record.uuid);
                       Navigator.push(context, MaterialPageRoute(builder: (_) => PhoneRecordDetailPage(record: record)));
                     },
                   ),
@@ -115,7 +115,7 @@ class PhoneRecordListPage extends StatelessWidget {
             Navigator.pop(context);
           } // Manually trigger back navigation
         } else {
-          recordTree.setOpenedFolder(recordTree.openedFolder.dir);
+          RecordOpenedState.instance.setOpenedFolder(recordTree.openedFolder.dir);
         }
       },
       child: buildMainPage(context),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:note123/filesync/record_tree.dart';
-import 'package:note123/filesync/repository.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/ui/phone/phone_record_detail_page.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/theme.dart';
@@ -17,7 +17,7 @@ class PadRecordDetailPageState extends State<PadRecordDetailPage> {
 
   void setRecord(TreeContentFile? record) {
     _record = record;
-    Repository.get().recordTree.setOpenedFile(_record?.uuid ?? "");
+    RecordOpenedState.instance.setOpenedFile(_record?.uuid ?? "");
     setState(() {});
   }
 

@@ -1,5 +1,6 @@
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:flutter/material.dart';
 import 'package:note123/ui/files/record_item_widget.dart';
 import 'package:note123/config/language_manager.dart';
@@ -22,13 +23,13 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
   void initState() {
     super.initState();
     recordTree.refreshNotifier.addListener(onRefreshChanged);
-    recordTree.openedFileNotifier.addListener(onRefreshChanged);
+    RecordOpenedState.instance.openedFileNotifier.addListener(onRefreshChanged);
   }
 
   @override
   void dispose() {
     recordTree.refreshNotifier.removeListener(onRefreshChanged);
-    recordTree.openedFileNotifier.removeListener(onRefreshChanged);
+    RecordOpenedState.instance.openedFileNotifier.removeListener(onRefreshChanged);
     super.dispose();
   }
 

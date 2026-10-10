@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/theme.dart';
 import 'package:note123/config/app_config.dart';
@@ -95,7 +96,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
   @override
   void dispose() {
     isWindowAnimatingNotifier.removeListener(_onAnimatingChanged);
-    recordTree.setOpenedFile("");
+    RecordOpenedState.instance.setOpenedFile("");
     _tabs.clear();
     super.dispose();
   }
@@ -193,7 +194,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
     if (index >= 0 && index < _tabs.length) {
       _tabs[index].tab.setSelected(recordTree);
     } else {
-      recordTree.setOpenedFile("");
+      RecordOpenedState.instance.setOpenedFile("");
     }
     setState(() {
       currentIndex = index;

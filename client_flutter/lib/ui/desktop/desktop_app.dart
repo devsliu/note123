@@ -12,6 +12,7 @@ import '../../config/prefs.dart';
 import '../../l10n/app_localizations.dart';
 import '../conflict/conflict_auto_pop.dart';
 import '../../filesync/record_tree.dart';
+import '../../model/record_opened_state.dart';
 import '../calendar/calendar_page.dart';
 import '../editor/record_flow_editor_page.dart';
 
@@ -23,7 +24,7 @@ class EditorTab extends DesktopTab {
 
   @override
   void setSelected(RecordTree recordTree) {
-    recordTree.setOpenedFile(record.uuid);
+    RecordOpenedState.instance.setOpenedFile(record.uuid);
   }
 
   @override
@@ -40,7 +41,7 @@ class CalendarTab extends DesktopTab {
 
   @override
   void setSelected(RecordTree recordTree) {
-    recordTree.setOpenedFile("");
+    RecordOpenedState.instance.setOpenedFile("");
   }
 
   @override

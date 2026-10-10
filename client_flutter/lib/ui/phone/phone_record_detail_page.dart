@@ -1,4 +1,5 @@
 import 'package:note123/filesync/record_tree.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:flutter/material.dart';
 import 'package:note123/ui/editor/record_flow_editor_page.dart';
 
@@ -13,13 +14,13 @@ class PhoneRecordDetailPageState<T extends PhoneRecordDetailPage> extends Record
   @override
   void initState() {
     super.initState();
-    recordTree.setOpenedFile(widget.record.uuid);
+    RecordOpenedState.instance.setOpenedFile(widget.record.uuid);
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      recordTree.setOpenedFile("");
+      RecordOpenedState.instance.setOpenedFile("");
     });
     super.dispose();
   }

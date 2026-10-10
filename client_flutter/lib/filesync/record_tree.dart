@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/local_record_ext.dart';
+import 'package:note123/filesync/record_utils.dart';
 import 'package:note123/filesync/table_record.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/utils/app_logger.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
@@ -66,7 +68,7 @@ class TreeContentFolder extends TreeContent {
   TreeContentFolder(super._path, super.name);
 
   @override
-  String get dir => _dirname(_path);
+  String get dir => dirname(_path);
   @override
   String get key => _path;
 }
@@ -132,11 +134,6 @@ class RecordTree extends TreeNode {
 
   final ValueNotifier<List<RecordEvent>> refreshNotifier = ValueNotifier<List<RecordEvent>>([]);
 
-  //path
-  final ValueNotifier<String> openedFolderNotifier = ValueNotifier<String>("/");
-  //uuid
-  final ValueNotifier<String> openedFileNotifier = ValueNotifier<String>("");
-
   RecordTree() : super(TreeContentFolder("/", ""));
 
   void build(List<LocalRecord> allRecords) {
@@ -167,7 +164,7 @@ class RecordTree extends TreeNode {
     _sortedFiles.setSortType(type);
     _sortedFiles.sort();
     if (type != 0) {
-      setOpenedFolder("/");
+      RecordOpenedState.instance.setOpenedFolder("/");
     }
   }
 
@@ -176,11 +173,11 @@ class RecordTree extends TreeNode {
   }
 
   TreeNode? get openedFileNode {
-    return _filesMap[openedFileNotifier.value];
+    return _filesMap[RecordOpenedState.instance.openedFileNotifier.value];
   }
 
   TreeNode get openedFolderNode {
-    return _foldersMap[openedFolderNotifier.value] ?? this;
+    return _foldersMap[RecordOpenedState.instance.openedFolderNotifier.value] ?? this;
   }
 
   TreeContentFolder get openedFolder {
@@ -188,14 +185,6 @@ class RecordTree extends TreeNode {
   }
 
   TreeContentFile? get openedFile => openedFileNode?.content as TreeContentFile?;
-
-  void setOpenedFile(String uuid) {
-    openedFileNotifier.value = uuid;
-  }
-
-  void setOpenedFolder(String path) {
-    openedFolderNotifier.value = path;
-  }
 
   /// Helper: ensure a folder exists by path; if not, recursively create and attach to tree
   TreeNode _ensureFolderExists(String folderPath, List<RecordEvent> eventList) {
@@ -263,9 +252,9 @@ class RecordTree extends TreeNode {
       if (node.children.isNotEmpty) return;
 
       _foldersMap.remove(current);
-      String parentDir = _dirname(current);
-      if (openedFolderNotifier.value == current) {
-        setOpenedFolder(parentDir);
+      String parentDir = dirname(current);
+      if (RecordOpenedState.instance.openedFolderNotifier.value == current) {
+        RecordOpenedState.instance.setOpenedFolder(parentDir);
       }
       _foldersMap[parentDir]?.removeChild(current);
 
@@ -281,7 +270,7 @@ class RecordTree extends TreeNode {
 
     bool isNew = false;
     TreeNode? node = _filesMap[newRecord.uuid];
-    final newFolderPath = _ensurePathFormat(newRecord.localPath);
+    final newFolderPath = ensurePathFormat(newRecord.localPath);
     final TreeContentFile? oldFile = node?.content as TreeContentFile?;
     _conflictMap.remove(newRecord.uuid);
     if (newRecord.syncConflict) {
@@ -380,7 +369,7 @@ class RecordTree extends TreeNode {
   }
 
   void deleteFolder(String folderPath) {
-    folderPath = _ensurePathFormat(folderPath);
+    folderPath = ensurePathFormat(folderPath);
     final folder = _foldersMap[folderPath];
     if (folder == null) return;
     _clearFolder(folder);
@@ -392,8 +381,8 @@ class RecordTree extends TreeNode {
   /// 👑 Main entry point for folder rename (perfectly adapts to virtual file structure)
   void renameFolder(String oldFolderPath, String newFolderPath, int time) {
     // 1. Force-format and clean input paths
-    final oldPath = _ensurePathFormat(oldFolderPath);
-    final newPath = _ensurePathFormat(newFolderPath);
+    final oldPath = ensurePathFormat(oldFolderPath);
+    final newPath = ensurePathFormat(newFolderPath);
 
     // Defense: if paths are exactly same, or attempting to rename root directory, reject directly
     if (oldPath == newPath || oldPath == '/') return;
@@ -401,7 +390,7 @@ class RecordTree extends TreeNode {
     // 2. Find the target source folder object to be renamed
     final sourceFolder = findFolder(oldPath);
     if (sourceFolder == null) return; // Old folder not found, safe exit
-    final sourceParent = findFolder(_dirname(sourceFolder.content.path));
+    final sourceParent = findFolder(dirname(sourceFolder.content.path));
     if (sourceParent == null) return; // Old folder's parent not found, also safe exit
     sourceParent.removeChild(sourceFolder.content.key);
 
@@ -473,7 +462,7 @@ class RecordTree extends TreeNode {
     // which would cause _foldersMap to be inconsistent with real tree structure references
     final content = currentFolder.content;
     content._path = updatedFolderPath;
-    content._name = _basename(updatedFolderPath); // Ensure virtual name updates synchronously with path
+    content._name = basename(updatedFolderPath); // Ensure virtual name updates synchronously with path
     _foldersMap[updatedFolderPath] = currentFolder;
 
     // 4. 📝 Batch correct virtual path of files directly under current folder
@@ -492,62 +481,13 @@ class RecordTree extends TreeNode {
   }
 
   TreeNode? findFolder(String path) {
-    return _foldersMap[_ensurePathFormat(path)];
+    return _foldersMap[ensurePathFormat(path)];
   }
 
   void createFolder(String path) {
     _ensureFolderExists(path, []);
     _notifyEvents([RecordEvent(RecordEvent.typeCreateFolder, value1: path)]);
   }
-}
-
-String dirname(String path) => _dirname(path);
-
-String _dirname(String path) {
-  // 1. Defense: if root dir or empty, its parent can only be root dir
-  if (path == '/' || path.isEmpty) return '/';
-
-  // 2. Search backward for slash from second-to-last position (skip the mandatory trailing slash)
-  // e.g.: "/work/flutter/" length is 14, start from index 12 (i.e. 'r') searching backward for '/'
-  final lastSlashIndex = path.lastIndexOf('/', path.length - 2);
-
-  // 3. Safe fallback: if not found, or slash is at the very beginning (meaning it's a first-level dir, e.g. "/work/")
-  if (lastSlashIndex <= 0) {
-    return '/';
-  }
-
-  // 4. Perform a single substring cut (preserve to slash position, since substring is left-inclusive right-exclusive,
-  // to include the slash itself, end index must be lastSlashIndex + 1)
-  // e.g.: "/work/flutter/" → find '/' at position 5 → substring(0, 6) → get "/work/"
-  return path.substring(0, lastSlashIndex + 1);
-}
-
-/// 👑 Node name extraction function tailored for "slash-prefixed and slash-suffixed" tree structures
-String _basename(String path) {
-  // 1. Defense: if root dir or empty, name is empty (or you could choose to return '/')
-  if (path == '/' || path.isEmpty) return '';
-
-  // 2. Strip trailing slash (since our convention is folders must end with /)
-  // e.g. "/work/flutter/" → "/work/flutter"
-  final cleanPath = path.endsWith('/') ? path.substring(0, path.length - 1) : path;
-
-  // 3. Find the position of the last slash
-  final lastSlashIndex = cleanPath.lastIndexOf('/');
-
-  // 4. If no slash, it's itself a relative path standalone (e.g. "flutter")
-  if (lastSlashIndex == -1) return cleanPath;
-
-  // 5. Extract all characters after the last slash
-  // e.g. "/work/flutter" → extract from position 5 onward → return "flutter"
-  return cleanPath.substring(lastSlashIndex + 1);
-}
-
-/// Ensure path ends with /
-String _ensurePathFormat(String path) {
-  if (path == '/' || path.isEmpty) return '/';
-  if (!path.endsWith('/')) path += '/';
-  if (!path.startsWith('/')) path = '/$path';
-  return path.replaceAll('//', '/'); // Guard against double slashes
 }
 
 class RecordList {

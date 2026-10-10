@@ -1,5 +1,6 @@
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:flutter/material.dart';
 import 'package:note123/ui/files/record_item_widget.dart';
 import 'package:note123/utils/app_logger.dart';
@@ -55,16 +56,16 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
   void initState() {
     super.initState();
     recordTree.refreshNotifier.addListener(onEventChanged);
-    recordTree.openedFolderNotifier.addListener(onFolderChanged);
-    recordTree.openedFileNotifier.addListener(onFileChanged);
+    RecordOpenedState.instance.openedFolderNotifier.addListener(onFolderChanged);
+    RecordOpenedState.instance.openedFileNotifier.addListener(onFileChanged);
     RecordFilesTreeControl.collapseAll.addListener(onCollapseAll);
   }
 
   @override
   void dispose() {
     recordTree.refreshNotifier.removeListener(onEventChanged);
-    recordTree.openedFolderNotifier.removeListener(onFolderChanged);
-    recordTree.openedFileNotifier.removeListener(onFileChanged);
+    RecordOpenedState.instance.openedFolderNotifier.removeListener(onFolderChanged);
+    RecordOpenedState.instance.openedFileNotifier.removeListener(onFileChanged);
     RecordFilesTreeControl.collapseAll.removeListener(onCollapseAll);
     super.dispose();
   }
@@ -99,16 +100,16 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
     if (treeViewNode != null) {
       _treeController.toggleNode(treeViewNode);
       if (!treeViewNode.isExpanded) {
-        recordTree.setOpenedFolder(node.dir);
+        RecordOpenedState.instance.setOpenedFolder(node.dir);
       } else {
-        recordTree.setOpenedFolder(node.path);
+        RecordOpenedState.instance.setOpenedFolder(node.path);
       }
     }
   }
 
   void onClickFile(TreeContentFile record) {
     if (widget.onClickRecordAction != null) {
-      Repository.get().recordTree.setOpenedFile(record.path);
+      RecordOpenedState.instance.setOpenedFile(record.path);
       widget.onClickRecordAction!(context, record);
     }
   }
