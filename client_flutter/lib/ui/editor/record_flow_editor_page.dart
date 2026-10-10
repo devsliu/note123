@@ -162,7 +162,6 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
       document = Document.blank()
         ..root.insert(headingNode(level: 1, delta: Delta()..insert(title)), index: 0)
         ..root.insert(dividerNode(), index: 1)
-        ..root.insert(paragraphNode(), index: 2)
         ..root.insert(paragraphNode(), index: 3);
     } else {
       final trimmed = plaintext.trim();
@@ -191,7 +190,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
       // New document: place cursor at heading end
       final nodes = document.root.children;
       if (nodes.isNotEmpty) {
-        final node = nodes.first.next ?? nodes.first; //取标题下面的第一个节点，如果没有则取标题节点
+        final node = nodes.first;
         final delta = node.delta;
         final len = delta?.toPlainText().length ?? 0;
         editorState.updateSelectionWithReason(
