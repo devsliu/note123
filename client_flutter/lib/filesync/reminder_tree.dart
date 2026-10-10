@@ -290,10 +290,16 @@ class ReminderTree {
 
   /// Insert or update a single record's reminders.
   void upsertRecord(LocalRecord record) {
-    _byRecord.remove(record.uuid)?.forEach(_entries.remove);
-    _addRecord(record);
-    _sort();
-    _notify();
+    final old = _byRecord.remove(record.uuid);
+    if (old != null) old.forEach(_entries.remove);
+
+    final added = _addRecord(record);
+
+    // Only sort and notify when something actually changed.
+    if (old != null || added) {
+      _sort();
+      _notify();
+    }
   }
 
   /// Remove all reminders belonging to [uuid].
@@ -318,12 +324,13 @@ class ReminderTree {
     refreshNotifier.value++;
   }
 
-  void _addRecord(LocalRecord record) {
-    if (record.localEditType == LocalEditType.delete) return;
+  /// Adds a record's reminders. Returns true if any entries were added.
+  bool _addRecord(LocalRecord record) {
+    if (record.localEditType == LocalEditType.delete) return false;
     final json = record.localReminder.isNotEmpty ? record.localReminder : record.remoteReminder;
-    if (json.isEmpty) return;
+    if (json.isEmpty) return false;
     final tasks = ReminderTask.fromJsonString(json);
-    if (tasks.isEmpty) return;
+    if (tasks.isEmpty) return false;
     final list = <ReminderEntry>[];
     for (final task in tasks) {
       list.add(
@@ -337,6 +344,7 @@ class ReminderTree {
     }
     _byRecord[record.uuid] = list;
     _entries.addAll(list);
+    return true;
   }
 
   void _sort() {
