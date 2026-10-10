@@ -7,7 +7,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../../config/theme.dart';
 import 'desktop_record_list_page.dart';
-import 'desktop_record_detail_page.dart';
+import 'desktop_tabs_page.dart';
 import '../../config/prefs.dart';
 import '../../l10n/app_localizations.dart';
 import '../conflict/conflict_auto_pop.dart';
@@ -24,7 +24,7 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver, Wi
   static const double minLeftWidth = 300;
   static const double maxLeftWidth = 500;
   double leftWidth = minLeftWidth;
-  final GlobalKey<DesktopRecordDetailPageState> detailKey = GlobalKey<DesktopRecordDetailPageState>();
+  final GlobalKey<DesktopTabsPageState> detailKey = GlobalKey<DesktopTabsPageState>();
 
   @override
   void initState() {
@@ -118,7 +118,7 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver, Wi
                 id: 'left',
                 child: DesktopRecordListPage(
                   onClickRecordAction: (context, record) {
-                    DesktopRecordDetailPageState? rightState = detailKey.currentState;
+                    DesktopTabsPageState? rightState = detailKey.currentState;
                     if (rightState != null) {
                       rightState.openRecordTab(record);
                     }
@@ -130,7 +130,7 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver, Wi
               ),
               LayoutId(
                 id: 'right',
-                child: DesktopRecordDetailPage(key: detailKey),
+                child: DesktopTabsPage(key: detailKey),
               ),
               LayoutId(id: 'dragger', child: buildLeftSideDragger()),
             ],

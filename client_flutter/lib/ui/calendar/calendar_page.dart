@@ -4,7 +4,7 @@ import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/reminder_entry.dart';
-import 'package:note123/ui/desktop/desktop_record_detail_page.dart';
+import 'package:note123/ui/desktop/desktop_tabs_page.dart';
 import 'package:note123/utils/utils.dart';
 
 class CalendarPage extends StatefulWidget {
@@ -17,7 +17,7 @@ class CalendarPage extends StatefulWidget {
   State<CalendarPage> createState() => _CalendarPageState();
 }
 
-class _CalendarPageState extends State<CalendarPage> implements DetailTabPageState {
+class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageState {
   List<ReminderEntry> _entries = [];
   bool _loading = true;
   CalendarFormat _calendarFormat = CalendarFormat.month;

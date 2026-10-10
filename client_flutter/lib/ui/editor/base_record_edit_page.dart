@@ -13,7 +13,7 @@ import 'package:note123/utils/app_logger.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/utils/object_ref.dart';
-import 'package:note123/ui/desktop/desktop_record_detail_page.dart';
+import 'package:note123/ui/desktop/desktop_tabs_page.dart';
 
 /// Unified page state: mode + payload + buildCount.
 /// buildCount is reset to 0 by setStateMode on every state transition, then incremented
@@ -48,7 +48,7 @@ abstract class BaseRecordEditPage extends StatefulWidget {
 
 abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends State<T>
     with WidgetsBindingObserver
-    implements DetailTabPageState {
+    implements DesktopTabPageState {
   PageState pageState = PageState(PageState.modeLoad);
   String? _password; // Save unlock password
   int _saveCount = 0; // Track save count

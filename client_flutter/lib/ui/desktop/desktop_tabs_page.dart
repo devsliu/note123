@@ -14,16 +14,16 @@ import 'package:note123/ui/desktop/desktop_record_tabbar.dart';
 
 import 'desktop_title_bar.dart';
 
-/// Interface for states that live inside a [DesktopRecordDetailPage] tab and need
+/// Interface for states that live inside a [DesktopTabsPage] tab and need
 /// foreground/background lifecycle signals when the user switches tabs.
 /// Both editor pages (BaseRecordEditPageState) and the calendar page implement
 /// this so the detail page can manage them uniformly.
-abstract class DetailTabPageState {
+abstract class DesktopTabPageState {
   bool get mounted;
   void setInForeground(bool value);
 }
 
-/// Base class for tabs shown in [DesktopRecordDetailPage].
+/// Base class for tabs shown in [DesktopTabsPage].
 /// Subclasses: [EditorTab] (note editor) and [CalendarTab] (calendar page).
 ///
 /// Each tab owns its [key] and the built [page] widget, so the detail page only
@@ -38,7 +38,7 @@ abstract class DetailTab {
   /// foreground/background lifecycle signals on tab switch.
   final GlobalKey key = GlobalKey();
 
-  /// The built page widget, set by [DesktopRecordDetailPageState] when the tab
+  /// The built page widget, set by [DesktopTabsPageState] when the tab
   /// is opened (via [buildPage]). Null before that.
   Widget? page;
 
@@ -93,14 +93,14 @@ class CalendarTab extends DetailTab {
   }
 }
 
-class DesktopRecordDetailPage extends StatefulWidget {
-  const DesktopRecordDetailPage({super.key});
+class DesktopTabsPage extends StatefulWidget {
+  const DesktopTabsPage({super.key});
 
   @override
-  DesktopRecordDetailPageState createState() => DesktopRecordDetailPageState();
+  DesktopTabsPageState createState() => DesktopTabsPageState();
 }
 
-class DesktopRecordDetailPageState extends State<DesktopRecordDetailPage> {
+class DesktopTabsPageState extends State<DesktopTabsPage> {
   final List<DetailTab> tabs = [];
   int currentIndex = 0;
   final RecordTree recordTree = Repository.get().recordTree;
@@ -214,7 +214,7 @@ class DesktopRecordDetailPageState extends State<DesktopRecordDetailPage> {
     // Save currently editing content before switching tabs
     if (currentIndex >= 0 && currentIndex < tabs.length) {
       final state = tabs[currentIndex].key.currentState;
-      final tabState = state as DetailTabPageState?;
+      final tabState = state as DesktopTabPageState?;
       if (tabState?.mounted ?? false) {
         tabState!.setInForeground(false);
       }
@@ -233,7 +233,7 @@ class DesktopRecordDetailPageState extends State<DesktopRecordDetailPage> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         final state = tabs[index].key.currentState;
-        final tabState = state as DetailTabPageState?;
+        final tabState = state as DesktopTabPageState?;
         if (tabState?.mounted ?? false) {
           tabState!.setInForeground(true);
         }
