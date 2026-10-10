@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
+import 'package:note123/config/language_manager.dart';
+import 'package:note123/filesync/reminder_entry.dart';
 import 'package:pointycastle/api.dart';
 import 'package:pointycastle/key_derivators/api.dart';
 import 'package:pointycastle/key_derivators/pbkdf2.dart';
@@ -120,6 +121,32 @@ class Utils {
       return '$mo-$d $h:$m';
     }
     return '${dt.year}-$mo-$d $h:$m';
+  }
+
+  /// Format a reminder task's time according to its repeat mode.
+  static String reminderTimeStr(ReminderTask task) {
+    if (task.time <= 0) return l10n.notSet;
+    final hour = task.hour;
+    final minute = task.minute;
+    String pad(int v) => v.toString().padLeft(2, '0');
+    final hm = '${pad(hour)}:${pad(minute)}';
+    switch (task.repeat) {
+      case ReminderTask.repeatWeekly:
+        final days = task.weekdaySet.toList()..sort();
+        if (days.isEmpty) return hm;
+        final names = l10n.weekdays.split('|');
+        return '${days.map((d) => names[d - 1]).join('、')} $hm';
+      case ReminderTask.repeatMonthly:
+        return l10n.repeatMonthlyTime(task.monthlyDay, hm);
+      case ReminderTask.repeatYearly:
+        final md = task.yearlyMonthDay;
+        return l10n.repeatYearlyTime(md.$1, md.$2, hm);
+      default:
+        // once: show full date + time
+        final d = task.onceDate;
+        final dt = DateTime(d.$1, d.$2, d.$3, hour, minute);
+        return formatShortTime(dt.millisecondsSinceEpoch);
+    }
   }
 
   static String formatTimeNow() {

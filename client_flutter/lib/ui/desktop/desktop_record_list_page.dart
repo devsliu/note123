@@ -65,6 +65,7 @@ class DesktopRecordListPage extends StatelessWidget {
           if (theme.appBarBackgroundColor == theme.colorScheme.surface)
             Divider(height: 1, color: theme.colorScheme.outline.withAlpha(80)),
           CalendarTaskItem(onTap: () => onOpenCalendar?.call()),
+          Divider(height: 1, color: theme.colorScheme.outline.withAlpha(80)),
           Expanded(
             child: ValueListenableBuilder<int>(
               valueListenable: RecordListWidgetType.notifier,

@@ -482,4 +482,101 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get switchToPhone => '切换到手机模式';
+
+  @override
+  String get reminderTasks => '提醒任务';
+
+  @override
+  String get noReminderTasks => '暂无提醒任务';
+
+  @override
+  String get unnamedTask => '未命名任务';
+
+  @override
+  String get notSet => '未设置';
+
+  @override
+  String get repeatOnce => '单次';
+
+  @override
+  String get repeatWeekly => '每周';
+
+  @override
+  String get repeatMonthly => '每月';
+
+  @override
+  String get repeatYearly => '每年';
+
+  @override
+  String get editReminder => '编辑提醒';
+
+  @override
+  String get taskName => '任务名称';
+
+  @override
+  String get repeat => '重复';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get addReminder => '添加提醒';
+
+  @override
+  String get weekdays => '周一|周二|周三|周四|周五|周六|周日';
+
+  @override
+  String get calendarTasks => '日历任务';
+
+  @override
+  String get calendarView => '日历';
+
+  @override
+  String get listView => '列表';
+
+  @override
+  String get noRemindersToday => '当天无提醒';
+
+  @override
+  String get reminder => '提醒';
+
+  @override
+  String get today => '今';
+
+  @override
+  String repeatMonthlyTime(int day, String time) {
+    return '$day日 $time';
+  }
+
+  @override
+  String repeatYearlyTime(int month, int day, String time) {
+    return '$month月$day日 $time';
+  }
+
+  @override
+  String get reminderChannel => '提醒';
+
+  @override
+  String get reminderChannelDesc => '笔记任务提醒';
+
+  @override
+  String get reminderDueBody => '该提醒已到时间';
+
+  @override
+  String get unitYear => '年';
+
+  @override
+  String get unitMonth => '月';
+
+  @override
+  String get unitDay => '日';
+
+  @override
+  String get unitHour => '时';
+
+  @override
+  String get unitMinute => '分';
+
+  @override
+  String get atLeastOneWeekday => '请至少选择一个星期';
 }

@@ -991,6 +991,192 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'切换到手机模式'**
   String get switchToPhone;
+
+  /// No description provided for @reminderTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'提醒任务'**
+  String get reminderTasks;
+
+  /// No description provided for @noReminderTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'暂无提醒任务'**
+  String get noReminderTasks;
+
+  /// No description provided for @unnamedTask.
+  ///
+  /// In zh, this message translates to:
+  /// **'未命名任务'**
+  String get unnamedTask;
+
+  /// No description provided for @notSet.
+  ///
+  /// In zh, this message translates to:
+  /// **'未设置'**
+  String get notSet;
+
+  /// No description provided for @repeatOnce.
+  ///
+  /// In zh, this message translates to:
+  /// **'单次'**
+  String get repeatOnce;
+
+  /// No description provided for @repeatWeekly.
+  ///
+  /// In zh, this message translates to:
+  /// **'每周'**
+  String get repeatWeekly;
+
+  /// No description provided for @repeatMonthly.
+  ///
+  /// In zh, this message translates to:
+  /// **'每月'**
+  String get repeatMonthly;
+
+  /// No description provided for @repeatYearly.
+  ///
+  /// In zh, this message translates to:
+  /// **'每年'**
+  String get repeatYearly;
+
+  /// No description provided for @editReminder.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑提醒'**
+  String get editReminder;
+
+  /// No description provided for @taskName.
+  ///
+  /// In zh, this message translates to:
+  /// **'任务名称'**
+  String get taskName;
+
+  /// No description provided for @repeat.
+  ///
+  /// In zh, this message translates to:
+  /// **'重复'**
+  String get repeat;
+
+  /// No description provided for @save.
+  ///
+  /// In zh, this message translates to:
+  /// **'保存'**
+  String get save;
+
+  /// No description provided for @addReminder.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加提醒'**
+  String get addReminder;
+
+  /// No description provided for @weekdays.
+  ///
+  /// In zh, this message translates to:
+  /// **'周一|周二|周三|周四|周五|周六|周日'**
+  String get weekdays;
+
+  /// No description provided for @calendarTasks.
+  ///
+  /// In zh, this message translates to:
+  /// **'日历任务'**
+  String get calendarTasks;
+
+  /// No description provided for @calendarView.
+  ///
+  /// In zh, this message translates to:
+  /// **'日历'**
+  String get calendarView;
+
+  /// No description provided for @listView.
+  ///
+  /// In zh, this message translates to:
+  /// **'列表'**
+  String get listView;
+
+  /// No description provided for @noRemindersToday.
+  ///
+  /// In zh, this message translates to:
+  /// **'当天无提醒'**
+  String get noRemindersToday;
+
+  /// No description provided for @reminder.
+  ///
+  /// In zh, this message translates to:
+  /// **'提醒'**
+  String get reminder;
+
+  /// No description provided for @today.
+  ///
+  /// In zh, this message translates to:
+  /// **'今'**
+  String get today;
+
+  /// No description provided for @repeatMonthlyTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'{day}日 {time}'**
+  String repeatMonthlyTime(int day, String time);
+
+  /// No description provided for @repeatYearlyTime.
+  ///
+  /// In zh, this message translates to:
+  /// **'{month}月{day}日 {time}'**
+  String repeatYearlyTime(int month, int day, String time);
+
+  /// No description provided for @reminderChannel.
+  ///
+  /// In zh, this message translates to:
+  /// **'提醒'**
+  String get reminderChannel;
+
+  /// No description provided for @reminderChannelDesc.
+  ///
+  /// In zh, this message translates to:
+  /// **'笔记任务提醒'**
+  String get reminderChannelDesc;
+
+  /// No description provided for @reminderDueBody.
+  ///
+  /// In zh, this message translates to:
+  /// **'该提醒已到时间'**
+  String get reminderDueBody;
+
+  /// No description provided for @unitYear.
+  ///
+  /// In zh, this message translates to:
+  /// **'年'**
+  String get unitYear;
+
+  /// No description provided for @unitMonth.
+  ///
+  /// In zh, this message translates to:
+  /// **'月'**
+  String get unitMonth;
+
+  /// No description provided for @unitDay.
+  ///
+  /// In zh, this message translates to:
+  /// **'日'**
+  String get unitDay;
+
+  /// No description provided for @unitHour.
+  ///
+  /// In zh, this message translates to:
+  /// **'时'**
+  String get unitHour;
+
+  /// No description provided for @unitMinute.
+  ///
+  /// In zh, this message translates to:
+  /// **'分'**
+  String get unitMinute;
+
+  /// No description provided for @atLeastOneWeekday.
+  ///
+  /// In zh, this message translates to:
+  /// **'请至少选择一个星期'**
+  String get atLeastOneWeekday;
 }
 
 class _AppLocalizationsDelegate

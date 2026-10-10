@@ -154,5 +154,50 @@
   "upgradeDownloadFailed":"下载失败",
 
   "switchToPad":"切换到平板模式",
-  "switchToPhone":"切换到手机模式"
+  "switchToPhone":"切换到手机模式",
+
+  "reminderTasks":"提醒任务",
+  "noReminderTasks":"暂无提醒任务",
+  "unnamedTask":"未命名任务",
+  "notSet":"未设置",
+  "repeatOnce":"单次",
+  "repeatWeekly":"每周",
+  "repeatMonthly":"每月",
+  "repeatYearly":"每年",
+  "editReminder":"编辑提醒",
+  "taskName":"任务名称",
+  "repeat":"重复",
+  "save":"保存",
+  "addReminder":"添加提醒",
+  "weekdays":"周一|周二|周三|周四|周五|周六|周日",
+  "calendarTasks":"日历任务",
+  "calendarView":"日历",
+  "listView":"列表",
+  "noRemindersToday":"当天无提醒",
+  "reminder":"提醒",
+  "today":"今",
+  "repeatMonthlyTime":"{day}日 {time}",
+  "@repeatMonthlyTime": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "time": {"type": "String"}
+    }
+  },
+  "repeatYearlyTime":"{month}月{day}日 {time}",
+  "@repeatYearlyTime": {
+    "placeholders": {
+      "month": {"type": "int"},
+      "day": {"type": "int"},
+      "time": {"type": "String"}
+    }
+  },
+  "reminderChannel":"提醒",
+  "reminderChannelDesc":"笔记任务提醒",
+  "reminderDueBody":"该提醒已到时间",
+  "unitYear":"年",
+  "unitMonth":"月",
+  "unitDay":"日",
+  "unitHour":"时",
+  "unitMinute":"分",
+  "atLeastOneWeekday":"请至少选择一个星期"
 }

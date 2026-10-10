@@ -66,6 +66,7 @@ class PhoneRecordListPage extends StatelessWidget {
               );
             },
           ),
+          Divider(height: 1, color: theme.colorScheme.outline.withAlpha(80)),
           Expanded(
             child: ValueListenableBuilder<int>(
               valueListenable: RecordListWidgetType.notifier,

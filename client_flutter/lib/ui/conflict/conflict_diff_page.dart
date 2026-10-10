@@ -15,7 +15,7 @@ import 'package:note123/utils/app_logger.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/utils/object_ref.dart';
 import 'package:note123/utils/utils.dart';
-import 'package:note123/model/reminder_task.dart';
+import 'package:note123/ui/editor/reminder_panel.dart';
 
 /// Single-side editor panel
 /// - Receives file path, auto reads from disk + unlocks (if locked != 0)
@@ -30,17 +30,19 @@ class _ConflictTitleBar extends StatelessWidget {
   final String name;
   final String path;
   final int editTime;
-  final List<ReminderTask> tasks;
+  final String uuid;
+  final bool editable;
 
-  _ConflictTitleBar({
+  const _ConflictTitleBar({
     required this.title,
     required this.color,
     required this.version,
     required this.name,
     required this.path,
     required this.editTime,
-    String reminder = '',
-  }) : tasks = ReminderTask.fromJsonString(reminder);
+    required this.uuid,
+    this.editable = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -64,24 +66,7 @@ class _ConflictTitleBar extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
             ),
-            if (tasks.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 2),
-                child: Row(
-                  children: [
-                    Icon(Icons.notifications_active, size: 12, color: color),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        '提醒: ${tasks.map((t) => t.name.isEmpty ? '(无名称)' : t.name).join(", ")}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 11, color: color),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            ReminderPanel(uuid: uuid, editable: editable, maxLines: 3),
           ],
         ),
       ),
@@ -401,7 +386,8 @@ class _ConflictDiffPageState extends State<ConflictDiffPage> {
       name: record.remoteName,
       path: record.remotePath,
       editTime: record.remoteEditAt,
-      reminder: record.remoteReminder,
+      uuid: record.uuid,
+      editable: false,
     );
     final localBar = _ConflictTitleBar(
       title: l10n.conflictLocalModified,
@@ -410,7 +396,8 @@ class _ConflictDiffPageState extends State<ConflictDiffPage> {
       name: record.localName,
       path: record.localPath,
       editTime: record.localEditAt,
-      reminder: record.localReminder,
+      uuid: record.uuid,
+      editable: true,
     );
 
     if (_isVertical) {
@@ -458,7 +445,8 @@ class _ConflictDiffPageState extends State<ConflictDiffPage> {
         name: record.remoteName,
         path: record.remotePath,
         editTime: record.remoteEditAt,
-        reminder: record.remoteReminder,
+        uuid: record.uuid,
+        editable: false,
       ),
     );
     final localPanel = DiffEditorPanel(
@@ -476,7 +464,8 @@ class _ConflictDiffPageState extends State<ConflictDiffPage> {
         name: record.localName,
         path: record.localPath,
         editTime: record.localEditAt,
-        reminder: record.localReminder,
+        uuid: record.uuid,
+        editable: true,
       ),
     );
 

@@ -485,4 +485,101 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get switchToPhone => 'Switch to phone mode';
+
+  @override
+  String get reminderTasks => 'Reminders';
+
+  @override
+  String get noReminderTasks => 'No reminders';
+
+  @override
+  String get unnamedTask => 'Untitled';
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get repeatOnce => 'Once';
+
+  @override
+  String get repeatWeekly => 'Weekly';
+
+  @override
+  String get repeatMonthly => 'Monthly';
+
+  @override
+  String get repeatYearly => 'Yearly';
+
+  @override
+  String get editReminder => 'Edit reminder';
+
+  @override
+  String get taskName => 'Task name';
+
+  @override
+  String get repeat => 'Repeat';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get addReminder => 'Add reminder';
+
+  @override
+  String get weekdays => 'Mon|Tue|Wed|Thu|Fri|Sat|Sun';
+
+  @override
+  String get calendarTasks => 'Calendar';
+
+  @override
+  String get calendarView => 'Calendar';
+
+  @override
+  String get listView => 'List';
+
+  @override
+  String get noRemindersToday => 'No reminders today';
+
+  @override
+  String get reminder => 'Reminder';
+
+  @override
+  String get today => 'Today';
+
+  @override
+  String repeatMonthlyTime(int day, String time) {
+    return '$day $time';
+  }
+
+  @override
+  String repeatYearlyTime(int month, int day, String time) {
+    return '$month/$day $time';
+  }
+
+  @override
+  String get reminderChannel => 'Reminder';
+
+  @override
+  String get reminderChannelDesc => 'Note task reminders';
+
+  @override
+  String get reminderDueBody => 'This reminder is due';
+
+  @override
+  String get unitYear => 'y';
+
+  @override
+  String get unitMonth => 'm';
+
+  @override
+  String get unitDay => 'd';
+
+  @override
+  String get unitHour => 'h';
+
+  @override
+  String get unitMinute => 'min';
+
+  @override
+  String get atLeastOneWeekday => 'Please select at least one weekday';
 }

@@ -30,7 +30,9 @@ abstract class DetailTabPageState {
 /// manages a single [tabs] list (no parallel widget list to keep in sync).
 abstract class DetailTab {
   final String id;
-  final String title;
+
+  /// Display title. Subclasses may override to provide a localized value.
+  String get title;
 
   /// Key for the page widget's state, so the detail page can look it up for
   /// foreground/background lifecycle signals on tab switch.
@@ -40,7 +42,7 @@ abstract class DetailTab {
   /// is opened (via [buildPage]). Null before that.
   Widget? page;
 
-  DetailTab({required this.id, required this.title});
+  DetailTab({required this.id});
 
   /// Called when this tab becomes the selected one. Subclasses update the
   /// record tree to reflect what is currently open (e.g. an editor tab opens
@@ -59,7 +61,9 @@ abstract class DetailTab {
 
 class EditorTab extends DetailTab {
   final TreeContentFile record;
-  EditorTab({required super.id, required super.title, required this.record});
+  @override
+  final String title;
+  EditorTab({required super.id, required this.title, required this.record});
 
   @override
   void setSelected(RecordTree recordTree) {
@@ -73,7 +77,10 @@ class EditorTab extends DetailTab {
 }
 
 class CalendarTab extends DetailTab {
-  CalendarTab() : super(id: '__calendar__', title: '日历任务');
+  CalendarTab() : super(id: '__calendar__');
+
+  @override
+  String get title => l10n.calendarTasks;
 
   @override
   void setSelected(RecordTree recordTree) {

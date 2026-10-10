@@ -154,5 +154,50 @@
   "upgradeDownloadFailed": "Download failed",
 
   "switchToPad": "Switch to tablet mode",
-  "switchToPhone": "Switch to phone mode"
+  "switchToPhone": "Switch to phone mode",
+
+  "reminderTasks": "Reminders",
+  "noReminderTasks": "No reminders",
+  "unnamedTask": "Untitled",
+  "notSet": "Not set",
+  "repeatOnce": "Once",
+  "repeatWeekly": "Weekly",
+  "repeatMonthly": "Monthly",
+  "repeatYearly": "Yearly",
+  "editReminder": "Edit reminder",
+  "taskName": "Task name",
+  "repeat": "Repeat",
+  "save": "Save",
+  "addReminder": "Add reminder",
+  "weekdays": "Mon|Tue|Wed|Thu|Fri|Sat|Sun",
+  "calendarTasks": "Calendar",
+  "calendarView": "Calendar",
+  "listView": "List",
+  "noRemindersToday": "No reminders today",
+  "reminder": "Reminder",
+  "today": "Today",
+  "repeatMonthlyTime": "{day} {time}",
+  "@repeatMonthlyTime": {
+    "placeholders": {
+      "day": {"type": "int"},
+      "time": {"type": "String"}
+    }
+  },
+  "repeatYearlyTime": "{month}/{day} {time}",
+  "@repeatYearlyTime": {
+    "placeholders": {
+      "month": {"type": "int"},
+      "day": {"type": "int"},
+      "time": {"type": "String"}
+    }
+  },
+  "reminderChannel": "Reminder",
+  "reminderChannelDesc": "Note task reminders",
+  "reminderDueBody": "This reminder is due",
+  "unitYear": "y",
+  "unitMonth": "m",
+  "unitDay": "d",
+  "unitHour": "h",
+  "unitMinute": "min",
+  "atLeastOneWeekday": "Please select at least one weekday"
 }

@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
-import 'package:note123/model/reminder_entry.dart';
+import 'package:note123/filesync/reminder_entry.dart';
 import 'package:note123/ui/desktop/desktop_record_detail_page.dart';
 import 'package:note123/utils/utils.dart';
 
-/// Calendar + list page for all reminder tasks across every note.
-///
-/// - [showAppBar]: when false, renders without a Scaffold/AppBar so it can be
-///   embedded inside a desktop detail tab.
-/// - [onOpenRecord]: called when the user taps a reminder's note. On desktop
-///   this opens a record tab; on mobile it defaults to Navigator.pop + push.
 class CalendarPage extends StatefulWidget {
   final bool showAppBar;
   final ValueChanged<TreeContentFile>? onOpenRecord;
@@ -55,12 +50,7 @@ class _CalendarPageState extends State<CalendarPage> implements DetailTabPageSta
   }
 
   List<ReminderEntry> _entriesForDay(DateTime day) {
-    return _entries.where((e) {
-      final ts = e.task.remindAt ?? e.task.dueAt;
-      if (ts == null) return false;
-      final d = DateTime.fromMillisecondsSinceEpoch(ts);
-      return isSameDay(d, day);
-    }).toList();
+    return _entries.where((e) => reminderOccursOnDay(e.task, day)).toList();
   }
 
   void _openRecord(String uuid) {
@@ -72,41 +62,33 @@ class _CalendarPageState extends State<CalendarPage> implements DetailTabPageSta
   @override
   Widget build(BuildContext context) {
     final body = _buildBody(context);
-    if (!widget.showAppBar) return body;
+    final segmented = _buildSegmentedControl(context);
+    if (!widget.showAppBar) {
+      return Stack(
+        children: [
+          body,
+          Positioned(right: 16, bottom: 16, child: segmented),
+        ],
+      );
+    }
     return Scaffold(
       appBar: AppBar(
-        title: const Text('日历任务'),
-        bottom: PreferredSize(preferredSize: const Size.fromHeight(40), child: _buildToggleBar(context)),
+        title: Text(l10n.calendarTasks),
+        actions: [Padding(padding: const EdgeInsets.only(right: 12), child: segmented)],
       ),
       body: body,
     );
   }
 
-  Widget _buildToggleBar(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      height: 40,
-      color: theme.colorScheme.surface,
-      child: Row(
-        children: [
-          Expanded(
-            child: _ToggleButton(
-              label: '日历',
-              icon: Icons.calendar_month,
-              selected: _viewMode == 0,
-              onTap: () => setState(() => _viewMode = 0),
-            ),
-          ),
-          Expanded(
-            child: _ToggleButton(
-              label: '列表',
-              icon: Icons.list,
-              selected: _viewMode == 1,
-              onTap: () => setState(() => _viewMode = 1),
-            ),
-          ),
-        ],
-      ),
+  Widget _buildSegmentedControl(BuildContext context) {
+    return SegmentedButton<int>(
+      showSelectedIcon: false,
+      segments: [
+        ButtonSegment(value: 0, label: Text(l10n.calendarView), icon: const Icon(Icons.calendar_month, size: 18)),
+        ButtonSegment(value: 1, label: Text(l10n.listView), icon: const Icon(Icons.list, size: 18)),
+      ],
+      selected: {_viewMode},
+      onSelectionChanged: (set) => setState(() => _viewMode = set.first),
     );
   }
 
@@ -122,12 +104,12 @@ class _CalendarPageState extends State<CalendarPage> implements DetailTabPageSta
 
     return Column(
       children: [
-        if (!widget.showAppBar) _buildToggleBar(context),
         TableCalendar<ReminderEntry>(
           firstDay: DateTime(2000),
           lastDay: DateTime(2100),
           focusedDay: _focusedDay,
           calendarFormat: _calendarFormat,
+          rowHeight: 56,
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
           onDaySelected: (selected, focused) {
             setState(() {
@@ -140,30 +122,26 @@ class _CalendarPageState extends State<CalendarPage> implements DetailTabPageSta
           },
           onPageChanged: (focused) => _focusedDay = focused,
           eventLoader: (day) => _entriesForDay(day),
-          calendarStyle: CalendarStyle(
-            todayDecoration: BoxDecoration(color: theme.colorScheme.primary.withAlpha(80), shape: BoxShape.circle),
-            selectedDecoration: BoxDecoration(color: theme.colorScheme.primary, shape: BoxShape.circle),
-            markerDecoration: BoxDecoration(color: theme.colorScheme.secondary, shape: BoxShape.circle),
-          ),
           calendarBuilders: CalendarBuilders(
-            markerBuilder: (context, day, events) {
-              if (events.isEmpty) return null;
-              return Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(color: theme.colorScheme.secondary, shape: BoxShape.circle),
-              );
-            },
+            defaultBuilder: (context, day, focused) => _buildDayCell(context, day),
+            todayBuilder: (context, day, focused) => _buildDayCell(context, day, isToday: true),
+            selectedBuilder: (context, day, focused) => _buildDayCell(context, day, selected: true),
+            outsideBuilder: (context, day, focused) => _buildDayCell(context, day, isOutside: true),
+            markerBuilder: (context, day, events) => const SizedBox.shrink(),
           ),
         ),
         const Divider(height: 1),
         Expanded(
           child: selectedEntries.isEmpty
               ? Center(
-                  child: Text('当天无提醒', style: TextStyle(color: theme.colorScheme.onSurface.withAlpha(120))),
+                  child: Text(
+                    l10n.noRemindersToday,
+                    style: TextStyle(color: theme.colorScheme.onSurface.withAlpha(120)),
+                  ),
                 )
-              : ListView.builder(
+              : ListView.separated(
                   itemCount: selectedEntries.length,
+                  separatorBuilder: (_, _) => Divider(height: 1, color: theme.colorScheme.outline.withAlpha(40)),
                   itemBuilder: (context, i) => _buildEntryTile(context, selectedEntries[i]),
                 ),
         ),
@@ -171,18 +149,93 @@ class _CalendarPageState extends State<CalendarPage> implements DetailTabPageSta
     );
   }
 
+  Widget _buildDayCell(
+    BuildContext context,
+    DateTime day, {
+    bool selected = false,
+    bool isToday = false,
+    bool isOutside = false,
+  }) {
+    final theme = Theme.of(context);
+    final entries = _entriesForDay(day);
+    final text = entries.isEmpty
+        ? ''
+        : entries.length == 1
+        ? (entries.first.task.name.isEmpty ? l10n.reminder : entries.first.task.name)
+        : '${entries.first.task.name.isEmpty ? l10n.reminder : entries.first.task.name} +${entries.length - 1}';
+
+    final dayColor = isOutside
+        ? theme.colorScheme.onSurface.withAlpha(80)
+        : selected
+        ? Colors.white
+        : isToday
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurface;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+      decoration: BoxDecoration(
+        color: selected
+            ? theme.colorScheme.primary
+            : isToday
+            ? theme.colorScheme.primary.withAlpha(15)
+            : null,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (isToday)
+                  Text(
+                    l10n.today,
+                    style: TextStyle(color: dayColor, fontSize: 14, fontWeight: FontWeight.bold),
+                  )
+                else
+                  Text(
+                    '${day.day}',
+                    style: TextStyle(
+                      color: dayColor,
+                      fontSize: 14,
+                      fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+              ],
+            ),
+            if (text.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2, left: 2, right: 2),
+                child: Text(
+                  text,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: dayColor, fontSize: 10),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildListView(BuildContext context) {
     final theme = Theme.of(context);
     return Column(
       children: [
-        if (!widget.showAppBar) _buildToggleBar(context),
         Expanded(
           child: _entries.isEmpty
               ? Center(
-                  child: Text('暂无提醒任务', style: TextStyle(color: theme.colorScheme.onSurface.withAlpha(120))),
+                  child: Text(
+                    l10n.noReminderTasks,
+                    style: TextStyle(color: theme.colorScheme.onSurface.withAlpha(120)),
+                  ),
                 )
-              : ListView.builder(
+              : ListView.separated(
                   itemCount: _entries.length,
+                  separatorBuilder: (_, _) => Divider(height: 1, color: theme.colorScheme.outline.withAlpha(40)),
                   itemBuilder: (context, i) => _buildEntryTile(context, _entries[i]),
                 ),
         ),
@@ -191,20 +244,12 @@ class _CalendarPageState extends State<CalendarPage> implements DetailTabPageSta
   }
 
   Widget _buildEntryTile(BuildContext context, ReminderEntry entry) {
-    final theme = Theme.of(context);
     final task = entry.task;
-    final ts = task.remindAt ?? task.dueAt;
-    final timeStr = ts != null ? Utils.formatTime(ts) : '无时间';
-    final overdue = ts != null && ts < DateTime.now().millisecondsSinceEpoch && !task.done;
+    final timeStr = Utils.reminderTimeStr(task);
     return ListTile(
       dense: true,
-      leading: Icon(
-        task.done ? Icons.check_circle : Icons.notifications_active,
-        color: task.done ? Colors.green : (overdue ? Colors.red : theme.colorScheme.primary),
-        size: 20,
-      ),
       title: Text(
-        task.name.isEmpty ? '(无名称)' : task.name,
+        task.name.isEmpty ? l10n.unnamedTask : task.name,
         style: TextStyle(decoration: task.done ? TextDecoration.lineThrough : null),
       ),
       subtitle: Text(
@@ -213,42 +258,6 @@ class _CalendarPageState extends State<CalendarPage> implements DetailTabPageSta
         overflow: TextOverflow.ellipsis,
       ),
       onTap: () => _openRecord(entry.recordUuid),
-    );
-  }
-}
-
-class _ToggleButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final bool selected;
-  final VoidCallback onTap;
-  const _ToggleButton({required this.label, required this.icon, required this.selected, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        alignment: Alignment.center,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: selected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withAlpha(140),
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: selected ? theme.colorScheme.primary : theme.colorScheme.onSurface.withAlpha(140),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

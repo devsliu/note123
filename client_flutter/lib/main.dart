@@ -68,8 +68,6 @@ Future<void> main() async {
   await AppConfig.init();
   LanguageManager.init();
   await Repository.init(AppConfig.appRootDir);
-  // Schedule all pending reminder notifications after DB is ready
-  unawaited(ReminderNotifier.instance.rescheduleAll());
   RecordListWidgetType.notifier.value =
       Prefs.instance.getInt(PrefKeys.listType) ??
       (Utils.isDesktop() ? RecordListWidgetType.sTreeFolder : RecordListWidgetType.sFlatFolder);
@@ -92,6 +90,9 @@ Widget _buildApp() {
 Future<void> _initWhenAppBuild(BuildContext context) async {
   // Initialize global localizations
   LanguageManager.initializeL10n(context);
+
+  // Initialize reminder notifications (also schedules all pending reminders)
+  await ReminderNotifier.instance.init();
 
   if (_isFirstInitAppWidget) {
     await Repository.get().syncRecords(true);

@@ -104,6 +104,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
   EditorScrollController? editorScrollController;
   Selection? _savedSelection;
   final recordTree = Repository.get().recordTree;
+  final GlobalKey<ReminderPanelState> _reminderPanelKey = GlobalKey<ReminderPanelState>();
 
   StreamSubscription<EditorTransactionValue>? _subscription;
 
@@ -139,8 +140,30 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
     // copyToolbarItem,
     // cutToolbarItem,
     // pasteToolbarItem,
+    _buildReminderToolbarItem(),
     createInfoToolbarItem(widget.record.uuid),
   ];
+
+  ToolbarItem _buildReminderToolbarItem() {
+    return ToolbarItem(
+      id: 'editor.reminder',
+      group: 0,
+      isActive: (_) => true,
+      builder: (context, editorState, highlightColor, iconColor, tooltipBuilder) {
+        final child = SVGIconItemWidget(
+          iconBuilder: (_) => Icon(Icons.notifications_active_outlined, color: iconColor, size: 18),
+          isHighlight: false,
+          highlightColor: highlightColor,
+          iconColor: iconColor,
+          onPressed: () => _reminderPanelKey.currentState?.showAddDialog(),
+        );
+        if (tooltipBuilder != null) {
+          return tooltipBuilder(context, 'editor.reminder', l10n.addReminder, child);
+        }
+        return child;
+      },
+    );
+  }
 
   void listenContentChange() {
     _subscription?.cancel();
@@ -171,7 +194,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
           final map = jsonDecode(trimmed) as Map<String, dynamic>;
           document = Document.fromJson(map);
         } catch (e) {
-          AppLogger.e("解析JSON失败: $e");
+          AppLogger.e("Failed to parse JSON: $e");
         }
       }
 
@@ -297,7 +320,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
         ),
         Divider(height: 1, color: theme.colorScheme.outline.withAlpha(50)),
         Expanded(child: _buildEditorWidget(theme, _blockComponentBuilders, _textStyleConfiguration)),
-        ReminderPanel(uuid: widget.record.uuid),
+        ReminderPanel(key: _reminderPanelKey, uuid: widget.record.uuid),
         _LastModifyTimeWidget(uuid: widget.record.uuid),
       ],
     );
