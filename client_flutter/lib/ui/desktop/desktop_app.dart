@@ -11,6 +11,43 @@ import 'desktop_tabs_page.dart';
 import '../../config/prefs.dart';
 import '../../l10n/app_localizations.dart';
 import '../conflict/conflict_auto_pop.dart';
+import '../../filesync/record_tree.dart';
+import '../calendar/calendar_page.dart';
+import '../editor/record_flow_editor_page.dart';
+
+class EditorTab extends DesktopTab {
+  final TreeContentFile record;
+  @override
+  final String title;
+  EditorTab({required super.id, required this.title, required this.record});
+
+  @override
+  void setSelected(RecordTree recordTree) {
+    recordTree.setOpenedFile(record.uuid);
+  }
+
+  @override
+  Widget buildPage(GlobalKey key, {VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord}) {
+    return RecordFlowEditorPage(record: record, key: key, onRecordDeleted: onRecordDeleted);
+  }
+}
+
+class CalendarTab extends DesktopTab {
+  CalendarTab() : super(id: '__calendar__');
+
+  @override
+  String get title => l10n.calendarTasks;
+
+  @override
+  void setSelected(RecordTree recordTree) {
+    recordTree.setOpenedFile("");
+  }
+
+  @override
+  Widget buildPage(GlobalKey key, {VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord}) {
+    return CalendarPage(key: key, showAppBar: false, onOpenRecord: onOpenRecord);
+  }
+}
 
 class DesktopApp extends StatefulWidget {
   final ValueCallback<BuildContext> initCallback;
@@ -118,19 +155,21 @@ class _DesktopAppState extends State<DesktopApp> with WidgetsBindingObserver, Wi
                 id: 'left',
                 child: DesktopRecordListPage(
                   onClickRecordAction: (context, record) {
-                    DesktopTabsPageState? rightState = detailKey.currentState;
-                    if (rightState != null) {
-                      rightState.openRecordTab(record);
-                    }
+                    detailKey.currentState?.openTab(EditorTab(id: record.uuid, title: record.name, record: record));
                   },
                   onOpenCalendar: () {
-                    detailKey.currentState?.openCalendarTab();
+                    detailKey.currentState?.openTab(CalendarTab());
                   },
                 ),
               ),
               LayoutId(
                 id: 'right',
-                child: DesktopTabsPage(key: detailKey),
+                child: DesktopTabsPage(
+                  key: detailKey,
+                  onOpenRecord: (record) {
+                    detailKey.currentState?.openTab(EditorTab(id: record.uuid, title: record.name, record: record));
+                  },
+                ),
               ),
               LayoutId(id: 'dragger', child: buildLeftSideDragger()),
             ],

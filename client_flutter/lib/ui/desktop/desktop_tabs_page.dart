@@ -3,8 +3,6 @@ import 'dart:math' as math;
 
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
-import 'package:note123/ui/calendar/calendar_page.dart';
-import 'package:note123/ui/editor/record_flow_editor_page.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/theme.dart';
 import 'package:note123/config/app_config.dart';
@@ -24,84 +22,65 @@ abstract class DesktopTabPageState {
 }
 
 /// Base class for tabs shown in [DesktopTabsPage].
-/// Subclasses: [EditorTab] (note editor) and [CalendarTab] (calendar page).
 ///
-/// Each tab owns its [key] and the built [page] widget, so the detail page only
-/// manages a single [tabs] list (no parallel widget list to keep in sync).
-abstract class DetailTab {
+/// [DesktopTab] is a pure model: it carries identity, title, and the logic for
+/// building its page, but it does not own the page widget or its state key.
+/// Those runtime objects are held by a [_DesktopTabImpl] wrapper, and the
+/// detail page keeps a list of those wrappers in `_tabs`.
+abstract class DesktopTab {
   final String id;
 
   /// Display title. Subclasses may override to provide a localized value.
   String get title;
 
-  /// Key for the page widget's state, so the detail page can look it up for
-  /// foreground/background lifecycle signals on tab switch.
-  final GlobalKey key = GlobalKey();
+  DesktopTab({required this.id});
 
-  /// The built page widget, set by [DesktopTabsPageState] when the tab
-  /// is opened (via [buildPage]). Null before that.
-  Widget? page;
-
-  DetailTab({required this.id});
+  /// Whether this tab is considered the same as [other] for the purpose of
+  /// deduping open tabs (e.g. opening an already-open record focuses it
+  /// instead of creating a second tab). Default compares runtime type and id.
+  bool equal(DesktopTab other) => runtimeType == other.runtimeType && id == other.id;
 
   /// Called when this tab becomes the selected one. Subclasses update the
   /// record tree to reflect what is currently open (e.g. an editor tab opens
   /// its record; the calendar tab clears the selection).
   void setSelected(RecordTree recordTree);
 
-  /// Build the page widget for this tab, using [key]. The detail page supplies
-  /// optional callbacks the page may use (close on remote delete, open a
-  /// record). Subclasses pick the callbacks they need. The result is cached in
-  /// [page] by the caller.
-  Widget buildPage({VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord});
+  /// Build the page widget for this tab. [key] is the state key the detail
+  /// page reserves for this tab, used to look up the page state for
+  /// foreground/background lifecycle signals. Callbacks the page may use
+  /// (close on remote delete, open a record) are supplied by the caller;
+  /// subclasses pick the ones they need. The result is cached by the caller.
+  Widget buildPage(GlobalKey key, {VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord});
 
   @override
   String toString() => title;
 }
 
-class EditorTab extends DetailTab {
-  final TreeContentFile record;
-  @override
-  final String title;
-  EditorTab({required super.id, required this.title, required this.record});
+/// Wrapper pairing a [DesktopTab] model with its runtime page state. The
+/// detail page keeps a list of these in `_tabs`; each holds the widget's
+/// [GlobalKey] and the built [page] widget.
+class _DesktopTabImpl {
+  final DesktopTab tab;
+  final GlobalKey key = GlobalKey();
+  Widget? page;
 
-  @override
-  void setSelected(RecordTree recordTree) {
-    recordTree.setOpenedFile(record.uuid);
-  }
-
-  @override
-  Widget buildPage({VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord}) {
-    return RecordFlowEditorPage(record: record, key: key, onRecordDeleted: onRecordDeleted);
-  }
-}
-
-class CalendarTab extends DetailTab {
-  CalendarTab() : super(id: '__calendar__');
-
-  @override
-  String get title => l10n.calendarTasks;
-
-  @override
-  void setSelected(RecordTree recordTree) {
-    recordTree.setOpenedFile("");
-  }
-
-  @override
-  Widget buildPage({VoidCallback? onRecordDeleted, ValueChanged<TreeContentFile>? onOpenRecord}) {
-    return CalendarPage(key: key, showAppBar: false, onOpenRecord: onOpenRecord);
-  }
+  _DesktopTabImpl({required this.tab});
 }
 
 class DesktopTabsPage extends StatefulWidget {
-  const DesktopTabsPage({super.key});
+  /// Called when a page (e.g. the calendar) wants to open a record. The
+  /// parent is responsible for turning [record] into a [DesktopTab] and
+  /// calling [openTab], since tab subclasses live outside this file.
+  final ValueChanged<TreeContentFile>? onOpenRecord;
+
+  const DesktopTabsPage({super.key, this.onOpenRecord});
 
   @override
   DesktopTabsPageState createState() => DesktopTabsPageState();
 }
 
 class DesktopTabsPageState extends State<DesktopTabsPage> {
-  final List<DetailTab> tabs = [];
+  final List<_DesktopTabImpl> _tabs = [];
   int currentIndex = 0;
   final RecordTree recordTree = Repository.get().recordTree;
   Size _lockedEditorSize = Size.zero;
@@ -117,7 +96,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
   void dispose() {
     isWindowAnimatingNotifier.removeListener(_onAnimatingChanged);
     recordTree.setOpenedFile("");
-    tabs.clear();
+    _tabs.clear();
     super.dispose();
   }
 
@@ -133,61 +112,52 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
     setState(() {});
   }
 
-  void openRecordTab(TreeContentFile record) {
-    final idx = tabs.indexWhere((t) => t.id == record.uuid);
+  /// Open (or focus) [tab]. If an equal tab is already open it is focused
+  /// instead of creating a duplicate; otherwise [tab] is added, its page is
+  /// built, and it is selected.
+  void openTab(DesktopTab tab) {
+    final idx = _tabs.indexWhere((impl) => impl.tab.equal(tab));
     if (idx != -1) {
       selectTab(idx);
       return;
     }
-    tabs.add(EditorTab(id: record.uuid, title: record.name, record: record));
-    _buildTabPage(tabs.last);
-    selectTab(tabs.length - 1);
-  }
-
-  /// Open (or focus) the calendar tab. There is at most one calendar tab.
-  void openCalendarTab() {
-    final idx = tabs.indexWhere((t) => t is CalendarTab);
-    if (idx != -1) {
-      selectTab(idx);
-      return;
-    }
-    tabs.add(CalendarTab());
-    _buildTabPage(tabs.last);
-    selectTab(tabs.length - 1);
+    _tabs.add(_DesktopTabImpl(tab: tab));
+    _buildTabPage(_tabs.last);
+    selectTab(_tabs.length - 1);
   }
 
   void closeTab(int index) {
-    if (index < 0 || index >= tabs.length) return;
+    if (index < 0 || index >= _tabs.length) return;
 
-    tabs.removeAt(index);
+    _tabs.removeAt(index);
     int newIndex = currentIndex;
     if (newIndex > index) {
       newIndex--;
     }
-    newIndex = newIndex.clamp(0, max(0, tabs.length - 1));
+    newIndex = newIndex.clamp(0, max(0, _tabs.length - 1));
     selectTab(newIndex);
   }
 
   void closeOtherTabs(int keepIndex) {
-    if (keepIndex < 0 || keepIndex >= tabs.length) return;
+    if (keepIndex < 0 || keepIndex >= _tabs.length) return;
 
-    final keepTab = tabs[keepIndex];
+    final keepTab = _tabs[keepIndex];
 
-    tabs.clear();
-    tabs.add(keepTab);
+    _tabs.clear();
+    _tabs.add(keepTab);
 
     selectTab(0);
   }
 
   void closeAllTabs() {
-    tabs.clear();
+    _tabs.clear();
     selectTab(-1);
   }
 
   void closeTabsToRight(int startIndex) {
-    if (startIndex < 0 || startIndex >= tabs.length - 1) return;
+    if (startIndex < 0 || startIndex >= _tabs.length - 1) return;
 
-    tabs.removeRange(startIndex + 1, tabs.length);
+    _tabs.removeRange(startIndex + 1, _tabs.length);
 
     if (currentIndex > startIndex) {
       selectTab(startIndex);
@@ -205,23 +175,23 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
       newIndex = currentIndex - startIndex;
     }
 
-    tabs.removeRange(0, startIndex);
+    _tabs.removeRange(0, startIndex);
 
-    selectTab(newIndex.clamp(0, max(0, tabs.length - 1)));
+    selectTab(newIndex.clamp(0, max(0, _tabs.length - 1)));
   }
 
   void selectTab(int index) {
     // Save currently editing content before switching tabs
-    if (currentIndex >= 0 && currentIndex < tabs.length) {
-      final state = tabs[currentIndex].key.currentState;
+    if (currentIndex >= 0 && currentIndex < _tabs.length) {
+      final state = _tabs[currentIndex].key.currentState;
       final tabState = state as DesktopTabPageState?;
       if (tabState?.mounted ?? false) {
         tabState!.setInForeground(false);
       }
     }
 
-    if (index >= 0 && index < tabs.length) {
-      tabs[index].setSelected(recordTree);
+    if (index >= 0 && index < _tabs.length) {
+      _tabs[index].tab.setSelected(recordTree);
     } else {
       recordTree.setOpenedFile("");
     }
@@ -229,10 +199,10 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
       currentIndex = index;
     });
 
-    if (index >= 0 && index < tabs.length) {
+    if (index >= 0 && index < _tabs.length) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        final state = tabs[index].key.currentState;
+        final state = _tabs[index].key.currentState;
         final tabState = state as DesktopTabPageState?;
         if (tabState?.mounted ?? false) {
           tabState!.setInForeground(true);
@@ -241,19 +211,20 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
     }
   }
 
-  void _buildTabPage(DetailTab tab) {
-    tab.page = tab.buildPage(
+  void _buildTabPage(_DesktopTabImpl impl) {
+    impl.page = impl.tab.buildPage(
+      impl.key,
       onRecordDeleted: () {
-        final idx = tabs.indexWhere((t) => t.id == tab.id);
+        final idx = _tabs.indexWhere((t) => t.tab.equal(impl.tab));
         if (idx != -1) closeTab(idx);
       },
-      onOpenRecord: (record) => openRecordTab(record),
+      onOpenRecord: widget.onOpenRecord,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final tabCount = tabs.length;
+    final tabCount = _tabs.length;
     final showDropdown = tabCount > 1;
     final isAnimating = isWindowAnimatingNotifier.value;
     if (!isAnimating) {
@@ -279,7 +250,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
           LayoutId(
             id: 'tabBar',
             child: DesktopRecordTabBar(
-              tabs: tabs,
+              tabs: _tabs.map((impl) => impl.tab).toList(),
               currentIndex: currentIndex,
               onSelectTab: selectTab,
               onCloseTab: closeTab,
@@ -294,16 +265,21 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
               id: 'tabDropdown',
               child: IconButtonTheme(
                 data: theme.appBarIconButtonTheme,
-                child: _TabDropdown(tabs: tabs, currentIndex: currentIndex, onSelect: selectTab, onCloseTab: closeTab),
+                child: _TabDropdown(
+                  tabs: _tabs.map((impl) => impl.tab).toList(),
+                  currentIndex: currentIndex,
+                  onSelect: selectTab,
+                  onCloseTab: closeTab,
+                ),
               ),
             ),
           LayoutId(id: 'windowButtons', child: WindowManagerButtons()),
           // Editor area
           LayoutId(
             id: 'editorStack',
-            child: tabs.isEmpty
+            child: _tabs.isEmpty
                 ? Center(child: Text(l10n.noOpenRecords))
-                : IndexedStack(index: currentIndex, children: tabs.map((t) => t.page!).toList()),
+                : IndexedStack(index: currentIndex, children: _tabs.map((impl) => impl.page!).toList()),
           ),
         ],
       ),
@@ -312,7 +288,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
 }
 
 class _TabDropdown extends StatefulWidget {
-  final List<DetailTab> tabs;
+  final List<DesktopTab> tabs;
   final int currentIndex;
   final ValueChanged<int> onSelect;
   final ValueChanged<int> onCloseTab;
