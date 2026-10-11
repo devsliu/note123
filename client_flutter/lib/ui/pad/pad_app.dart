@@ -5,8 +5,8 @@ import 'package:note123/ui/calendar/calendar_page.dart';
 import 'package:note123/ui/files/recycler_page.dart';
 import 'package:note123/config/theme.dart';
 import 'package:note123/config/language_manager.dart';
-import 'package:note123/ui/phone/phone_record_detail_page.dart';
 import 'package:note123/ui/files/record_list_page.dart';
+import 'package:note123/ui/phone/phone_app.dart';
 
 class PadApp extends BaseApp {
   final ValueNotifier<WidgetBuilder> detailBuilder = ValueNotifier(PadApp._buildEmptyDetail);
