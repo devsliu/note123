@@ -4,6 +4,7 @@ import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/utils/utils.dart';
+import 'package:note123/ui/desktop/desktop_tabs_page.dart';
 
 /// Recycle bin page: lists locally deleted records (metadata snapshot + content file kept in
 /// the recycler folder), supports restore / purge one / clear all.
@@ -16,7 +17,7 @@ class RecyclerPage extends StatefulWidget {
   State<RecyclerPage> createState() => _RecyclerPageState();
 }
 
-class _RecyclerPageState extends State<RecyclerPage> {
+class _RecyclerPageState extends State<RecyclerPage> implements DesktopTabPageState {
   List<RecycleRecord> _records = [];
   bool _loading = true;
 
@@ -41,6 +42,12 @@ class _RecyclerPageState extends State<RecyclerPage> {
       _records = records;
       _loading = false;
     });
+  }
+
+  @override
+  void setInForeground(bool value) {
+    // Desktop/pad tab focus signal; refresh so newly captured deletions show up
+    if (value) _load();
   }
 
   Future<bool> _confirm(String message) async {
@@ -240,12 +247,7 @@ class _RecyclerEntryItemState extends State<RecyclerEntryItem> {
       onTap: () => widget.onTap(context),
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        margin: const EdgeInsets.only(
-          left: 4,
-          right: AppConfig.pageHorizontalPadding,
-          top: 6,
-          bottom: 6,
-        ),
+        margin: const EdgeInsets.only(left: 4, right: AppConfig.pageHorizontalPadding, top: 6, bottom: 6),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           border: Border.all(color: theme.colorScheme.outline.withAlpha(80)),
