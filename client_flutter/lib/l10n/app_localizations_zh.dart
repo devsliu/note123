@@ -198,6 +198,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get markUnfinished => '标记为未完成';
 
   @override
+  String get lunar => '农历';
+
+  @override
   String movedToPath(Object fileName, Object path) {
     return '已将 $fileName 移动到 $path';
   }

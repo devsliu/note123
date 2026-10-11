@@ -218,16 +218,51 @@ int _lunarYearDays(int year) {
 
 /// 返回该年闰月天数（无闰月返回 0）。
 int _leapDays(int year) {
-  if (_leapMonth(year) == 0) return 0;
+  if (leapMonth(year) == 0) return 0;
   return (_lunarInfo[year - 1900] & 0x10000) != 0 ? 30 : 29;
 }
 
 /// 返回该年闰月月份（0 表示无闰月）。
-int _leapMonth(int year) => _lunarInfo[year - 1900] & 0xf;
+int leapMonth(int year) => _lunarInfo[year - 1900] & 0xf;
 
 /// 返回该年某月天数（month 1-12）。
 int _monthDays(int year, int month) {
   return (_lunarInfo[year - 1900] & (0x10000 >> month)) != 0 ? 30 : 29;
+}
+
+/// 农历转公历。
+///
+/// [lunarYear] 农历年（1900-2100），[lunarMonth] 农历月（1-12），
+/// [lunarDay] 农历日（1-30）。[isLeap] 表示是否闰月。
+/// 若该月没有该日（小月无30），自动取当月最后一天。
+DateTime lunarToSolar(int lunarYear, int lunarMonth, int lunarDay, {bool isLeap = false}) {
+  // 基准：1900-01-31 = 农历 1900 年正月初一
+  final base = DateTime(1900, 1, 31);
+  int offset = 0;
+
+  // 累加整年
+  for (int y = 1900; y < lunarYear; y++) {
+    offset += _lunarYearDays(y);
+  }
+
+  // 累加整月（处理闰月）
+  final leap = leapMonth(lunarYear);
+  for (int m = 1; m < lunarMonth; m++) {
+    offset += _monthDays(lunarYear, m);
+    if (m == leap) {
+      offset += _leapDays(lunarYear);
+    }
+  }
+  // 若取闰月，需先跳过同月的正常月
+  if (isLeap && leap == lunarMonth) {
+    offset += _monthDays(lunarYear, lunarMonth);
+  }
+
+  // 日
+  final maxDay = isLeap ? _leapDays(lunarYear) : _monthDays(lunarYear, lunarMonth);
+  offset += lunarDay.clamp(1, maxDay) - 1;
+
+  return base.add(Duration(days: offset));
 }
 
 /// 公历转农历。
@@ -245,7 +280,7 @@ LunarDate solarToLunar(DateTime date) {
     year++;
   }
 
-  int leap = _leapMonth(year);
+  int leap = leapMonth(year);
   bool isLeap = false;
   int month = 1;
   int daysInMonth;

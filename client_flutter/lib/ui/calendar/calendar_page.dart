@@ -92,14 +92,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
       final idx = tasks.indexWhere((t) => t.id == entry.task.id);
       if (idx < 0) return;
       final old = tasks[idx];
-      tasks[idx] = ReminderTask(
-        id: old.id,
-        name: old.name,
-        date: old.date,
-        time: old.time,
-        repeat: old.repeat,
-        done: !old.done,
-      );
+      tasks[idx] = old.copyWith(done: !old.done);
     });
   }
 

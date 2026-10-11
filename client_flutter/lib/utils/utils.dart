@@ -137,10 +137,12 @@ class Utils {
         final names = l10n.weekdays.split('|');
         return '${days.map((d) => names[d - 1]).join('、')} $hm';
       case ReminderTask.repeatMonthly:
-        return l10n.repeatMonthlyTime(task.monthlyDay, hm);
+        final lunar = task.isLunar ? l10n.lunar : '';
+        return '$lunar${l10n.repeatMonthlyTime(task.monthlyDay, hm)}';
       case ReminderTask.repeatYearly:
         final md = task.yearlyMonthDay;
-        return l10n.repeatYearlyTime(md.$1, md.$2, hm);
+        final lunar = task.isLunar ? l10n.lunar : '';
+        return '$lunar${l10n.repeatYearlyTime(md.$1, md.$2, hm)}';
       default:
         // once: show full date + time (no seconds)
         final d = task.onceDate;

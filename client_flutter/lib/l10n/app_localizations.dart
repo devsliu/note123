@@ -470,6 +470,12 @@ abstract class AppLocalizations {
   /// **'标记为未完成'**
   String get markUnfinished;
 
+  /// No description provided for @lunar.
+  ///
+  /// In zh, this message translates to:
+  /// **'农历'**
+  String get lunar;
+
   /// No description provided for @movedToPath.
   ///
   /// In zh, this message translates to:

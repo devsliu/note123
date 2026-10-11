@@ -62,6 +62,7 @@
   "edit": "编辑",
   "markFinished": "标记为完成",
   "markUnfinished": "标记为未完成",
+  "lunar": "农历",
   "movedToPath": "已将 {fileName} 移动到 {path}",
   "themeLight": "浅色",
   "themeDark": "深色",

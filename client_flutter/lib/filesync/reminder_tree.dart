@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/widgets.dart';
 import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/table_record.dart';
+import 'package:note123/utils/lunar.dart';
 
 /// A single reminder task embedded in a record.
 /// Stored as a JSON array string in the record's `reminder` field.
@@ -37,6 +38,10 @@ class ReminderTask {
   /// Whether the task is completed.
   bool done;
 
+  /// Whether the date is interpreted as a lunar (Chinese calendar) date.
+  /// Only applies to [repeatMonthly] and [repeatYearly].
+  bool isLunar;
+
   ReminderTask({
     required this.id,
     required this.name,
@@ -44,9 +49,31 @@ class ReminderTask {
     this.time = 0,
     this.repeat = repeatOnce,
     this.done = false,
+    this.isLunar = false,
   });
 
-  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'date': date, 'time': time, 'repeat': repeat, 'done': done};
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'date': date,
+    'time': time,
+    'repeat': repeat,
+    'done': done,
+    'isLunar': isLunar,
+  };
+
+  /// Returns a copy with the given fields replaced.
+  ReminderTask copyWith({String? id, String? name, int? date, int? time, int? repeat, bool? done, bool? isLunar}) {
+    return ReminderTask(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      date: date ?? this.date,
+      time: time ?? this.time,
+      repeat: repeat ?? this.repeat,
+      done: done ?? this.done,
+      isLunar: isLunar ?? this.isLunar,
+    );
+  }
 
   factory ReminderTask.fromJson(Map<String, dynamic> json) {
     final repeat = json['repeat'] as int? ?? repeatOnce;
@@ -85,6 +112,7 @@ class ReminderTask {
       time: time,
       repeat: repeat,
       done: json['done'] as bool? ?? false,
+      isLunar: json['isLunar'] as bool? ?? false,
     );
   }
 
@@ -210,13 +238,24 @@ DateTime? nextReminderOccurrence(ReminderTask task, DateTime from) {
     case ReminderTask.repeatMonthly:
       {
         final day = task.monthlyDay;
-        var y = from.year;
-        var m = from.month;
-        for (var i = 0; i < 13; i++) {
+        DateTime candidate(int y, int m, {bool isLeap = false}) {
+          if (task.isLunar) {
+            final dt = lunarToSolar(y, m, day, isLeap: isLeap);
+            return DateTime(dt.year, dt.month, dt.day, hour, minute);
+          }
           final dim = DateTime(y, m + 1, 0).day;
-          final d = day.clamp(1, dim);
-          final dt = DateTime(y, m, d, hour, minute);
-          if (dt.isAfter(from)) return dt;
+          return DateTime(y, m, day.clamp(1, dim), hour, minute);
+        }
+
+        final fromLunar = task.isLunar ? solarToLunar(from) : null;
+        var y = fromLunar?.year ?? from.year;
+        var m = fromLunar?.month ?? from.month;
+        for (var i = 0; i < 13; i++) {
+          final leap = task.isLunar ? leapMonth(y) : 0;
+          for (final isLeap in [false, if (leap == m) true]) {
+            final full = candidate(y, m, isLeap: isLeap);
+            if (full.isAfter(from)) return full;
+          }
           m++;
           if (m > 12) {
             m = 1;
@@ -230,12 +269,22 @@ DateTime? nextReminderOccurrence(ReminderTask task, DateTime from) {
         final md = _parseMonthDay(task.date);
         final m = md.$1;
         final day = md.$2;
+        DateTime candidate(int y, {bool isLeap = false}) {
+          if (task.isLunar) {
+            final dt = lunarToSolar(y, m, day, isLeap: isLeap);
+            return DateTime(dt.year, dt.month, dt.day, hour, minute);
+          }
+          final dim = DateTime(y, m + 1, 0).day;
+          return DateTime(y, m, day.clamp(1, dim), hour, minute);
+        }
+
         var y = from.year;
         for (var i = 0; i < 10; i++) {
-          final dim = DateTime(y, m + 1, 0).day;
-          final dd = day.clamp(1, dim);
-          final dt = DateTime(y, m, dd, hour, minute);
-          if (dt.isAfter(from)) return dt;
+          final leap = task.isLunar ? leapMonth(y) : 0;
+          for (final isLeap in [false, if (leap == m) true]) {
+            final full = candidate(y, isLeap: isLeap);
+            if (full.isAfter(from)) return full;
+          }
           y++;
         }
         return null;

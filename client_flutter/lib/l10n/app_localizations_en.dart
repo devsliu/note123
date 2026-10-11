@@ -199,6 +199,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get markUnfinished => 'Mark as unfinished';
 
   @override
+  String get lunar => 'Lunar';
+
+  @override
   String movedToPath(Object fileName, Object path) {
     return 'Moved $fileName to $path';
   }

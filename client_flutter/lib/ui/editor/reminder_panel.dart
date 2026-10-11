@@ -6,7 +6,6 @@ import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/ui/editor/reminder_task_editor.dart';
-import 'package:uuid/uuid.dart';
 
 class ReminderPanel extends StatefulWidget {
   final String uuid;
@@ -63,7 +62,7 @@ class ReminderPanelState extends State<ReminderPanel> {
   /// Show the task editor dialog for adding a new task.
   void showAddDialog() {
     if (!widget.editable) return;
-    final task = ReminderTask(id: const Uuid().v4(), name: '');
+    final task = ReminderTask(id: DateTime.now().millisecondsSinceEpoch.toString(), name: '');
     _showEditor(task, isNew: true);
   }
 
@@ -97,14 +96,7 @@ class ReminderPanelState extends State<ReminderPanel> {
     final idx = _tasks.indexWhere((t) => t.id == task.id);
     if (idx < 0) return;
     setState(() {
-      _tasks[idx] = ReminderTask(
-        id: task.id,
-        name: task.name,
-        date: task.date,
-        time: task.time,
-        repeat: task.repeat,
-        done: !task.done,
-      );
+      _tasks[idx] = task.copyWith(done: !task.done);
     });
     _scheduleSave();
   }

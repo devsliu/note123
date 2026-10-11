@@ -10,6 +10,10 @@ import 'package:note123/filesync/reminder_tree.dart';
 /// and returns null.
 abstract class DateTimeEditorState<T extends StatefulWidget> extends State<T> {
   (int date, int time)? validateAndGet();
+
+  /// Whether the entered date should be treated as a lunar date.
+  /// Only monthly/yearly editors override this.
+  bool get isLunar => false;
 }
 
 // Field keys used for error highlighting inside the editors.
@@ -76,6 +80,12 @@ class ReminderTaskEditorState extends State<ReminderTaskEditor> {
     final values = _currentEditorValues();
     if (values == null) return;
 
+    final isLunar = switch (_repeat) {
+      ReminderTask.repeatMonthly => _monthlyKey.currentState?.isLunar ?? false,
+      ReminderTask.repeatYearly => _yearlyKey.currentState?.isLunar ?? false,
+      _ => false,
+    };
+
     widget.onSaved(
       ReminderTask(
         id: widget.task.id,
@@ -84,6 +94,7 @@ class ReminderTaskEditorState extends State<ReminderTaskEditor> {
         time: values.$2,
         repeat: _repeat,
         done: widget.task.done,
+        isLunar: isLunar,
       ),
     );
   }
@@ -496,6 +507,10 @@ class MonthlyEditorState extends DateTimeEditorState<MonthlyEditor> {
   late final TextEditingController _hourCtrl;
   late final TextEditingController _minuteCtrl;
   final _invalid = <String>{};
+  late bool _isLunar;
+
+  @override
+  bool get isLunar => _isLunar;
 
   @override
   void initState() {
@@ -507,6 +522,7 @@ class MonthlyEditorState extends DateTimeEditorState<MonthlyEditor> {
     _dayCtrl = TextEditingController(text: '${hasDate ? day : now.day}');
     _hourCtrl = TextEditingController(text: '${hasTime ? widget.task.hour : now.hour}');
     _minuteCtrl = TextEditingController(text: '${hasTime ? widget.task.minute : now.minute}');
+    _isLunar = widget.task.isLunar;
   }
 
   @override
@@ -562,6 +578,8 @@ class MonthlyEditorState extends DateTimeEditorState<MonthlyEditor> {
           minuteError: _invalid.contains(_fMinute),
           onChanged: _onFieldChanged,
         ),
+        const SizedBox(width: 12),
+        _LunarCheckbox(value: _isLunar, onChanged: (v) => setState(() => _isLunar = v)),
       ],
     );
   }
@@ -582,6 +600,10 @@ class YearlyEditorState extends DateTimeEditorState<YearlyEditor> {
   late final TextEditingController _hourCtrl;
   late final TextEditingController _minuteCtrl;
   final _invalid = <String>{};
+  late bool _isLunar;
+
+  @override
+  bool get isLunar => _isLunar;
 
   @override
   void initState() {
@@ -594,6 +616,7 @@ class YearlyEditorState extends DateTimeEditorState<YearlyEditor> {
     _dayCtrl = TextEditingController(text: '${hasDate ? md.$2 : now.day}');
     _hourCtrl = TextEditingController(text: '${hasTime ? widget.task.hour : now.hour}');
     _minuteCtrl = TextEditingController(text: '${hasTime ? widget.task.minute : now.minute}');
+    _isLunar = widget.task.isLunar;
   }
 
   @override
@@ -667,7 +690,41 @@ class YearlyEditorState extends DateTimeEditorState<YearlyEditor> {
           minuteError: _invalid.contains(_fMinute),
           onChanged: _onFieldChanged,
         ),
+        const SizedBox(width: 12),
+        _LunarCheckbox(value: _isLunar, onChanged: (v) => setState(() => _isLunar = v)),
       ],
+    );
+  }
+}
+
+/// A compact checkbox row for toggling the lunar (Chinese calendar) option.
+class _LunarCheckbox extends StatelessWidget {
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _LunarCheckbox({required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: Checkbox(
+              value: value,
+              onChanged: (v) => onChanged(v ?? false),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
+            ),
+          ),
+          const SizedBox(width: 2),
+          Text(l10n.lunar, style: const TextStyle(fontSize: 13)),
+        ],
+      ),
     );
   }
 }
