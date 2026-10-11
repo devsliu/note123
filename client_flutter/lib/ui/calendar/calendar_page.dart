@@ -1,0 +1,307 @@
+import 'package:flutter/material.dart';
+import 'package:note123/config/app_config.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'package:note123/config/language_manager.dart';
+import 'package:note123/filesync/record_tree.dart';
+import 'package:note123/filesync/repository.dart';
+import 'package:note123/filesync/reminder_tree.dart';
+import 'package:note123/ui/desktop/desktop_tabs_page.dart';
+import 'package:note123/utils/utils.dart';
+import 'package:note123/utils/lunar.dart';
+
+class CalendarPage extends StatefulWidget {
+  final bool showAppBar;
+  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+  final ValueCallback<BuildContext> closeCallback;
+
+  const CalendarPage({
+    super.key,
+    this.showAppBar = true,
+    required this.openRecordCallback,
+    required this.closeCallback,
+  });
+
+  @override
+  State<CalendarPage> createState() => _CalendarPageState();
+}
+
+class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageState {
+  List<ReminderEntry> _entries = [];
+  bool _loading = true;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  DateTime _focusedDay = DateTime.now();
+  DateTime? _selectedDay;
+  int _viewMode = 0; // 0 = calendar, 1 = list
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedDay = _focusedDay;
+    _load();
+    Repository.get().reminderTree.refreshNotifier.addListener(_load);
+  }
+
+  @override
+  void dispose() {
+    Repository.get().reminderTree.refreshNotifier.removeListener(_load);
+    super.dispose();
+  }
+
+  @override
+  void setInForeground(bool value) {
+    // No editor lifecycle to manage; refresh on focus so new reminders appear.
+    if (value) _load();
+  }
+
+  void _load() {
+    if (!mounted) return;
+    setState(() {
+      _entries = Repository.get().reminderTree.entries;
+      _loading = false;
+    });
+  }
+
+  List<ReminderEntry> _entriesForDay(DateTime day) {
+    return _entries.where((e) => reminderOccursOnDay(e.task, day)).toList();
+  }
+
+  void _openRecord(String uuid) {
+    final record = Repository.get().recordTree.findFile(uuid);
+    if (record == null) return;
+    widget.openRecordCallback(context, record);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final segmented = _buildSegmentedControl(context);
+    if (!widget.showAppBar) {
+      return SizedBox.expand(
+        child: Material(
+          color: theme.colorScheme.surface,
+          child: Stack(
+            children: [
+              _buildBody(context),
+              Positioned(right: 16, bottom: 12, child: segmented),
+            ],
+          ),
+        ),
+      );
+    }
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
+      appBar: AppBar(
+        leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.close_outlined)),
+        titleSpacing: 0,
+        title: Text(l10n.calendarTasks),
+        actions: [
+          segmented,
+          SizedBox(width: AppConfig.pageHorizontalPadding),
+        ],
+      ),
+      body: _buildBody(context),
+    );
+  }
+
+  Widget _buildSegmentedControl(BuildContext context) {
+    final theme = Theme.of(context);
+    return SegmentedButton<int>(
+      showSelectedIcon: false,
+      style: ButtonStyle(
+        visualDensity: VisualDensity.compact,
+        backgroundColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return Color.lerp(theme.colorScheme.surface, theme.colorScheme.onSurface, 0.20);
+          }
+          if (states.contains(WidgetState.pressed)) {
+            return Color.lerp(theme.colorScheme.surface, theme.colorScheme.onSurface, 0.10);
+          }
+          return theme.colorScheme.surface;
+        }),
+        padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 0)),
+      ),
+      segments: [
+        ButtonSegment(value: 0, icon: const Icon(Icons.calendar_month, size: 18)),
+        ButtonSegment(value: 1, icon: const Icon(Icons.list, size: 18)),
+      ],
+      selected: {_viewMode},
+      onSelectionChanged: (set) => setState(() => _viewMode = set.first),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_viewMode == 0) return _buildCalendarView(context);
+    return _buildListView(context);
+  }
+
+  Widget _buildCalendarView(BuildContext context) {
+    final theme = Theme.of(context);
+    final selectedEntries = _selectedDay != null ? _entriesForDay(_selectedDay!) : <ReminderEntry>[];
+
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          TableCalendar<ReminderEntry>(
+            firstDay: DateTime(2000),
+            lastDay: DateTime(2100),
+            focusedDay: _focusedDay,
+            calendarFormat: _calendarFormat,
+            rowHeight: 80,
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            onDaySelected: (selected, focused) {
+              setState(() {
+                _selectedDay = selected;
+                _focusedDay = focused;
+              });
+            },
+            onFormatChanged: (format) {
+              if (_calendarFormat != format) setState(() => _calendarFormat = format);
+            },
+            onPageChanged: (focused) => _focusedDay = focused,
+            eventLoader: (day) => _entriesForDay(day),
+            calendarBuilders: CalendarBuilders(
+              defaultBuilder: (context, day, focused) => _buildDayCell(context, day),
+              todayBuilder: (context, day, focused) => _buildDayCell(context, day, isToday: true),
+              selectedBuilder: (context, day, focused) =>
+                  _buildDayCell(context, day, selected: true, isToday: isSameDay(day, DateTime.now())),
+              outsideBuilder: (context, day, focused) => _buildDayCell(context, day, isOutside: true),
+              markerBuilder: (context, day, events) => const SizedBox.shrink(),
+            ),
+          ),
+          const Divider(height: 1),
+          selectedEntries.isEmpty
+              ? Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(
+                    child: Text(
+                      l10n.noRemindersToday,
+                      style: TextStyle(color: theme.colorScheme.onSurface.withAlpha(120)),
+                    ),
+                  ),
+                )
+              : ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: selectedEntries.length,
+                  separatorBuilder: (_, _) => Divider(height: 1, color: theme.colorScheme.outline.withAlpha(40)),
+                  itemBuilder: (context, i) => _buildEntryTile(context, selectedEntries[i]),
+                ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDayCell(
+    BuildContext context,
+    DateTime day, {
+    bool selected = false,
+    bool isToday = false,
+    bool isOutside = false,
+  }) {
+    final theme = Theme.of(context);
+    final entries = _entriesForDay(day);
+    final text = entries.isEmpty ? '' : (entries.first.task.name.isEmpty ? l10n.reminder : entries.first.task.name);
+
+    final dayColor = isOutside
+        ? theme.colorScheme.onSurface.withAlpha(80)
+        : selected
+        ? Colors.white
+        : isToday
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurface;
+
+    final lunar = solarToLunar(day);
+    final lunarColor = lunar.solarTerm != null
+        ? (selected ? Colors.white : theme.colorScheme.error)
+        : dayColor.withAlpha(selected ? 200 : 110);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+      decoration: BoxDecoration(
+        color: selected
+            ? theme.colorScheme.primary
+            : isToday
+            ? theme.colorScheme.primary.withAlpha(15)
+            : null,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              isToday ? l10n.today : '${day.day}',
+              maxLines: 1,
+              overflow: TextOverflow.clip,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: dayColor,
+                fontSize: 14,
+                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            Text(
+              lunar.cellText,
+              maxLines: 1,
+              overflow: TextOverflow.clip,
+              style: TextStyle(
+                color: lunarColor,
+                fontSize: 10,
+                fontWeight: lunar.solarTerm != null ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            if (text.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2, left: 2, right: 2),
+                child: Text(
+                  text,
+                  maxLines: 2,
+                  overflow: TextOverflow.clip,
+                  style: TextStyle(color: dayColor, fontSize: 10),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildListView(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Expanded(
+          child: _entries.isEmpty
+              ? Center(
+                  child: Text(
+                    l10n.noReminderTasks,
+                    style: TextStyle(color: theme.colorScheme.onSurface.withAlpha(120)),
+                  ),
+                )
+              : ListView.separated(
+                  itemCount: _entries.length,
+                  separatorBuilder: (_, _) => Divider(height: 1, color: theme.colorScheme.outline.withAlpha(40)),
+                  itemBuilder: (context, i) => _buildEntryTile(context, _entries[i]),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEntryTile(BuildContext context, ReminderEntry entry) {
+    final task = entry.task;
+    final timeStr = Utils.reminderTimeStr(task);
+    return ListTile(
+      dense: true,
+      title: Text(
+        task.name.isEmpty ? l10n.unnamedTask : task.name,
+        style: TextStyle(decoration: task.done ? TextDecoration.lineThrough : null),
+      ),
+      subtitle: Text('${entry.recordPath}${entry.recordName}  ·  $timeStr', maxLines: 1, overflow: TextOverflow.clip),
+      onTap: () => _openRecord(entry.recordUuid),
+    );
+  }
+}
