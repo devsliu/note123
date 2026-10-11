@@ -351,9 +351,7 @@ class OnceEditorState extends DateTimeEditorState<OnceEditor> {
           error: _invalid.contains(_fYear),
           onChanged: _onFieldChanged,
         ),
-        const SizedBox(width: 4),
         const Text('-', style: TextStyle(fontSize: 14)),
-        const SizedBox(width: 4),
         DateTimeField(
           controller: _monthCtrl,
           hint: l10n.unitMonth,
@@ -361,9 +359,7 @@ class OnceEditorState extends DateTimeEditorState<OnceEditor> {
           error: _invalid.contains(_fMonth),
           onChanged: _onFieldChanged,
         ),
-        const SizedBox(width: 4),
         const Text('-', style: TextStyle(fontSize: 14)),
-        const SizedBox(width: 4),
         DateTimeField(
           controller: _dayCtrl,
           hint: l10n.unitDay,
@@ -552,7 +548,7 @@ class MonthlyEditorState extends DateTimeEditorState<MonthlyEditor> {
         DateTimeField(
           controller: _dayCtrl,
           hint: l10n.unitDay,
-          width: 56,
+          width: 48,
           error: _invalid.contains(_fDay),
           onChanged: _onFieldChanged,
         ),
@@ -647,7 +643,7 @@ class YearlyEditorState extends DateTimeEditorState<YearlyEditor> {
         DateTimeField(
           controller: _monthCtrl,
           hint: l10n.unitMonth,
-          width: 56,
+          width: 48,
           error: _invalid.contains(_fMonth),
           onChanged: _onFieldChanged,
         ),
@@ -657,7 +653,7 @@ class YearlyEditorState extends DateTimeEditorState<YearlyEditor> {
         DateTimeField(
           controller: _dayCtrl,
           hint: l10n.unitDay,
-          width: 56,
+          width: 48,
           error: _invalid.contains(_fDay),
           onChanged: _onFieldChanged,
         ),
