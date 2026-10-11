@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:note123/config/app_config.dart';
 import 'package:note123/ui/desktop/desktop_title_bar.dart';
 
 import '../../utils/utils.dart';
 
 PreferredSizeWidget createPlatformAppBar({
-  required String title,
+  String? title,
+  Widget? titleWidget,
   List<Widget>? actions,
   Widget? leading,
   bool automaticallyImplyLeading = true,
   Color? backgroundColor,
   Color? foregroundColor,
+  bool showWindowButtons = true,
 }) {
+  // titleWidget takes precedence over title; one of them should be provided
+  final Widget effectiveTitle = titleWidget ?? Text(title ?? '');
   // Mobile: return standard AppBar
   if (!Utils.isDesktop()) {
     return AppBar(
-      title: Text(title),
+      title: effectiveTitle,
       titleSpacing: 0,
       actions: actions,
       leading: leading,
@@ -55,13 +60,15 @@ PreferredSizeWidget createPlatformAppBar({
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: Text(
-                        title,
-                        style:
-                            appBarTheme.titleTextStyle?.copyWith(color: effectiveForegroundColor) ??
-                            theme.textTheme.titleMedium?.copyWith(color: effectiveForegroundColor),
-                      ),
+                      padding: const EdgeInsets.only(left: AppConfig.pageHorizontalPadding),
+                      child:
+                          titleWidget ??
+                          Text(
+                            title ?? '',
+                            style:
+                                appBarTheme.titleTextStyle?.copyWith(color: effectiveForegroundColor) ??
+                                theme.textTheme.titleMedium?.copyWith(color: effectiveForegroundColor),
+                          ),
                     ),
                   ),
                 ),
@@ -70,8 +77,8 @@ PreferredSizeWidget createPlatformAppBar({
               // Right-side actions
               ...?actions,
 
-              // Window control buttons
-              const WindowManagerButtons(),
+              // Window control buttons (minimize / maximize / close)
+              if (showWindowButtons) const WindowManagerButtons(),
             ],
           ),
         );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/ui/base_app.dart';
-import 'package:note123/ui/phone/phone_record_list_page.dart';
+import 'package:note123/ui/files/record_list_page.dart';
 import 'package:note123/ui/phone/phone_record_detail_page.dart';
 import 'package:note123/ui/calendar/calendar_page.dart';
 import 'package:note123/ui/files/recycler_page.dart';
@@ -35,10 +35,6 @@ class _PhoneAppState extends BaseAppState<PhoneApp> {
 
   @override
   Widget buildHome(BuildContext context) {
-    return PhoneRecordListPage(
-      onClickRecordFile: openRecord,
-      onOpenCalendar: openCalendar,
-      onOpenRecycler: openRecycler,
-    );
+    return RecordListPage(openRecordCallback: openRecord, onOpenCalendar: openCalendar, onOpenRecycler: openRecycler);
   }
 }

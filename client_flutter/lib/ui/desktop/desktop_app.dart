@@ -5,7 +5,8 @@ import 'package:note123/utils/utils.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:window_manager/window_manager.dart';
 
-import 'desktop_record_list_page.dart';
+import 'package:note123/ui/files/record_list_page.dart';
+
 import 'desktop_tabs_page.dart';
 import '../../config/prefs.dart';
 import '../../filesync/record_tree.dart';
@@ -191,7 +192,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
         children: [
           LayoutId(
             id: 'left',
-            child: DesktopRecordListPage(
+            child: RecordListPage(
               openRecordCallback: openRecord,
               onOpenCalendar: openCalendar,
               onOpenRecycler: openRecycler,
