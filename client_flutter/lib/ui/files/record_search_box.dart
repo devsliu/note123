@@ -58,12 +58,7 @@ class _RecordSearchBoxState extends State<RecordSearchBox> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        AppConfig.pageHorizontalPadding,
-        widget.shrink ? 2 : 4,
-        AppConfig.pageHorizontalPadding,
-        widget.shrink ? 4 : 6,
-      ),
+      padding: EdgeInsets.only(top: widget.shrink ? 2 : 4, bottom: widget.shrink ? 4 : 6),
       child: TextField(
         controller: _controller,
         focusNode: _focusNode,

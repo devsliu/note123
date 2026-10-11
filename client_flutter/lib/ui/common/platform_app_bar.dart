@@ -15,12 +15,11 @@ PreferredSizeWidget createPlatformAppBar({
   bool showWindowButtons = true,
 }) {
   // titleWidget takes precedence over title; one of them should be provided
-  final Widget effectiveTitle = titleWidget ?? Text(title ?? '');
   // Mobile: return standard AppBar
   if (!Utils.isDesktop()) {
     return AppBar(
-      title: effectiveTitle,
-      titleSpacing: 0,
+      title: titleWidget ?? Text(title ?? ''),
+      titleSpacing: automaticallyImplyLeading ? 0 : AppConfig.pageHorizontalPadding,
       actions: actions,
       leading: leading,
       automaticallyImplyLeading: automaticallyImplyLeading,

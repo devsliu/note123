@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:note123/config/app_config.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/filesync/repository.dart';
@@ -57,12 +56,6 @@ class _CalendarTaskItemState extends State<CalendarTaskItem> {
       onTap: () => widget.onTap(context),
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        margin: const EdgeInsets.only(
-          left: AppConfig.pageHorizontalPadding,
-          right: 4,
-          top: 6,
-          bottom: 6,
-        ),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           border: Border.all(color: theme.colorScheme.outline.withAlpha(80)),

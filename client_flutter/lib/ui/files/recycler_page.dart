@@ -247,7 +247,6 @@ class _RecyclerEntryItemState extends State<RecyclerEntryItem> {
       onTap: () => widget.onTap(context),
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        margin: const EdgeInsets.only(left: 4, right: AppConfig.pageHorizontalPadding, top: 6, bottom: 6),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           border: Border.all(color: theme.colorScheme.outline.withAlpha(80)),
