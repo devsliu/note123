@@ -190,6 +190,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
+  String get edit => 'Edit';
+
+  @override
+  String get markFinished => 'Mark as finished';
+
+  @override
+  String get markUnfinished => 'Mark as unfinished';
+
+  @override
   String movedToPath(Object fileName, Object path) {
     return 'Moved $fileName to $path';
   }

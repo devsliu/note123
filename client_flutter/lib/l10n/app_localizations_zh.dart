@@ -189,6 +189,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get delete => '删除';
 
   @override
+  String get edit => '编辑';
+
+  @override
+  String get markFinished => '标记为完成';
+
+  @override
+  String get markUnfinished => '标记为未完成';
+
+  @override
   String movedToPath(Object fileName, Object path) {
     return '已将 $fileName 移动到 $path';
   }

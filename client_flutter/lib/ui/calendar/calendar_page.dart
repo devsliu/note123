@@ -6,6 +6,7 @@ import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/ui/desktop/desktop_tabs_page.dart';
+import 'package:note123/ui/editor/reminder_task_editor.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/utils/lunar.dart';
 
@@ -69,6 +70,60 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     final record = Repository.get().recordTree.findFile(uuid);
     if (record == null) return;
     widget.openRecordCallback(context, record);
+  }
+
+  /// Load the task list of the record that owns [entry], mutate via [update],
+  /// then persist and refresh the calendar view.
+  Future<void> _mutateEntryTask(ReminderEntry entry, void Function(List<ReminderTask>) update) async {
+    final repo = Repository.get();
+    final record = await repo.db?.getRecord(entry.recordUuid);
+    if (record == null) return;
+    final tasks = ReminderTask.fromJsonString(
+      record.localReminder.isNotEmpty ? record.localReminder : record.remoteReminder,
+    );
+    update(tasks);
+    final json = ReminderTask.toJsonString(tasks);
+    await repo.editRecord(entry.recordUuid, false, DateTime.now().millisecondsSinceEpoch, reminder: json);
+    if (mounted) _load();
+  }
+
+  void _toggleDone(ReminderEntry entry) {
+    _mutateEntryTask(entry, (tasks) {
+      final idx = tasks.indexWhere((t) => t.id == entry.task.id);
+      if (idx < 0) return;
+      final old = tasks[idx];
+      tasks[idx] = ReminderTask(
+        id: old.id,
+        name: old.name,
+        date: old.date,
+        time: old.time,
+        repeat: old.repeat,
+        done: !old.done,
+      );
+    });
+  }
+
+  void _editEntry(ReminderEntry entry) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => ReminderTaskEditor(
+        task: entry.task,
+        subtitle: '${entry.recordPath}${entry.recordName}',
+        onSaved: (updated) {
+          _mutateEntryTask(entry, (tasks) {
+            final idx = tasks.indexWhere((t) => t.id == updated.id);
+            if (idx >= 0) tasks[idx] = updated;
+          });
+          Navigator.of(ctx).pop();
+        },
+      ),
+    );
+  }
+
+  void _deleteEntry(ReminderEntry entry) {
+    _mutateEntryTask(entry, (tasks) {
+      tasks.removeWhere((t) => t.id == entry.task.id);
+    });
   }
 
   @override
@@ -184,7 +239,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: selectedEntries.length,
-                  separatorBuilder: (_, _) => Divider(height: 1, color: theme.colorScheme.outline.withAlpha(40)),
+                  separatorBuilder: (_, _) => Divider(height: 1, color: theme.colorScheme.outline.withAlpha(100)),
                   itemBuilder: (context, i) => _buildEntryTile(context, selectedEntries[i]),
                 ),
         ],
@@ -283,7 +338,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
                 )
               : ListView.separated(
                   itemCount: _entries.length,
-                  separatorBuilder: (_, _) => Divider(height: 1, color: theme.colorScheme.outline.withAlpha(40)),
+                  separatorBuilder: (_, _) => Divider(height: 1, color: theme.colorScheme.outline.withAlpha(100)),
                   itemBuilder: (context, i) => _buildEntryTile(context, _entries[i]),
                 ),
         ),
@@ -293,15 +348,88 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
 
   Widget _buildEntryTile(BuildContext context, ReminderEntry entry) {
     final task = entry.task;
+    final theme = Theme.of(context);
     final timeStr = Utils.reminderTimeStr(task);
-    return ListTile(
-      dense: true,
-      title: Text(
-        task.name.isEmpty ? l10n.unnamedTask : task.name,
-        style: TextStyle(decoration: task.done ? TextDecoration.lineThrough : null),
-      ),
-      subtitle: Text('${entry.recordPath}${entry.recordName}  ·  $timeStr', maxLines: 1, overflow: TextOverflow.clip),
+    final nameColor = task.done ? theme.colorScheme.onSurface.withAlpha(120) : theme.colorScheme.onSurface;
+    return InkWell(
       onTap: () => _openRecord(entry.recordUuid),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    task.name.isEmpty ? l10n.unnamedTask : task.name,
+                    style: TextStyle(decoration: task.done ? TextDecoration.lineThrough : null, color: nameColor),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${entry.recordPath}${entry.recordName}  ·  $timeStr',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withAlpha(180)),
+                  ),
+                ],
+              ),
+            ),
+            PopupMenuButton<String>(
+              icon: Icon(Icons.edit_outlined, size: 18, color: theme.colorScheme.primary),
+              tooltip: l10n.edit,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+              splashRadius: 18,
+              popUpAnimationStyle: const AnimationStyle(duration: Duration(milliseconds: 120)),
+              onSelected: (v) {
+                switch (v) {
+                  case 'toggle':
+                    _toggleDone(entry);
+                    break;
+                  case 'edit':
+                    _editEntry(entry);
+                    break;
+                  case 'delete':
+                    _deleteEntry(entry);
+                    break;
+                }
+              },
+              itemBuilder: (_) => [
+                PopupMenuItem(
+                  value: 'toggle',
+                  child: Row(
+                    children: [
+                      Icon(task.done ? Icons.check_box : Icons.check_box_outline_blank, size: 18),
+                      const SizedBox(width: 8),
+                      Text(task.done ? l10n.markUnfinished : l10n.markFinished),
+                    ],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [const Icon(Icons.edit_outlined, size: 18), const SizedBox(width: 8), Text(l10n.edit)],
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
+                      const SizedBox(width: 8),
+                      Text(l10n.delete),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

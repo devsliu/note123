@@ -452,6 +452,24 @@ abstract class AppLocalizations {
   /// **'删除'**
   String get delete;
 
+  /// No description provided for @edit.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑'**
+  String get edit;
+
+  /// No description provided for @markFinished.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记为完成'**
+  String get markFinished;
+
+  /// No description provided for @markUnfinished.
+  ///
+  /// In zh, this message translates to:
+  /// **'标记为未完成'**
+  String get markUnfinished;
+
   /// No description provided for @movedToPath.
   ///
   /// In zh, this message translates to:

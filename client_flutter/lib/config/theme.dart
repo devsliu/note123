@@ -124,7 +124,7 @@ final appThemes = [
         onSecondary: Color(0xFFD4D4D4),
         onSurface: Color(0xFFD4D4D4),
         onSurfaceVariant: Color(0xFF666666),
-        outline: Color(0xFF333337),
+        outline: Color(0xFF666666),
       ),
       iconTheme: IconThemeData(color: Color(0xFFD4D4D4)),
       useMaterial3: true,

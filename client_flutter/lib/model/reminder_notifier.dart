@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -58,8 +59,12 @@ class ReminderNotifier with WidgetsBindingObserver {
   Future<void> init() async {
     if (_initialized) return;
     tz.initializeTimeZones();
-    final String localTimeZone = await FlutterTimezone.getLocalTimezone();
-    tz.setLocalLocation(tz.getLocation(localTimeZone));
+    try {
+      final tzInfo = await FlutterTimezone.getLocalTimezone();
+      tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
+    } catch (e) {
+      AppLogger.w("[ReminderNotifier] failed to set local timezone: $e, fallback to UTC");
+    }
 
     const android = AndroidInitializationSettings('@drawable/ic_launcher');
     const ios = DarwinInitializationSettings(
@@ -67,11 +72,17 @@ class ReminderNotifier with WidgetsBindingObserver {
       requestBadgePermission: true,
       requestSoundPermission: true,
     );
-    final linux = LinuxInitializationSettings(defaultActionName: l10n.reminderChannel);
-    const windows = WindowsInitializationSettings(
+    final linux = LinuxInitializationSettings(
+      defaultActionName: l10n.reminderChannel,
+      defaultIcon: AssetsLinuxIcon('assets/icon/app_icon.png'),
+    );
+    final exeDir = File(Platform.resolvedExecutable).parent.path;
+    final iconFile = File('$exeDir/data/flutter_assets/assets/icon/app_icon.png');
+    final windows = WindowsInitializationSettings(
       appName: AppConfig.appTitle,
       appUserModelId: AppConfig.packageName,
       guid: _windowsGuid,
+      iconPath: Uri.file(iconFile.path, windows: true).toString(),
     );
     final settings = InitializationSettings(android: android, iOS: ios, linux: linux, windows: windows);
     try {
