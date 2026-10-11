@@ -61,20 +61,14 @@ class RecordListPage extends StatelessWidget {
           Divider(height: 1, color: theme.colorScheme.outline.withAlpha(80)),
         Row(
           children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(AppConfig.pageHorizontalPadding, 6, 4, 6),
-                child: CalendarTaskItem(onTap: onOpenCalendar),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(4, 6, AppConfig.pageHorizontalPadding, 6),
-                child: RecyclerEntryItem(onTap: onOpenRecycler),
-              ),
-            ),
+            SizedBox(width: AppConfig.pageHorizontalPadding),
+            Expanded(child: CalendarTaskItem(onTap: onOpenCalendar)),
+            SizedBox(width: 6),
+            Expanded(child: RecyclerEntryItem(onTap: onOpenRecycler)),
+            SizedBox(width: AppConfig.pageHorizontalPadding),
           ],
         ),
+        SizedBox(height: 4),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppConfig.pageHorizontalPadding),
           child: RecordSearchBox(shrink: desktop),
