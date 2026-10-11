@@ -569,6 +569,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderDueBody => 'This reminder is due';
 
   @override
+  String get searchRecords => 'Search title or path';
+
+  @override
+  String get searchNoResults => 'No matches';
+
+  @override
   String get unitYear => 'y';
 
   @override
@@ -585,4 +591,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get atLeastOneWeekday => 'Please select at least one weekday';
+
+  @override
+  String get recycler => 'Recycle bin';
+
+  @override
+  String get purgeRecyclerItem => 'Delete permanently';
+
+  @override
+  String get clearRecycler => 'Empty recycle bin';
+
+  @override
+  String get confirmClearRecycler =>
+      'Permanently delete all items in the recycle bin?';
+
+  @override
+  String get confirmPurgeRecycler =>
+      'Delete permanently? This cannot be undone.';
+
+  @override
+  String recyclerRestored(String name) {
+    return 'Restored $name';
+  }
+
+  @override
+  String get recyclerRestoreFailed => 'Restore failed';
+
+  @override
+  String get recyclerPurged => 'Deleted permanently';
+
+  @override
+  String get recyclerCleared => 'Recycle bin emptied';
 }

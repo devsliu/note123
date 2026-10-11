@@ -4,6 +4,7 @@ import 'package:note123/ui/base_app.dart';
 import 'package:note123/ui/phone/phone_record_list_page.dart';
 import 'package:note123/ui/phone/phone_record_detail_page.dart';
 import 'package:note123/ui/calendar/calendar_page.dart';
+import 'package:note123/ui/files/recycler_page.dart';
 
 class PhoneApp extends BaseApp {
   const PhoneApp({super.key});
@@ -28,7 +29,16 @@ class _PhoneAppState extends BaseAppState<PhoneApp> {
   }
 
   @override
+  void openRecycler(BuildContext context) {
+    navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => RecyclerPage()));
+  }
+
+  @override
   Widget buildHome(BuildContext context) {
-    return PhoneRecordListPage(onClickRecordFile: openRecord, onOpenCalendar: openCalendar);
+    return PhoneRecordListPage(
+      onClickRecordFile: openRecord,
+      onOpenCalendar: openCalendar,
+      onOpenRecycler: openRecycler,
+    );
   }
 }

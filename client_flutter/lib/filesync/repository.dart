@@ -36,6 +36,9 @@ class Repository {
   final RecordTree recordTree = RecordTree();
   final ValueNotifier<SyncState> syncStateNotifier = ValueNotifier(SyncState(state: SyncState.idle));
 
+  /// Recycle bin entry count, for the list page entry badge.
+  final ValueNotifier<int> recyclerCountNotifier = ValueNotifier(0);
+
   /// Shortcut to the reminder tree held by [recordTree].
   ReminderTree get reminderTree => recordTree.reminderTree;
 
@@ -81,7 +84,7 @@ class Repository {
     recordTree.build([]);
     if (userId != 0) {
       _fileStore = FileStore(join(appRootDir, userId.toString()));
-      _db = createRecordsDatabase(File(join(_fileStore!.rootDir, "records_v2.db")));
+      _db = createRecordsDatabase(File(join(_fileStore!.rootDir, "records_v3.db")));
       _fileStore!.db = _db!;
       _syncEngine = SyncEngine(
         db: _db!,
@@ -92,6 +95,11 @@ class Repository {
       recordTree.build(await _db!.getAllLocalRecords());
     }
     _userId = userId;
+    await _refreshRecyclerCount();
+  }
+
+  Future<void> _refreshRecyclerCount() async {
+    recyclerCountNotifier.value = _db == null ? 0 : await _db!.getRecycleCount();
   }
 
   bool shouldSyncFromBackground() => _syncEngine?.shouldSyncFromBackground() ?? false;
@@ -167,7 +175,8 @@ class Repository {
     return record;
   }
 
-  /// Soft delete: mark localEditType=delete
+  /// Soft delete: mark localEditType=delete and capture into recycle bin immediately
+  /// (works offline too). Push conflict will undo the capture and restore the record.
   Future<void> deleteRecord(String uuid) async {
     if (_db == null) return;
     AppDatabase db = _db!;
@@ -175,12 +184,33 @@ class Repository {
     int time = DateTime.now().millisecondsSinceEpoch;
     int count = await db.updateRecord(uuid, localEditType: LocalEditType.delete, localEditAt: time);
     if (count > 0) {
+      await _captureToRecycler(record, time);
       recordTree.deleteRecord(uuid);
       await db.createOperate(
         Operates.typeLocal,
         "delete record ${record?.uuid} ${record?.localPath}${record?.localName} version:${record?.remoteVersion}",
       );
       await syncRecords(false);
+    }
+  }
+
+  /// Capture a (deleted) record into the recycle bin: metadata snapshot + move content file
+  /// into the recycler folder (work file preferred, base file as fallback).
+  /// Failure only logs and must not block the delete flow.
+  Future<void> _captureToRecycler(LocalRecord? record, int deleteAt) async {
+    if (record == null || _db == null) return;
+    try {
+      await _db!.insertRecycleRecord(
+        uuid: record.uuid,
+        path: record.localPath.isNotEmpty ? record.localPath : record.remotePath,
+        name: record.localName.isNotEmpty ? record.localName : record.remoteName,
+        reminder: record.localReminder.isNotEmpty ? record.localReminder : record.remoteReminder,
+        locked: record.localLocked != 0 ? record.localLocked : record.remoteLocked,
+        deleteAt: deleteAt,
+      );
+      _fileStore?.moveFileToRecycler(record.uuid);
+    } catch (e) {
+      AppLogger.e("[Repository] capture to recycler failed uuid=${record.uuid}: $e");
     }
   }
 
@@ -249,6 +279,11 @@ class Repository {
     final typeCol = db.localRecords.localEditType.name;
     final editAtCol = db.localRecords.localEditAt.name;
 
+    // Records to capture (not yet delete-marked; already-marked ones were captured when deleted)
+    final toCapture = await (db.select(
+      db.localRecords,
+    )..where((t) => t.localPath.like(likePattern) & t.localEditType.equals(LocalEditType.delete).not())).get();
+
     int count = await db.customUpdate(
       'UPDATE $table '
       'SET $typeCol = ${LocalEditType.delete}, $editAtCol = ? '
@@ -256,6 +291,9 @@ class Repository {
       variables: [Variable.withInt(time), Variable.withString(likePattern)],
       updates: {db.localRecords},
     );
+    for (final record in toCapture) {
+      await _captureToRecycler(record, time);
+    }
     await db.createOperate(Operates.typeLocal, "delete folder $path, records count:$count");
     recordTree.deleteFolder(path);
     await syncRecords(false);
@@ -307,5 +345,82 @@ class Repository {
   Future<void> syncRecords(bool forcePull) async {
     if (_syncEngine == null) return;
     await _syncEngine!.sync(forcePull);
+    // Delete push success may have captured records into the recycle bin, refresh badge
+    await _refreshRecyclerCount();
+  }
+
+  // =========================================================================
+  // 🎯 RECYCLE BIN — list / restore / purge / clear
+  // =========================================================================
+
+  /// All recycle bin entries, newest deletion first.
+  Future<List<RecycleRecord>> getRecycleRecords() async => await _db?.getRecycleRecords() ?? [];
+
+  /// Restore a recycle bin entry: move the content file back into the work folder and bring the
+  /// record back as a local edit (uuid unchanged), pushed to the server on next sync.
+  Future<bool> restoreRecycleRecord(String uuid) async {
+    if (_db == null || _fileStore == null) return false;
+    final db = _db!;
+    final entry = await db.getRecycleRecord(uuid);
+    if (entry == null) return false;
+
+    final existing = await db.getRecord(uuid);
+    if (existing != null && existing.localEditType != LocalEditType.delete) {
+      // Same uuid still live locally and not pending deletion (e.g. re-created on another device),
+      // refuse to avoid duplicate primary key
+      return false;
+    }
+
+    int time = DateTime.now().millisecondsSinceEpoch;
+    _fileStore!.moveRecyclerFileToWork(uuid);
+    if (existing != null) {
+      // Delete not yet pushed to server (e.g. deleted offline): just un-delete the pending record
+      await db.updateRecord(
+        uuid,
+        localEditType: LocalEditType.edit,
+        localEditAt: time,
+        localFileEditAt: _fileStore!.isWorkFileExist(uuid) ? time : null,
+      );
+    } else {
+      // Delete already pushed: re-create the local record (remote_* zeroed, DB default values),
+      // push treats it as a new record via upsertRecord on next sync
+      await db.restoreRecord(
+        uuid: entry.uuid,
+        name: entry.name,
+        path: entry.path,
+        locked: entry.locked,
+        reminder: entry.reminder,
+        localFileEditAt: _fileStore!.isWorkFileExist(uuid) ? time : 0,
+        time: time,
+      );
+    }
+    await db.deleteRecycleRecord(uuid);
+    final record = await db.getRecord(uuid);
+    if (record != null) recordTree.insertRecord(record);
+    await db.createOperate(Operates.typeLocal, "restore record $uuid ${entry.path}${entry.name} from recycler");
+    await _refreshRecyclerCount();
+    unawaited(syncRecords(false));
+    return true;
+  }
+
+  /// Permanently delete a recycle bin entry (metadata row + recycler content file).
+  Future<void> purgeRecycleRecord(String uuid) async {
+    if (_db == null) return;
+    await _db!.deleteRecycleRecord(uuid);
+    _fileStore?.deleteRecyclerFile(uuid);
+    await _db!.createOperate(Operates.typeLocal, "purge recycler record $uuid");
+    await _refreshRecyclerCount();
+  }
+
+  /// Empty the recycle bin: delete all metadata rows and recycler content files.
+  Future<void> clearRecycleRecords() async {
+    if (_db == null) return;
+    final rows = await _db!.getRecycleRecords();
+    await _db!.clearRecycleRecords();
+    for (final row in rows) {
+      _fileStore?.deleteRecyclerFile(row.uuid);
+    }
+    await _db!.createOperate(Operates.typeLocal, "clear recycler records, count:${rows.length}");
+    await _refreshRecyclerCount();
   }
 }

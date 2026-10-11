@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/ui/base_app.dart';
 import 'package:note123/ui/calendar/calendar_page.dart';
+import 'package:note123/ui/files/recycler_page.dart';
 import 'package:note123/config/theme.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/ui/phone/phone_record_detail_page.dart';
@@ -47,13 +48,24 @@ class _PadAppState extends BaseAppState<PadApp> {
   }
 
   @override
+  void openRecycler(BuildContext context) {
+    widget.detailBuilder.value = (context) {
+      return RecyclerPage(showAppBar: true, closeCallback: onCloseDetail);
+    };
+  }
+
+  @override
   Widget buildHome(BuildContext context) {
     return Scaffold(
       body: Row(
         children: [
           Expanded(
             flex: 3,
-            child: PhoneRecordListPage(onClickRecordFile: openRecord, onOpenCalendar: openCalendar),
+            child: PhoneRecordListPage(
+              onClickRecordFile: openRecord,
+              onOpenCalendar: openCalendar,
+              onOpenRecycler: openRecycler,
+            ),
           ),
           VerticalDivider(width: 1, color: gAppTheme.data.colorScheme.outline.withAlpha(100)),
           Expanded(

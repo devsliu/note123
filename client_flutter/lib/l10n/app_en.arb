@@ -195,10 +195,27 @@
   "reminderChannel": "Reminder",
   "reminderChannelDesc": "Note task reminders",
   "reminderDueBody": "This reminder is due",
+  "searchRecords": "Search title or path",
+  "searchNoResults": "No matches",
   "unitYear": "y",
   "unitMonth": "m",
   "unitDay": "d",
   "unitHour": "h",
   "unitMinute": "min",
-  "atLeastOneWeekday": "Please select at least one weekday"
+  "atLeastOneWeekday": "Please select at least one weekday",
+
+  "recycler": "Recycle bin",
+  "purgeRecyclerItem": "Delete permanently",
+  "clearRecycler": "Empty recycle bin",
+  "confirmClearRecycler": "Permanently delete all items in the recycle bin?",
+  "confirmPurgeRecycler": "Delete permanently? This cannot be undone.",
+  "recyclerRestored": "Restored {name}",
+  "@recyclerRestored": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "recyclerRestoreFailed": "Restore failed",
+  "recyclerPurged": "Deleted permanently",
+  "recyclerCleared": "Recycle bin emptied"
 }

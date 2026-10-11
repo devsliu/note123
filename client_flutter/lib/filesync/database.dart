@@ -9,22 +9,12 @@ import 'table_record.dart';
 
 part 'database.g.dart';
 
-@DriftDatabase(tables: [LocalRecords, KVConfigs, Operates], views: [PathRecordCounts])
+@DriftDatabase(tables: [LocalRecords, KVConfigs, Operates, RecycleRecords], views: [PathRecordCounts])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 1;
-
-  @override
-  MigrationStrategy get migration => MigrationStrategy(
-    onCreate: (m) async => await m.createAll(),
-    onUpgrade: (m, from, to) async {
-      AppLogger.w("DB migration from $from to $to — adding all missing tables/columns");
-      // Drift default strategy: createMissing does not delete existing data
-      await m.createAll();
-    },
-  );
+  int get schemaVersion => 2;
 
   // ========== Queries ==========
 
@@ -69,6 +59,48 @@ class AppDatabase extends _$AppDatabase {
             ..where((t) => t.localVersion.equalsExp(t.remoteVersion).not()))
           .get();
 
+  // ========== Recycle bin ==========
+
+  /// All recycle bin entries, newest deletion first.
+  Future<List<RecycleRecord>> getRecycleRecords() async => await (select(
+    recycleRecords,
+  )..orderBy([(t) => OrderingTerm(expression: t.deleteAt, mode: OrderingMode.desc)])).get();
+
+  Future<RecycleRecord?> getRecycleRecord(String uuid) async =>
+      await (select(recycleRecords)..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
+
+  Future<int> getRecycleCount() async {
+    final count = recycleRecords.uuid.count();
+    final query = selectOnly(recycleRecords)..addColumns([count]);
+    final row = await query.getSingle();
+    return row.read(count) ?? 0;
+  }
+
+  Future<int> insertRecycleRecord({
+    required String uuid,
+    required String path,
+    required String name,
+    required String reminder,
+    required int locked,
+    required int deleteAt,
+  }) async {
+    return await into(recycleRecords).insertOnConflictUpdate(
+      RecycleRecordsCompanion.insert(
+        uuid: uuid,
+        path: Value(path),
+        name: Value(name),
+        reminder: Value(reminder),
+        locked: Value(locked),
+        deleteAt: deleteAt,
+      ),
+    );
+  }
+
+  Future<int> deleteRecycleRecord(String uuid) async =>
+      await (delete(recycleRecords)..where((t) => t.uuid.equals(uuid))).go();
+
+  Future<int> clearRecycleRecords() async => await delete(recycleRecords).go();
+
   // ========== KV ==========
 
   Future<int> getConfigInt(String key, int def) async {
@@ -108,6 +140,31 @@ class AppDatabase extends _$AppDatabase {
         localEditAt: Value(time),
         localFileEditAt: Value(localFileEditAt),
         localName: Value(name),
+        localPath: path,
+      ),
+    );
+  }
+
+  /// Re-create a local record from the recycle bin (remote_* all zeroed, uses DB default values).
+  /// Push treats it as a new record via upsertRecord on next sync.
+  Future<int> restoreRecord({
+    required String uuid,
+    required String name,
+    required String path,
+    required int locked,
+    required String reminder,
+    required int localFileEditAt,
+    required int time,
+  }) async {
+    return await into(localRecords).insert(
+      LocalRecordsCompanion.insert(
+        uuid: uuid,
+        localEditType: const Value(LocalEditType.edit),
+        localEditAt: Value(time),
+        localFileEditAt: Value(localFileEditAt),
+        localName: Value(name),
+        localLocked: Value(locked),
+        localReminder: Value(reminder),
         localPath: path,
       ),
     );

@@ -195,10 +195,27 @@
   "reminderChannel":"提醒",
   "reminderChannelDesc":"笔记任务提醒",
   "reminderDueBody":"该提醒已到时间",
+  "searchRecords":"搜索标题或路径",
+  "searchNoResults":"无匹配结果",
   "unitYear":"年",
   "unitMonth":"月",
   "unitDay":"日",
   "unitHour":"时",
   "unitMinute":"分",
-  "atLeastOneWeekday":"请至少选择一个星期"
+  "atLeastOneWeekday":"请至少选择一个星期",
+
+  "recycler":"回收站",
+  "purgeRecyclerItem":"彻底删除",
+  "clearRecycler":"清空回收站",
+  "confirmClearRecycler":"确定要清空回收站吗？",
+  "confirmPurgeRecycler":"确定要彻底删除吗？删除后无法恢复",
+  "recyclerRestored":"已还原 {name}",
+  "@recyclerRestored": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "recyclerRestoreFailed":"还原失败",
+  "recyclerPurged":"已彻底删除",
+  "recyclerCleared":"回收站已清空"
 }

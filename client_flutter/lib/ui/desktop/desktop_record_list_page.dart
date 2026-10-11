@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:note123/ui/desktop/desktop_title_bar.dart';
 import 'package:note123/filesync/record_tree.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/ui/files/record_files_flat_control.dart';
 import 'package:note123/ui/files/record_files_list_control.dart';
+import 'package:note123/ui/files/record_search_box.dart';
 import 'package:note123/ui/files/record_list_bottom_bar.dart';
 import 'package:note123/ui/files/record_list_top_bar.dart';
 import 'package:note123/ui/settings/settings_button.dart';
 import 'package:note123/ui/files/sync_button.dart';
 import 'package:note123/ui/calendar/calendar_task_item.dart';
+import 'package:note123/ui/files/recycler_page.dart';
 import 'package:note123/config/layout_mode.dart';
 import 'package:note123/config/theme.dart';
 import 'package:note123/utils/utils.dart';
@@ -18,8 +21,14 @@ import 'package:note123/ui/files/record_files_tree_control.dart';
 class DesktopRecordListPage extends StatelessWidget {
   final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
   final ValueCallback<BuildContext> onOpenCalendar;
+  final ValueCallback<BuildContext> onOpenRecycler;
 
-  const DesktopRecordListPage({super.key, required this.openRecordCallback, required this.onOpenCalendar});
+  const DesktopRecordListPage({
+    super.key,
+    required this.openRecordCallback,
+    required this.onOpenCalendar,
+    required this.onOpenRecycler,
+  });
 
   Widget buildTitleBar(BuildContext context) {
     var theme = Theme.of(context);
@@ -64,23 +73,36 @@ class DesktopRecordListPage extends StatelessWidget {
           ),
           if (theme.appBarBackgroundColor == theme.colorScheme.surface)
             Divider(height: 1, color: theme.colorScheme.outline.withAlpha(80)),
-          CalendarTaskItem(onTap: onOpenCalendar),
-          Divider(height: 1, color: theme.colorScheme.outline.withAlpha(80)),
+          Row(
+            children: [
+              Expanded(child: CalendarTaskItem(onTap: onOpenCalendar)),
+              Expanded(child: RecyclerEntryItem(onTap: onOpenRecycler)),
+            ],
+          ),
+          RecordSearchBox(shrink: true),
           Expanded(
-            child: ValueListenableBuilder<int>(
-              valueListenable: RecordListWidgetType.notifier,
-              builder: (context, type, _) {
-                if (type == RecordListWidgetType.sTreeFolder) {
-                  return RecordFilesTreeControl(openRecordCallback: openRecordCallback, shrink: true);
-                } else if (type == RecordListWidgetType.sFlatFolder) {
-                  return RecordFilesFlatControl(openRecordCallback: openRecordCallback, shrink: true);
-                } else {
-                  return RecordFilesListControl(
-                    openRecordCallback: openRecordCallback,
-                    showDivider: true,
-                    shrink: true,
-                  );
+            child: ValueListenableBuilder<String>(
+              valueListenable: RecordOpenedState.get().searchQueryNotifier,
+              builder: (context, query, _) {
+                if (query.isNotEmpty) {
+                  return RecordSearchResultsControl(openRecordCallback: openRecordCallback, shrink: true);
                 }
+                return ValueListenableBuilder<int>(
+                  valueListenable: RecordListWidgetType.notifier,
+                  builder: (context, type, _) {
+                    if (type == RecordListWidgetType.sTreeFolder) {
+                      return RecordFilesTreeControl(openRecordCallback: openRecordCallback, shrink: true);
+                    } else if (type == RecordListWidgetType.sFlatFolder) {
+                      return RecordFilesFlatControl(openRecordCallback: openRecordCallback, shrink: true);
+                    } else {
+                      return RecordFilesListControl(
+                        openRecordCallback: openRecordCallback,
+                        showDivider: true,
+                        shrink: true,
+                      );
+                    }
+                  },
+                );
               },
             ),
           ),

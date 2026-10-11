@@ -1847,6 +1847,406 @@ class OperatesCompanion extends UpdateCompanion<Operate> {
   }
 }
 
+class $RecycleRecordsTable extends RecycleRecords
+    with TableInfo<$RecycleRecordsTable, RecycleRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecycleRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
+  @override
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+    'path',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _reminderMeta = const VerificationMeta(
+    'reminder',
+  );
+  @override
+  late final GeneratedColumn<String> reminder = GeneratedColumn<String>(
+    'reminder',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _lockedMeta = const VerificationMeta('locked');
+  @override
+  late final GeneratedColumn<int> locked = GeneratedColumn<int>(
+    'locked',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _deleteAtMeta = const VerificationMeta(
+    'deleteAt',
+  );
+  @override
+  late final GeneratedColumn<int> deleteAt = GeneratedColumn<int>(
+    'delete_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    uuid,
+    path,
+    name,
+    reminder,
+    locked,
+    deleteAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recycle_records';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecycleRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('path')) {
+      context.handle(
+        _pathMeta,
+        path.isAcceptableOrUnknown(data['path']!, _pathMeta),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    }
+    if (data.containsKey('reminder')) {
+      context.handle(
+        _reminderMeta,
+        reminder.isAcceptableOrUnknown(data['reminder']!, _reminderMeta),
+      );
+    }
+    if (data.containsKey('locked')) {
+      context.handle(
+        _lockedMeta,
+        locked.isAcceptableOrUnknown(data['locked']!, _lockedMeta),
+      );
+    }
+    if (data.containsKey('delete_at')) {
+      context.handle(
+        _deleteAtMeta,
+        deleteAt.isAcceptableOrUnknown(data['delete_at']!, _deleteAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_deleteAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {uuid};
+  @override
+  RecycleRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecycleRecord(
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      path: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}path'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      reminder: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reminder'],
+      )!,
+      locked: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}locked'],
+      )!,
+      deleteAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}delete_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RecycleRecordsTable createAlias(String alias) {
+    return $RecycleRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
+  final String uuid;
+  final String path;
+  final String name;
+  final String reminder;
+  final int locked;
+
+  /// Deletion timestamp (ms)
+  final int deleteAt;
+  const RecycleRecord({
+    required this.uuid,
+    required this.path,
+    required this.name,
+    required this.reminder,
+    required this.locked,
+    required this.deleteAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['uuid'] = Variable<String>(uuid);
+    map['path'] = Variable<String>(path);
+    map['name'] = Variable<String>(name);
+    map['reminder'] = Variable<String>(reminder);
+    map['locked'] = Variable<int>(locked);
+    map['delete_at'] = Variable<int>(deleteAt);
+    return map;
+  }
+
+  RecycleRecordsCompanion toCompanion(bool nullToAbsent) {
+    return RecycleRecordsCompanion(
+      uuid: Value(uuid),
+      path: Value(path),
+      name: Value(name),
+      reminder: Value(reminder),
+      locked: Value(locked),
+      deleteAt: Value(deleteAt),
+    );
+  }
+
+  factory RecycleRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecycleRecord(
+      uuid: serializer.fromJson<String>(json['uuid']),
+      path: serializer.fromJson<String>(json['path']),
+      name: serializer.fromJson<String>(json['name']),
+      reminder: serializer.fromJson<String>(json['reminder']),
+      locked: serializer.fromJson<int>(json['locked']),
+      deleteAt: serializer.fromJson<int>(json['deleteAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'uuid': serializer.toJson<String>(uuid),
+      'path': serializer.toJson<String>(path),
+      'name': serializer.toJson<String>(name),
+      'reminder': serializer.toJson<String>(reminder),
+      'locked': serializer.toJson<int>(locked),
+      'deleteAt': serializer.toJson<int>(deleteAt),
+    };
+  }
+
+  RecycleRecord copyWith({
+    String? uuid,
+    String? path,
+    String? name,
+    String? reminder,
+    int? locked,
+    int? deleteAt,
+  }) => RecycleRecord(
+    uuid: uuid ?? this.uuid,
+    path: path ?? this.path,
+    name: name ?? this.name,
+    reminder: reminder ?? this.reminder,
+    locked: locked ?? this.locked,
+    deleteAt: deleteAt ?? this.deleteAt,
+  );
+  RecycleRecord copyWithCompanion(RecycleRecordsCompanion data) {
+    return RecycleRecord(
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      path: data.path.present ? data.path.value : this.path,
+      name: data.name.present ? data.name.value : this.name,
+      reminder: data.reminder.present ? data.reminder.value : this.reminder,
+      locked: data.locked.present ? data.locked.value : this.locked,
+      deleteAt: data.deleteAt.present ? data.deleteAt.value : this.deleteAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecycleRecord(')
+          ..write('uuid: $uuid, ')
+          ..write('path: $path, ')
+          ..write('name: $name, ')
+          ..write('reminder: $reminder, ')
+          ..write('locked: $locked, ')
+          ..write('deleteAt: $deleteAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(uuid, path, name, reminder, locked, deleteAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecycleRecord &&
+          other.uuid == this.uuid &&
+          other.path == this.path &&
+          other.name == this.name &&
+          other.reminder == this.reminder &&
+          other.locked == this.locked &&
+          other.deleteAt == this.deleteAt);
+}
+
+class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
+  final Value<String> uuid;
+  final Value<String> path;
+  final Value<String> name;
+  final Value<String> reminder;
+  final Value<int> locked;
+  final Value<int> deleteAt;
+  final Value<int> rowid;
+  const RecycleRecordsCompanion({
+    this.uuid = const Value.absent(),
+    this.path = const Value.absent(),
+    this.name = const Value.absent(),
+    this.reminder = const Value.absent(),
+    this.locked = const Value.absent(),
+    this.deleteAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RecycleRecordsCompanion.insert({
+    required String uuid,
+    this.path = const Value.absent(),
+    this.name = const Value.absent(),
+    this.reminder = const Value.absent(),
+    this.locked = const Value.absent(),
+    required int deleteAt,
+    this.rowid = const Value.absent(),
+  }) : uuid = Value(uuid),
+       deleteAt = Value(deleteAt);
+  static Insertable<RecycleRecord> custom({
+    Expression<String>? uuid,
+    Expression<String>? path,
+    Expression<String>? name,
+    Expression<String>? reminder,
+    Expression<int>? locked,
+    Expression<int>? deleteAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (uuid != null) 'uuid': uuid,
+      if (path != null) 'path': path,
+      if (name != null) 'name': name,
+      if (reminder != null) 'reminder': reminder,
+      if (locked != null) 'locked': locked,
+      if (deleteAt != null) 'delete_at': deleteAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RecycleRecordsCompanion copyWith({
+    Value<String>? uuid,
+    Value<String>? path,
+    Value<String>? name,
+    Value<String>? reminder,
+    Value<int>? locked,
+    Value<int>? deleteAt,
+    Value<int>? rowid,
+  }) {
+    return RecycleRecordsCompanion(
+      uuid: uuid ?? this.uuid,
+      path: path ?? this.path,
+      name: name ?? this.name,
+      reminder: reminder ?? this.reminder,
+      locked: locked ?? this.locked,
+      deleteAt: deleteAt ?? this.deleteAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (reminder.present) {
+      map['reminder'] = Variable<String>(reminder.value);
+    }
+    if (locked.present) {
+      map['locked'] = Variable<int>(locked.value);
+    }
+    if (deleteAt.present) {
+      map['delete_at'] = Variable<int>(deleteAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecycleRecordsCompanion(')
+          ..write('uuid: $uuid, ')
+          ..write('path: $path, ')
+          ..write('name: $name, ')
+          ..write('reminder: $reminder, ')
+          ..write('locked: $locked, ')
+          ..write('deleteAt: $deleteAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class PathRecordCount extends DataClass {
   final String localPath;
   final int? recordCount;
@@ -1963,6 +2363,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $LocalRecordsTable localRecords = $LocalRecordsTable(this);
   late final $KVConfigsTable kVConfigs = $KVConfigsTable(this);
   late final $OperatesTable operates = $OperatesTable(this);
+  late final $RecycleRecordsTable recycleRecords = $RecycleRecordsTable(this);
   late final $PathRecordCountsView pathRecordCounts = $PathRecordCountsView(
     this,
   );
@@ -1982,6 +2383,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     localRecords,
     kVConfigs,
     operates,
+    recycleRecords,
     pathRecordCounts,
     recordsPathIdx,
     recordsVersionIdx,
@@ -2597,18 +2999,16 @@ typedef $$LocalRecordsTableProcessedTableManager =
       LocalRecord,
       PrefetchHooks Function()
     >;
-typedef $$KVConfigsTableCreateCompanionBuilder =
-    KVConfigsCompanion Function({
-      required String key,
-      required String value,
-      Value<int> rowid,
-    });
-typedef $$KVConfigsTableUpdateCompanionBuilder =
-    KVConfigsCompanion Function({
-      Value<String> key,
-      Value<String> value,
-      Value<int> rowid,
-    });
+typedef $$KVConfigsTableCreateCompanionBuilder = KVConfigsCompanion Function({
+  required String key,
+  required String value,
+  Value<int> rowid,
+});
+typedef $$KVConfigsTableUpdateCompanionBuilder = KVConfigsCompanion Function({
+  Value<String> key,
+  Value<String> value,
+  Value<int> rowid,
+});
 
 class $$KVConfigsTableFilterComposer
     extends Composer<_$AppDatabase, $KVConfigsTable> {
@@ -2692,22 +3092,16 @@ class $$KVConfigsTableTableManager
               $$KVConfigsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$KVConfigsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> key = const Value.absent(),
-                Value<String> value = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => KVConfigsCompanion(key: key, value: value, rowid: rowid),
-          createCompanionCallback:
-              ({
-                required String key,
-                required String value,
-                Value<int> rowid = const Value.absent(),
-              }) => KVConfigsCompanion.insert(
-                key: key,
-                value: value,
-                rowid: rowid,
-              ),
+          updateCompanionCallback: ({
+            Value<String> key = const Value.absent(),
+            Value<String> value = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => KVConfigsCompanion(key: key, value: value, rowid: rowid),
+          createCompanionCallback: ({
+            required String key,
+            required String value,
+            Value<int> rowid = const Value.absent(),
+          }) => KVConfigsCompanion.insert(key: key, value: value, rowid: rowid),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
@@ -2739,20 +3133,18 @@ typedef $$KVConfigsTableProcessedTableManager =
       KVConfig,
       PrefetchHooks Function()
     >;
-typedef $$OperatesTableCreateCompanionBuilder =
-    OperatesCompanion Function({
-      Value<int> id,
-      required String type,
-      required String value,
-      required int time,
-    });
-typedef $$OperatesTableUpdateCompanionBuilder =
-    OperatesCompanion Function({
-      Value<int> id,
-      Value<String> type,
-      Value<String> value,
-      Value<int> time,
-    });
+typedef $$OperatesTableCreateCompanionBuilder = OperatesCompanion Function({
+  Value<int> id,
+  required String type,
+  required String value,
+  required int time,
+});
+typedef $$OperatesTableUpdateCompanionBuilder = OperatesCompanion Function({
+  Value<int> id,
+  Value<String> type,
+  Value<String> value,
+  Value<int> time,
+});
 
 class $$OperatesTableFilterComposer
     extends Composer<_$AppDatabase, $OperatesTable> {
@@ -2862,18 +3254,12 @@ class $$OperatesTableTableManager
               $$OperatesTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$OperatesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<int> id = const Value.absent(),
-                Value<String> type = const Value.absent(),
-                Value<String> value = const Value.absent(),
-                Value<int> time = const Value.absent(),
-              }) => OperatesCompanion(
-                id: id,
-                type: type,
-                value: value,
-                time: time,
-              ),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> type = const Value.absent(),
+            Value<String> value = const Value.absent(),
+            Value<int> time = const Value.absent(),
+          }) => OperatesCompanion(id: id, type: type, value: value, time: time),
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
@@ -2917,6 +3303,236 @@ typedef $$OperatesTableProcessedTableManager =
       Operate,
       PrefetchHooks Function()
     >;
+typedef $$RecycleRecordsTableCreateCompanionBuilder =
+    RecycleRecordsCompanion Function({
+      required String uuid,
+      Value<String> path,
+      Value<String> name,
+      Value<String> reminder,
+      Value<int> locked,
+      required int deleteAt,
+      Value<int> rowid,
+    });
+typedef $$RecycleRecordsTableUpdateCompanionBuilder =
+    RecycleRecordsCompanion Function({
+      Value<String> uuid,
+      Value<String> path,
+      Value<String> name,
+      Value<String> reminder,
+      Value<int> locked,
+      Value<int> deleteAt,
+      Value<int> rowid,
+    });
+
+class $$RecycleRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $RecycleRecordsTable> {
+  $$RecycleRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reminder => $composableBuilder(
+    column: $table.reminder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get locked => $composableBuilder(
+    column: $table.locked,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get deleteAt => $composableBuilder(
+    column: $table.deleteAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RecycleRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecycleRecordsTable> {
+  $$RecycleRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reminder => $composableBuilder(
+    column: $table.reminder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get locked => $composableBuilder(
+    column: $table.locked,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get deleteAt => $composableBuilder(
+    column: $table.deleteAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RecycleRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecycleRecordsTable> {
+  $$RecycleRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get reminder =>
+      $composableBuilder(column: $table.reminder, builder: (column) => column);
+
+  GeneratedColumn<int> get locked =>
+      $composableBuilder(column: $table.locked, builder: (column) => column);
+
+  GeneratedColumn<int> get deleteAt =>
+      $composableBuilder(column: $table.deleteAt, builder: (column) => column);
+}
+
+class $$RecycleRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RecycleRecordsTable,
+          RecycleRecord,
+          $$RecycleRecordsTableFilterComposer,
+          $$RecycleRecordsTableOrderingComposer,
+          $$RecycleRecordsTableAnnotationComposer,
+          $$RecycleRecordsTableCreateCompanionBuilder,
+          $$RecycleRecordsTableUpdateCompanionBuilder,
+          (
+            RecycleRecord,
+            BaseReferences<_$AppDatabase, $RecycleRecordsTable, RecycleRecord>,
+          ),
+          RecycleRecord,
+          PrefetchHooks Function()
+        > {
+  $$RecycleRecordsTableTableManager(
+    _$AppDatabase db,
+    $RecycleRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecycleRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RecycleRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RecycleRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> uuid = const Value.absent(),
+                Value<String> path = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> reminder = const Value.absent(),
+                Value<int> locked = const Value.absent(),
+                Value<int> deleteAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RecycleRecordsCompanion(
+                uuid: uuid,
+                path: path,
+                name: name,
+                reminder: reminder,
+                locked: locked,
+                deleteAt: deleteAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String uuid,
+                Value<String> path = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> reminder = const Value.absent(),
+                Value<int> locked = const Value.absent(),
+                required int deleteAt,
+                Value<int> rowid = const Value.absent(),
+              }) => RecycleRecordsCompanion.insert(
+                uuid: uuid,
+                path: path,
+                name: name,
+                reminder: reminder,
+                locked: locked,
+                deleteAt: deleteAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$RecycleRecordsTable, RecycleRecord>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $RecycleRecordsTable,
+                    RecycleRecord
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RecycleRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RecycleRecordsTable,
+      RecycleRecord,
+      $$RecycleRecordsTableFilterComposer,
+      $$RecycleRecordsTableOrderingComposer,
+      $$RecycleRecordsTableAnnotationComposer,
+      $$RecycleRecordsTableCreateCompanionBuilder,
+      $$RecycleRecordsTableUpdateCompanionBuilder,
+      (
+        RecycleRecord,
+        BaseReferences<_$AppDatabase, $RecycleRecordsTable, RecycleRecord>,
+      ),
+      RecycleRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2927,4 +3543,6 @@ class $AppDatabaseManager {
       $$KVConfigsTableTableManager(_db, _db.kVConfigs);
   $$OperatesTableTableManager get operates =>
       $$OperatesTableTableManager(_db, _db.operates);
+  $$RecycleRecordsTableTableManager get recycleRecords =>
+      $$RecycleRecordsTableTableManager(_db, _db.recycleRecords);
 }

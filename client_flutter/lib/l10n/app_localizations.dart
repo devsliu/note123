@@ -1148,6 +1148,18 @@ abstract class AppLocalizations {
   /// **'该提醒已到时间'**
   String get reminderDueBody;
 
+  /// No description provided for @searchRecords.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索标题或路径'**
+  String get searchRecords;
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In zh, this message translates to:
+  /// **'无匹配结果'**
+  String get searchNoResults;
+
   /// No description provided for @unitYear.
   ///
   /// In zh, this message translates to:
@@ -1183,6 +1195,60 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'请至少选择一个星期'**
   String get atLeastOneWeekday;
+
+  /// No description provided for @recycler.
+  ///
+  /// In zh, this message translates to:
+  /// **'回收站'**
+  String get recycler;
+
+  /// No description provided for @purgeRecyclerItem.
+  ///
+  /// In zh, this message translates to:
+  /// **'彻底删除'**
+  String get purgeRecyclerItem;
+
+  /// No description provided for @clearRecycler.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空回收站'**
+  String get clearRecycler;
+
+  /// No description provided for @confirmClearRecycler.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要清空回收站吗？'**
+  String get confirmClearRecycler;
+
+  /// No description provided for @confirmPurgeRecycler.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要彻底删除吗？删除后无法恢复'**
+  String get confirmPurgeRecycler;
+
+  /// No description provided for @recyclerRestored.
+  ///
+  /// In zh, this message translates to:
+  /// **'已还原 {name}'**
+  String recyclerRestored(String name);
+
+  /// No description provided for @recyclerRestoreFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'还原失败'**
+  String get recyclerRestoreFailed;
+
+  /// No description provided for @recyclerPurged.
+  ///
+  /// In zh, this message translates to:
+  /// **'已彻底删除'**
+  String get recyclerPurged;
+
+  /// No description provided for @recyclerCleared.
+  ///
+  /// In zh, this message translates to:
+  /// **'回收站已清空'**
+  String get recyclerCleared;
 }
 
 class _AppLocalizationsDelegate

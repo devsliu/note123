@@ -18,17 +18,23 @@ class FileStore {
   final String rootDir;
   late final String baseFilesDir;
   late final String workFilesDir;
+  late final String recyclerFilesDir;
   final Map<String, _DownloadFile> _downloadFiles = {};
   AppDatabase? db;
 
   FileStore(this.rootDir) {
     baseFilesDir = join(rootDir, "base_files");
     workFilesDir = join(rootDir, "work_files");
+    recyclerFilesDir = join(rootDir, "recycler");
     var files = Directory(baseFilesDir);
     if (!files.existsSync()) {
       files.createSync(recursive: true);
     }
     files = Directory(workFilesDir);
+    if (!files.existsSync()) {
+      files.createSync(recursive: true);
+    }
+    files = Directory(recyclerFilesDir);
     if (!files.existsSync()) {
       files.createSync(recursive: true);
     }
@@ -59,6 +65,21 @@ class FileStore {
 
   void deleteBaseFile(String uuid) {
     final file = File(getBaseFile(uuid));
+    if (file.existsSync()) {
+      file.deleteSync();
+    }
+  }
+
+  String getRecyclerFile(String uuid) {
+    return join(recyclerFilesDir, uuid);
+  }
+
+  bool isRecyclerFileExist(String uuid) {
+    return File(getRecyclerFile(uuid)).existsSync();
+  }
+
+  void deleteRecyclerFile(String uuid) {
+    final file = File(getRecyclerFile(uuid));
     if (file.existsSync()) {
       file.deleteSync();
     }
@@ -120,6 +141,40 @@ class FileStore {
       } catch (e) {
         AppLogger.e("[moveWorkFileToBase] uuid=$uuid failed to clean up backup: $e");
       }
+    }
+  }
+
+  /// Move the record's content file into the recycler folder (work file preferred, base file as
+  /// fallback). The base file is not kept as a conflict baseline: restore re-creates the record
+  /// as a pure local edit, so next sync pushes it as new.
+  void moveFileToRecycler(String uuid) {
+    var src = File(getWorkFile(uuid));
+    if (!src.existsSync()) {
+      src = File(getBaseFile(uuid));
+    }
+    if (!src.existsSync()) return;
+    _moveFile(src, File(getRecyclerFile(uuid)));
+  }
+
+  /// Move the recycler content file back into the work folder.
+  void moveRecyclerFileToWork(String uuid) {
+    final src = File(getRecyclerFile(uuid));
+    if (!src.existsSync()) return;
+    _moveFile(src, File(getWorkFile(uuid)));
+  }
+
+  void _moveFile(File src, File dst) {
+    try {
+      // Windows rename does not overwrite existing files, remove target first
+      if (dst.existsSync()) {
+        dst.deleteSync();
+      }
+      src.renameSync(dst.absolute.path);
+    } on FileSystemException {
+      // When source/target are on different filesystems (e.g. mounted drives/removable storage),
+      // rename will fail; fall back to copy+delete to ensure content is not lost
+      src.copySync(dst.absolute.path);
+      src.deleteSync();
     }
   }
 

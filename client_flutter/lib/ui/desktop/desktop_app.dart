@@ -11,6 +11,7 @@ import '../../config/prefs.dart';
 import '../../filesync/record_tree.dart';
 import '../../model/record_opened_state.dart';
 import '../calendar/calendar_page.dart';
+import '../files/recycler_page.dart';
 import '../editor/record_flow_editor_page.dart';
 
 class EditorTab extends DesktopTab {
@@ -56,6 +57,24 @@ class CalendarTab extends DesktopTab {
       openRecordCallback: openRecordCallback,
       closeCallback: Navigator.pop,
     );
+  }
+}
+
+class RecyclerTab extends DesktopTab {
+  RecyclerTab() : super(id: '__recycler__');
+
+  @override
+  String get title => l10n.recycler;
+
+  @override
+  void select() {}
+
+  @override
+  void close() {}
+
+  @override
+  Widget buildPage(GlobalKey key, VoidCallback closePageCallback) {
+    return RecyclerPage(key: key, showAppBar: false);
   }
 }
 
@@ -160,6 +179,11 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   }
 
   @override
+  void openRecycler(BuildContext context) {
+    detailKey.currentState?.openTab(RecyclerTab());
+  }
+
+  @override
   Widget buildHome(BuildContext context) {
     return Scaffold(
       body: CustomMultiChildLayout(
@@ -167,7 +191,11 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
         children: [
           LayoutId(
             id: 'left',
-            child: DesktopRecordListPage(openRecordCallback: openRecord, onOpenCalendar: openCalendar),
+            child: DesktopRecordListPage(
+              openRecordCallback: openRecord,
+              onOpenCalendar: openCalendar,
+              onOpenRecycler: openRecycler,
+            ),
           ),
           LayoutId(
             id: 'right',

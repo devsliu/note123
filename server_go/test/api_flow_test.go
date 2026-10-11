@@ -258,6 +258,43 @@ func TestAPIFlow(t *testing.T) {
 		t.Error("expected at least one tombstone after delete")
 	}
 
+	// ---- 10. 还原场景: 对墓碑 upsert (baseVersion=0) 应复活记录而不是返回冲突 ----
+	buf.Reset()
+	writer = multipart.NewWriter(&buf)
+	writer.WriteField("path", "/notes/")
+	writer.WriteField("name", recordName)
+	writer.WriteField("createAt", "0") // 还原后客户端不再持有原始 createAt, 传 0
+	writer.WriteField("editAt", strconv.FormatInt(now+3000, 10))
+	writer.WriteField("fileEditAt", strconv.FormatInt(now+3000, 10))
+	writer.WriteField("locked", "0")
+	writer.WriteField("version", "0")
+	fw, _ = writer.CreateFormFile("file", recordName)
+	fw.Write([]byte("restored content"))
+	writer.Close()
+
+	req, _ = http.NewRequest("POST", baseURL+"/record/update?uuid="+recordUuid, &buf)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	req.Header.Set("X-User-Id", strconv.FormatInt(userId, 10))
+	req.Header.Set("X-Token", token)
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatal("tombstone upsert error:", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		t.Fatalf("tombstone upsert should revive the record, got: %s, body: %s", resp.Status, string(body))
+	}
+	var reviveResp map[string]any
+	json.NewDecoder(resp.Body).Decode(&reviveResp)
+	if delAt, ok := reviveResp["deleteAt"].(float64); !ok || delAt != 0 {
+		t.Errorf("expected deleteAt=0 after revive, got %v", reviveResp["deleteAt"])
+	}
+	if createAt, ok := reviveResp["createAt"].(float64); !ok || createAt != float64(now) {
+		t.Errorf("expected original createAt=%d preserved, got %v", now, reviveResp["createAt"])
+	}
+	t.Log("10. tombstone revive OK: deleteAt=0, createAt preserved")
+
 	t.Log("=== TestAPIFlow PASSED ===")
 }
 

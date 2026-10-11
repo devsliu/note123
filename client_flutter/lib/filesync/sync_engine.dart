@@ -199,12 +199,17 @@ class SyncEngine {
             // Remote version updated, undo local delete / align local state (handled by one replaceLocalRecord)
             var newRecord = remote.toLocalRecord(batchNo, baseFileVersion: local.baseFileVersion);
             await db.replaceRecord(newRecord);
+            // Record is alive again from remote: undo the recycle-bin capture made at delete time
+            await db.deleteRecycleRecord(remote.uuid);
             upsertRecords.add(newRecord);
             await db.createOperate(
               Operates.typeDownload,
               "edit record ${remote.uuid} ${remote.path}${remote.name} version:${remote.version}",
             );
-            fileActions.add(() => fileStore.deleteWorkFile(remote.uuid));
+            fileActions.add(() {
+              fileStore.deleteRecyclerFile(remote.uuid);
+              fileStore.deleteWorkFile(remote.uuid);
+            });
             // Server file updated, download latest base (judge by fileVersion)
             if (local.baseFileVersion < remote.fileVersion) {
               downloadUUids.add(remote.uuid);
@@ -326,6 +331,7 @@ class SyncEngine {
     for (var localRecord in await db.getDeleteRecords()) {
       final result = await HttpApi.deleteRecord(localRecord.uuid);
       if (result.isSuccess() || result.code == HttpApi.ResultErrorRecordNotFound) {
+        // Recycle bin capture already happened at delete time (Repository.deleteRecord/deleteFolder).
         // Only delete DB + files on successful request, prevent data loss from network failure
         recordTree.deleteRecord(localRecord.uuid);
         await db.deleteRecord(localRecord.uuid);
@@ -336,7 +342,15 @@ class SyncEngine {
           "delete record ${localRecord.uuid} ${localRecord.localPath}${localRecord.localName} version:${localRecord.remoteVersion}",
         );
       } else if (result.code == HttpApi.ResultErrorRecordConflict) {
-        // Server rejected deletion (record modified by someone else), restore to latest remote state
+        // Server rejected deletion (record modified by someone else), restore to latest remote state.
+        // Undo the recycle-bin capture made at delete time: move content file back to work folder
+        // and drop the recycler row, so the restored record is not duplicated in the recycle bin.
+        try {
+          fileStore.moveRecyclerFileToWork(localRecord.uuid);
+          await db.deleteRecycleRecord(localRecord.uuid);
+        } catch (e) {
+          AppLogger.e("[pushRecords] undo recycler capture failed uuid=${localRecord.uuid}: $e");
+        }
         final remote = result.data!;
         final newRecord = remote.toLocalRecord(0, baseFileVersion: localRecord.baseFileVersion);
         int rows = await db.replaceRecord(newRecord);

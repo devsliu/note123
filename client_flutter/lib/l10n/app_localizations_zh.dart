@@ -566,6 +566,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reminderDueBody => '该提醒已到时间';
 
   @override
+  String get searchRecords => '搜索标题或路径';
+
+  @override
+  String get searchNoResults => '无匹配结果';
+
+  @override
   String get unitYear => '年';
 
   @override
@@ -582,4 +588,33 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get atLeastOneWeekday => '请至少选择一个星期';
+
+  @override
+  String get recycler => '回收站';
+
+  @override
+  String get purgeRecyclerItem => '彻底删除';
+
+  @override
+  String get clearRecycler => '清空回收站';
+
+  @override
+  String get confirmClearRecycler => '确定要清空回收站吗？';
+
+  @override
+  String get confirmPurgeRecycler => '确定要彻底删除吗？删除后无法恢复';
+
+  @override
+  String recyclerRestored(String name) {
+    return '已还原 $name';
+  }
+
+  @override
+  String get recyclerRestoreFailed => '还原失败';
+
+  @override
+  String get recyclerPurged => '已彻底删除';
+
+  @override
+  String get recyclerCleared => '回收站已清空';
 }
