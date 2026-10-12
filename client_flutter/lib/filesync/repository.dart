@@ -200,7 +200,12 @@ class Repository {
     int time = DateTime.now().millisecondsSinceEpoch;
     int count = await db.updateRecord(uuid, localEditType: LocalEditType.delete, localEditAt: time);
     if (count > 0) {
-      await _captureToRecycler(record, time);
+      // Records with no content at all (no work file and remoteMd5 empty)
+      // skip the recycle bin capture.
+      final hasContent = (_fileStore?.isWorkFileExist(uuid) ?? false) || (record?.remoteMd5.isNotEmpty ?? false);
+      if (hasContent) {
+        await _captureToRecycler(record, time);
+      }
       recordTree.deleteRecord(uuid);
       await db.createOperate(
         Operates.typeLocal,
