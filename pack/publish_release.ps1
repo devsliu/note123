@@ -1,5 +1,8 @@
 # 发布脚本: 推送 tag -> 等待 CI 构建 -> 下载产物到 pack/build/{version}/ -> 生成 version.json/changelog.txt/version.ini -> 复制到服务端
 # 用法: powershell -ExecutionPolicy Bypass -File pack\publish_release.ps1 -Version 1.0.10
+# 注意: 不要手动修改 client_flutter/pubspec.yaml 里的 version 字段。
+#       GitHub Release workflow 会在构建时自动将 version 改为 "<tag>+<GITHUB_RUN_NUMBER>"。
+#       本脚本只需推送正确的 tag，CI 会处理版本号。
 param(
     [Parameter(Mandatory=$true)]
     [string]$Version,            # e.g. 1.0.5 (no 'v'), tag will be v$Version
