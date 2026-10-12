@@ -130,24 +130,24 @@ class _RecordListPageState extends State<RecordListPage> {
           state.setOpenedFolder(state.openedFolder.dir);
         }
       },
-      child: SafeArea(
-        child: _showSearch
-            ? SearchPage(
-                shrink: Utils.isDesktop(),
-                onBack: () => setState(() => _showSearch = false),
-                openRecordCallback: widget.openRecordCallback,
-              )
-            : Column(
+      child: _showSearch
+          ? SearchPage(
+              shrink: Utils.isDesktop(),
+              onBack: () => setState(() => _showSearch = false),
+              openRecordCallback: widget.openRecordCallback,
+            )
+          : Scaffold(
+              appBar: _buildTitleBar(context),
+              body: Column(
                 children: [
-                  _buildTitleBar(context),
                   CalendarBar(onTap: widget.onOpenCalendar),
                   AppConfig.listViewDivider(context),
                   Expanded(child: _buildContent(context)),
                   const SyncStateWidget(),
-                  _buildBottomBar(context),
                 ],
               ),
-      ),
+              bottomNavigationBar: _buildBottomBar(context),
+            ),
     );
   }
 }

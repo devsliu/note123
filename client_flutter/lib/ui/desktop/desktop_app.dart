@@ -186,25 +186,23 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
 
   @override
   Widget buildHome(BuildContext context) {
-    return Scaffold(
-      body: CustomMultiChildLayout(
-        delegate: _DesktopAppLayoutDelegate(leftWidth: leftWidth),
-        children: [
-          LayoutId(
-            id: 'left',
-            child: RecordListPage(
-              openRecordCallback: openRecord,
-              onOpenCalendar: openCalendar,
-              onOpenRecycler: openRecycler,
-            ),
+    return CustomMultiChildLayout(
+      delegate: _DesktopAppLayoutDelegate(leftWidth: leftWidth),
+      children: [
+        LayoutId(
+          id: 'left',
+          child: RecordListPage(
+            openRecordCallback: openRecord,
+            onOpenCalendar: openCalendar,
+            onOpenRecycler: openRecycler,
           ),
-          LayoutId(
-            id: 'right',
-            child: DesktopTabsPage(key: detailKey),
-          ),
-          LayoutId(id: 'dragger', child: buildLeftSideDragger()),
-        ],
-      ),
+        ),
+        LayoutId(
+          id: 'right',
+          child: Scaffold(body: DesktopTabsPage(key: detailKey)),
+        ),
+        LayoutId(id: 'dragger', child: buildLeftSideDragger()),
+      ],
     );
   }
 }
