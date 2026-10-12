@@ -56,7 +56,7 @@ class PhoneRecordDetailPageState<T extends PhoneRecordDetailPage> extends Record
 
   AppBar buildAppBar(BuildContext context, TreeContentFile record, RecordFlowEditorPageState state) {
     return AppBar(
-      leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.close_outlined)),
+      leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.arrow_back)),
       titleSpacing: 0,
       title: ValueListenableBuilder<List<RecordEvent>>(
         valueListenable: recordTree.refreshNotifier,

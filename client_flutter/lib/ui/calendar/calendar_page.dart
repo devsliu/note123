@@ -139,7 +139,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.close_outlined)),
+        leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.arrow_back)),
         titleSpacing: 0,
         title: Text(l10n.calendarTasks),
         actions: [

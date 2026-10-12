@@ -146,10 +146,7 @@ class _RecyclerPageState extends State<RecyclerPage> implements DesktopTabPageSt
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        leading: IconButton(
-          onPressed: () => widget.closeCallback?.call(context),
-          icon: const Icon(Icons.close_outlined),
-        ),
+        leading: IconButton(onPressed: () => widget.closeCallback?.call(context), icon: const Icon(Icons.arrow_back)),
         titleSpacing: 0,
         title: Text(l10n.recycler),
         actions: [
