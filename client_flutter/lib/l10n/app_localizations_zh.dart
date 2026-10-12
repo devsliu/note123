@@ -94,7 +94,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get syncErrAuthInvalid => '登录状态已失效, 请重新登录';
 
   @override
-  String get syncErrConflict => '有冲突文件, 请点击解决';
+  String get syncErrConflict => '有冲突笔记, 请点击解决';
 
   @override
   String get syncErrServerDb => '同步失败: 服务端数据库错误';
@@ -106,10 +106,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get syncErrParams => '同步失败: 参数错误';
 
   @override
-  String get syncErrFileSave => '同步失败: 文件保存失败';
+  String get syncErrFileSave => '同步失败: 笔记保存失败';
 
   @override
-  String get syncErrFileNotFound => '同步失败: 文件不存在';
+  String get syncErrFileNotFound => '同步失败: 笔记不存在';
 
   @override
   String get errorDetails => '错误详情';
@@ -146,14 +146,14 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String moveFileTo(Object file) {
-    return '移动 $file 到';
+    return '移动笔记 $file 到';
   }
 
   @override
   String get outOfBounds => '超出范围';
 
   @override
-  String get moveFile => '移动文件';
+  String get moveFile => '移动笔记';
 
   @override
   String get newFolder => '新建文件夹';
@@ -168,13 +168,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get moveFolder => '移动文件夹';
 
   @override
-  String get unlockFile => '解锁文件';
+  String get unlockFile => '解锁笔记';
 
   @override
-  String get lockFile => '锁定文件';
+  String get lockFile => '锁定笔记';
 
   @override
-  String get deleteFile => '删除文件';
+  String get deleteFile => '删除笔记';
 
   @override
   String get rename => '重命名';
@@ -329,10 +329,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importDocument => '导入文档';
 
   @override
-  String get importSuccess => '文件导入成功';
+  String get importSuccess => '笔记导入成功';
 
   @override
-  String get importFailed => '文件导入失败';
+  String get importFailed => '笔记导入失败';
 
   @override
   String get collapseAll => '收起所有文件夹';
@@ -344,7 +344,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get redo => '重做';
 
   @override
-  String get files => '个文件';
+  String get files => '篇笔记';
 
   @override
   String get lastModify => '上次修改';
@@ -400,14 +400,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get hasConflict => '有冲突';
 
   @override
-  String get fileConflict => '文件冲突';
+  String get fileConflict => '笔记冲突';
 
   @override
   String get metaConflict => '元数据冲突';
 
   @override
   String get fileContentUnchangedMetaConflict =>
-      '文件内容未改变, 仅元数据冲突. 请选择保留哪一侧的修改.';
+      '笔记内容未改变, 仅元数据冲突. 请选择保留哪一侧的修改.';
 
   @override
   String get conflictRemoteVersion => '远端版本';
@@ -617,9 +617,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get importExport => '导入导出';
-
-  @override
-  String get exportMarkdown => '导出 Markdown';
 
   @override
   String get exportMd => '导出 MD';

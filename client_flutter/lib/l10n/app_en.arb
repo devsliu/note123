@@ -219,7 +219,6 @@
   "recyclerCleared": "Recycle bin emptied",
 
   "importExport": "Import / Export",
-  "exportMarkdown": "Export Markdown",
   "exportMd": "Export MD",
   "exportSelectFolder": "Select destination folder",
   "exportFailed": "Export failed",

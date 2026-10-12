@@ -32,7 +32,7 @@ Future<void> showRecordContextMenu(
   } else {
     actions.add(PopupMenuItem<String>(value: 'newRecord', child: Text(l10n.newRecord)));
     actions.add(PopupMenuItem<String>(value: 'newFolder', child: Text(l10n.newFolder)));
-    actions.add(PopupMenuItem<String>(value: 'exportMarkdown', child: Text(l10n.exportMarkdown)));
+    actions.add(PopupMenuItem<String>(value: 'exportMarkdown', child: Text(l10n.exportMd)));
     if (Utils.isDesktop()) {
       actions.add(PopupMenuItem<String>(value: 'importDocument', child: Text(l10n.importDocument)));
     }

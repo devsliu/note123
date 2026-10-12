@@ -212,7 +212,7 @@ class _ExportProgressDialogState extends State<_ExportProgressDialog> {
     return PopScope(
       canPop: _finished,
       child: AlertDialog(
-        title: Text(l10n.exportMarkdown),
+        title: Text(l10n.exportMd),
         content: SizedBox(width: 400, child: _buildContent(theme, total)),
         actions: _buildActions(),
       ),

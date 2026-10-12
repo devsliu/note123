@@ -269,7 +269,7 @@ abstract class AppLocalizations {
   /// No description provided for @syncErrConflict.
   ///
   /// In zh, this message translates to:
-  /// **'有冲突文件, 请点击解决'**
+  /// **'有冲突笔记, 请点击解决'**
   String get syncErrConflict;
 
   /// No description provided for @syncErrServerDb.
@@ -293,13 +293,13 @@ abstract class AppLocalizations {
   /// No description provided for @syncErrFileSave.
   ///
   /// In zh, this message translates to:
-  /// **'同步失败: 文件保存失败'**
+  /// **'同步失败: 笔记保存失败'**
   String get syncErrFileSave;
 
   /// No description provided for @syncErrFileNotFound.
   ///
   /// In zh, this message translates to:
-  /// **'同步失败: 文件不存在'**
+  /// **'同步失败: 笔记不存在'**
   String get syncErrFileNotFound;
 
   /// No description provided for @errorDetails.
@@ -371,7 +371,7 @@ abstract class AppLocalizations {
   /// No description provided for @moveFileTo.
   ///
   /// In zh, this message translates to:
-  /// **'移动 {file} 到'**
+  /// **'移动笔记 {file} 到'**
   String moveFileTo(Object file);
 
   /// No description provided for @outOfBounds.
@@ -383,7 +383,7 @@ abstract class AppLocalizations {
   /// No description provided for @moveFile.
   ///
   /// In zh, this message translates to:
-  /// **'移动文件'**
+  /// **'移动笔记'**
   String get moveFile;
 
   /// No description provided for @newFolder.
@@ -413,19 +413,19 @@ abstract class AppLocalizations {
   /// No description provided for @unlockFile.
   ///
   /// In zh, this message translates to:
-  /// **'解锁文件'**
+  /// **'解锁笔记'**
   String get unlockFile;
 
   /// No description provided for @lockFile.
   ///
   /// In zh, this message translates to:
-  /// **'锁定文件'**
+  /// **'锁定笔记'**
   String get lockFile;
 
   /// No description provided for @deleteFile.
   ///
   /// In zh, this message translates to:
-  /// **'删除文件'**
+  /// **'删除笔记'**
   String get deleteFile;
 
   /// No description provided for @rename.
@@ -707,13 +707,13 @@ abstract class AppLocalizations {
   /// No description provided for @importSuccess.
   ///
   /// In zh, this message translates to:
-  /// **'文件导入成功'**
+  /// **'笔记导入成功'**
   String get importSuccess;
 
   /// No description provided for @importFailed.
   ///
   /// In zh, this message translates to:
-  /// **'文件导入失败'**
+  /// **'笔记导入失败'**
   String get importFailed;
 
   /// No description provided for @collapseAll.
@@ -737,7 +737,7 @@ abstract class AppLocalizations {
   /// No description provided for @files.
   ///
   /// In zh, this message translates to:
-  /// **'个文件'**
+  /// **'篇笔记'**
   String get files;
 
   /// No description provided for @lastModify.
@@ -845,7 +845,7 @@ abstract class AppLocalizations {
   /// No description provided for @fileConflict.
   ///
   /// In zh, this message translates to:
-  /// **'文件冲突'**
+  /// **'笔记冲突'**
   String get fileConflict;
 
   /// No description provided for @metaConflict.
@@ -857,7 +857,7 @@ abstract class AppLocalizations {
   /// No description provided for @fileContentUnchangedMetaConflict.
   ///
   /// In zh, this message translates to:
-  /// **'文件内容未改变, 仅元数据冲突. 请选择保留哪一侧的修改.'**
+  /// **'笔记内容未改变, 仅元数据冲突. 请选择保留哪一侧的修改.'**
   String get fileContentUnchangedMetaConflict;
 
   /// No description provided for @conflictRemoteVersion.
@@ -1249,12 +1249,6 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'导入导出'**
   String get importExport;
-
-  /// No description provided for @exportMarkdown.
-  ///
-  /// In zh, this message translates to:
-  /// **'导出 Markdown'**
-  String get exportMarkdown;
 
   /// No description provided for @exportMd.
   ///

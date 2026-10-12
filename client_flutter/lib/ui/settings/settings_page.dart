@@ -184,8 +184,10 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final subtitle = _buildVersionSubtitle();
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: createPlatformAppBar(title: l10n.settings),
+      backgroundColor: theme.colorScheme.surface,
       body: ListView(
         children: [
           ListTile(
@@ -209,9 +211,7 @@ class _SettingsPageState extends State<SettingsPage> {
             subtitle: subtitle,
             trailing: _hasUpdate == true ? const Icon(Icons.new_releases, color: Colors.orange) : null,
           ),
-          AppConfig.listViewDivider(context),
-          const SizedBox(height: 20),
-          AppConfig.listViewDivider(context),
+          Divider(height: 20, thickness: 20, color: theme.appBarBackgroundColor),
           ListTile(onTap: _onApiStatTap, title: Text(l10n.apiCallStats)),
           AppConfig.listViewDivider(context),
           ListTile(onTap: _onRecordsDbTap, title: Text(l10n.database)),
@@ -223,6 +223,7 @@ class _SettingsPageState extends State<SettingsPage> {
             title: const Text('测试通知'),
             subtitle: const Text('立即发送一条本地通知'),
           ),
+          AppConfig.listViewDivider(context),
         ],
       ),
     );

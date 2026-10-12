@@ -624,9 +624,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importExport => 'Import / Export';
 
   @override
-  String get exportMarkdown => 'Export Markdown';
-
-  @override
   String get exportMd => 'Export MD';
 
   @override
