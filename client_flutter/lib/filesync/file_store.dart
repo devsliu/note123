@@ -145,15 +145,24 @@ class FileStore {
   }
 
   /// Move the record's content file into the recycler folder (work file preferred, base file as
-  /// fallback). The base file is not kept as a conflict baseline: restore re-creates the record
-  /// as a pure local edit, so next sync pushes it as new.
+  /// fallback). The base file is not kept: it is the stale synced baseline, and restore re-creates
+  /// the record as a pure local edit (next sync pushes it as new, base is re-derived from work).
   void moveFileToRecycler(String uuid) {
-    var src = File(getWorkFile(uuid));
-    if (!src.existsSync()) {
-      src = File(getBaseFile(uuid));
+    final workFile = File(getWorkFile(uuid));
+    final baseFile = File(getBaseFile(uuid));
+    if (workFile.existsSync()) {
+      _moveFile(workFile, File(getRecyclerFile(uuid)));
+      // Base is the stale synced baseline; delete it so it cannot be mistaken for live content.
+      if (baseFile.existsSync()) {
+        try {
+          baseFile.deleteSync();
+        } catch (e) {
+          AppLogger.e("[moveFileToRecycler] uuid=$uuid failed to delete stale base file: $e");
+        }
+      }
+    } else if (baseFile.existsSync()) {
+      _moveFile(baseFile, File(getRecyclerFile(uuid)));
     }
-    if (!src.existsSync()) return;
-    _moveFile(src, File(getRecyclerFile(uuid)));
   }
 
   /// Move the recycler content file back into the work folder.
