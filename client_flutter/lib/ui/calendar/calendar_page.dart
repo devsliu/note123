@@ -111,7 +111,18 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     });
   }
 
-  void _deleteEntry(ReminderEntry entry) {
+  Future<void> _deleteEntry(ReminderEntry entry) async {
+    final repo = Repository.get();
+    // When the record has only this task and no content (no work file,
+    // remoteMd5 empty), delete the whole record instead of leaving
+    // an empty task-holder behind.
+    final tasks = repo.reminderTree.tasksForRecord(entry.recordUuid);
+    final isOnlyTask = tasks.length == 1 && tasks.first.id == entry.task.id;
+    final record = isOnlyTask ? await repo.db?.getRecord(entry.recordUuid) : null;
+    if (record != null && record.remoteMd5.isEmpty && !(repo.fileStore?.isWorkFileExist(entry.recordUuid) ?? false)) {
+      await repo.deleteRecord(entry.recordUuid);
+      return;
+    }
     _mutateEntryTask(entry, (tasks) {
       tasks.removeWhere((t) => t.id == entry.task.id);
     });
