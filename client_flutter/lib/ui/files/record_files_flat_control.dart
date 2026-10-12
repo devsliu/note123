@@ -64,6 +64,7 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (!isRoot) _buildPathRow(context, folder.path),
+        if (!isRoot) AppConfig.listViewDivider(context),
         Expanded(
           child: ListView.separated(
             itemCount: count,
@@ -101,7 +102,7 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
     if (file is TreeContentFile) {
       return FileWidget(
         showIcon: true,
-        leftPadding: 8.0,
+        leftPadding: 12.0,
         rightPadding: 12.0,
         verticalPadding: widget.shrink ? 4.0 : 12.0,
         content: file,
@@ -112,7 +113,7 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
       );
     } else {
       return FolderWidget(
-        leftPadding: 8.0,
+        leftPadding: 12.0,
         rightPadding: 12.0,
         verticalPadding: widget.shrink ? 4.0 : 12.0,
         node: node,

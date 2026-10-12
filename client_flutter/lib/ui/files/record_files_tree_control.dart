@@ -8,8 +8,6 @@ import 'package:note123/utils/utils.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 class RecordFilesTreeControl extends StatefulWidget {
-  static final ValueNotifier<int> collapseAll = ValueNotifier<int>(0);
-
   final bool shrink;
   final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
 
@@ -58,7 +56,6 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
     recordTree.refreshNotifier.addListener(onEventChanged);
     RecordOpenedState.get().openedFolderNotifier.addListener(onFolderChanged);
     RecordOpenedState.get().openedFileNotifier.addListener(onFileChanged);
-    RecordFilesTreeControl.collapseAll.addListener(onCollapseAll);
   }
 
   @override
@@ -66,7 +63,6 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
     recordTree.refreshNotifier.removeListener(onEventChanged);
     RecordOpenedState.get().openedFolderNotifier.removeListener(onFolderChanged);
     RecordOpenedState.get().openedFileNotifier.removeListener(onFileChanged);
-    RecordFilesTreeControl.collapseAll.removeListener(onCollapseAll);
     super.dispose();
   }
 
@@ -125,7 +121,7 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
     Widget child = (file is TreeContentFile)
         ? TreeFileWidget(
             node: node,
-            leftPadding: 4.0,
+            leftPadding: 8.0,
             rightPadding: 12.0,
             verticalPadding: widget.verticalPadding2,
             showIcon: true,
@@ -134,7 +130,7 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
           )
         : TreeFolderWidget(
             node: node,
-            leftPadding: 4.0,
+            leftPadding: 8.0,
             rightPadding: 12.0,
             verticalPadding: widget.verticalPadding2,
             isSelected: isSelected,

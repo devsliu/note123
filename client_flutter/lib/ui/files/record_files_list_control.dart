@@ -57,7 +57,7 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
 
         return FileWidget(
           showIcon: false,
-          leftPadding: 8.0,
+          leftPadding: 12.0,
           rightPadding: 12.0,
           verticalPadding: widget.shrink ? 4.0 : 10.0,
           content: list[index],

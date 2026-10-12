@@ -10,7 +10,6 @@ import 'package:note123/filesync/user.dart';
 import 'package:note123/model/record_utils.dart';
 import 'package:note123/ui/common/input_dialog.dart';
 import 'package:note123/ui/files/record_export_dialog.dart';
-import 'package:note123/ui/files/record_files_tree_control.dart';
 import 'package:note123/ui/settings/login_dialog.dart';
 import 'package:note123/ui/settings/theme_selector_dialog.dart';
 import 'package:note123/config/language_manager.dart';
@@ -106,7 +105,7 @@ class RecordListActions {
 
   static Widget importExportButton(BuildContext context, ReturnCallback<String> getFolder) {
     return PopupMenuButton<String>(
-      icon: const Icon(Icons.upload_file_outlined),
+      icon: const Icon(Icons.import_export_outlined),
       tooltip: l10n.importExport,
       onSelected: (value) {
         if (value == 'import') {
@@ -119,7 +118,7 @@ class RecordListActions {
         PopupMenuItem(
           value: 'export',
           child: ListTile(
-            leading: const Icon(Icons.file_download_outlined),
+            leading: const Icon(Icons.download_outlined),
             title: Text(l10n.exportMd),
             contentPadding: EdgeInsets.zero,
           ),
@@ -127,7 +126,7 @@ class RecordListActions {
         PopupMenuItem(
           value: 'import',
           child: ListTile(
-            leading: const Icon(Icons.upload_file_outlined),
+            leading: const Icon(Icons.upload_outlined),
             title: Text(l10n.importDocument),
             contentPadding: EdgeInsets.zero,
           ),
@@ -244,24 +243,6 @@ class RecordListActions {
     }
   }
 
-  static Widget collapseAllButton(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: RecordListWidgetType.notifier,
-      builder: (context, sortType, _) {
-        if (sortType != RecordListWidgetType.sTreeFolder) {
-          return SizedBox.shrink();
-        }
-        return IconButton(
-          onPressed: () {
-            RecordFilesTreeControl.collapseAll.value = RecordFilesTreeControl.collapseAll.value + 1;
-          },
-          icon: const Icon(Icons.unfold_less_outlined),
-          tooltip: l10n.collapseAll,
-        );
-      },
-    );
-  }
-
   static Widget newRecordButton(
     BuildContext context,
     ReturnCallback<String> getFolder,
@@ -319,21 +300,6 @@ class RecordListActions {
     );
   }
 
-  static Widget calendarButton(BuildContext context, ValueCallback<BuildContext> onTap) {
-    final theme = Theme.of(context);
-    final icon = Icon(Icons.calendar_today_outlined, color: theme.colorScheme.primary);
-    return ValueListenableBuilder<int>(
-      valueListenable: Repository.get().reminderTree.todayCountNotifier,
-      builder: (context, count, _) {
-        return IconButton(
-          onPressed: () => onTap(context),
-          tooltip: l10n.calendarTasks,
-          icon: _wrapCountBadge(icon, count),
-        );
-      },
-    );
-  }
-
   static Widget recyclerButton(BuildContext context, ValueCallback<BuildContext> onTap) {
     return ValueListenableBuilder<int>(
       valueListenable: Repository.get().recyclerCountNotifier,
@@ -348,7 +314,7 @@ class RecordListActions {
     if (count <= 0) return icon;
     return Badge(
       alignment: Alignment.bottomRight,
-      offset: const Offset(0, -8),
+      offset: const Offset(0, -12),
       largeSize: 12,
       textStyle: const TextStyle(fontSize: 10, height: 1.0),
       label: Text('$count'),
@@ -358,7 +324,6 @@ class RecordListActions {
 
   static Widget recordsCountIndicator(BuildContext context) {
     final recordTree = Repository.get().recordTree;
-    final theme = Theme.of(context);
     return ValueListenableBuilder<List<RecordEvent>>(
       valueListenable: recordTree.refreshNotifier,
       builder: (context, _, _) {
@@ -367,10 +332,7 @@ class RecordListActions {
           message: "$count ${l10n.files}",
           child: IconButton(
             onPressed: () {},
-            style: const ButtonStyle(
-              shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.zero)),
-            ),
-            icon: Text("$count", style: TextStyle(fontSize: 14, color: theme.colorScheme.primary)),
+            icon: Text("$count", style: TextStyle(fontSize: 14)),
           ),
         );
       },

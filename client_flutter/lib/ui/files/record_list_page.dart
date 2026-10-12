@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/model/record_opened_state.dart';
+import 'package:note123/ui/calendar/calendar_bar.dart';
 import 'package:note123/ui/common/platform_app_bar.dart';
 import 'package:note123/ui/files/record_files_flat_control.dart';
 import 'package:note123/ui/files/record_files_list_control.dart';
@@ -43,99 +44,68 @@ class _RecordListPageState extends State<RecordListPage> {
     return RecordOpenedState.get().openedFolder.path;
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context) {
+  PreferredSizeWidget _buildTitleBar(BuildContext context) {
     final bool desktop = Utils.isDesktop();
-    final double railWidth = desktop ? 40 : 48;
-    final double iconSize = desktop ? 22 : 26;
     return createPlatformAppBar(
       automaticallyImplyLeading: false,
-      titleSpacing: 8,
+      titleSpacing: 12,
       showWindowButtons: false,
-      leading: SizedBox(
-        width: railWidth,
-        child: Center(
-          child: Image.asset('assets/icon/app_icon.png', width: iconSize, height: iconSize),
-        ),
-      ),
       title: AppConfig.appTitle,
       actions: [
-        RecordListActions.newRecordButton(context, _getFolder, (record) => widget.openRecordCallback(context, record)),
-        RecordListActions.newFolderButton(context, _getFolder),
-        RecordListActions.collapseAllButton(context),
-        SizedBox(width: AppConfig.pageHorizontalPadding),
+        SyncButton(),
+        IconButton(
+          onPressed: () => setState(() => _showSearch = true),
+          icon: const Icon(Icons.search),
+          tooltip: l10n.searchRecords,
+        ),
+        SettingsButton(),
+        SizedBox(width: desktop ? 4 : AppConfig.pageHorizontalPadding),
       ],
     );
   }
 
-  Widget _buildLeftRail(BuildContext context) {
+  Widget _buildBottomBar(BuildContext context) {
     final theme = Theme.of(context);
     final bool desktop = Utils.isDesktop();
-    final double railWidth = desktop ? 40 : 48;
-    final double iconSize = desktop ? 20 : 24;
-    final double minSize = desktop ? 36 : 48;
     return Container(
-      width: railWidth,
       color: theme.appBarBackgroundColor,
-      child: IconButtonTheme(
-        data: IconButtonThemeData(
-          style: ButtonStyle(
-            iconSize: WidgetStatePropertyAll(iconSize),
-            minimumSize: WidgetStatePropertyAll(Size(minSize, minSize)),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+      padding: EdgeInsets.symmetric(horizontal: desktop ? 4 : AppConfig.pageHorizontalPadding, vertical: 2.0),
+      child: Row(
+        spacing: 4,
+        children: [
+          RecordListActions.recordsCountIndicator(context),
+          RecordListActions.sortTypeButton(context),
+          RecordListActions.importExportButton(context, _getFolder),
+          RecordListActions.recyclerButton(context, widget.onOpenRecycler),
+          Spacer(),
+          RecordListActions.newRecordButton(
+            context,
+            _getFolder,
+            (record) => widget.openRecordCallback(context, record),
           ),
-        ),
-        child: Column(
-          spacing: 4,
-          children: [
-            const SizedBox(height: 4),
-            SyncButton(),
-            SettingsButton(),
-            IconButton(
-              onPressed: () => setState(() => _showSearch = true),
-              icon: const Icon(Icons.search),
-              tooltip: l10n.searchRecords,
-            ),
-            RecordListActions.sortTypeButton(context),
-            RecordListActions.importExportButton(context, _getFolder),
-            RecordListActions.calendarButton(context, widget.onOpenCalendar),
-            RecordListActions.recyclerButton(context, widget.onOpenRecycler),
-            RecordListActions.themeButton(context),
-            RecordListActions.languageButton(context),
-            const Spacer(),
-            RecordListActions.recordsCountIndicator(context),
-          ],
-        ),
+          RecordListActions.newFolderButton(context, _getFolder),
+        ],
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget _buildContent(BuildContext context) {
     final bool desktop = Utils.isDesktop();
-    return Row(
-      children: [
-        _buildLeftRail(context),
-        VerticalDivider(width: 1, color: theme.colorScheme.outline.withAlpha(40)),
-        Expanded(
-          child: ValueListenableBuilder<int>(
-            valueListenable: RecordListWidgetType.notifier,
-            builder: (context, type, _) {
-              if (type == RecordListWidgetType.sTreeFolder) {
-                return RecordFilesTreeControl(openRecordCallback: widget.openRecordCallback, shrink: desktop);
-              } else if (type == RecordListWidgetType.sFlatFolder) {
-                return RecordFilesFlatControl(openRecordCallback: widget.openRecordCallback, shrink: desktop);
-              } else {
-                return RecordFilesListControl(
-                  openRecordCallback: widget.openRecordCallback,
-                  showDivider: true,
-                  shrink: desktop,
-                );
-              }
-            },
-          ),
-        ),
-      ],
+    return ValueListenableBuilder<int>(
+      valueListenable: RecordListWidgetType.notifier,
+      builder: (context, type, _) {
+        if (type == RecordListWidgetType.sTreeFolder) {
+          return RecordFilesTreeControl(openRecordCallback: widget.openRecordCallback, shrink: desktop);
+        } else if (type == RecordListWidgetType.sFlatFolder) {
+          return RecordFilesFlatControl(openRecordCallback: widget.openRecordCallback, shrink: desktop);
+        } else {
+          return RecordFilesListControl(
+            openRecordCallback: widget.openRecordCallback,
+            showDivider: true,
+            shrink: desktop,
+          );
+        }
+      },
     );
   }
 
@@ -160,17 +130,24 @@ class _RecordListPageState extends State<RecordListPage> {
           state.setOpenedFolder(state.openedFolder.dir);
         }
       },
-      child: _showSearch
-          ? SearchPage(
-              shrink: Utils.isDesktop(),
-              onBack: () => setState(() => _showSearch = false),
-              openRecordCallback: widget.openRecordCallback,
-            )
-          : Scaffold(
-              appBar: _buildAppBar(context),
-              body: _buildBody(context),
-              bottomNavigationBar: const SyncStateWidget(),
-            ),
+      child: SafeArea(
+        child: _showSearch
+            ? SearchPage(
+                shrink: Utils.isDesktop(),
+                onBack: () => setState(() => _showSearch = false),
+                openRecordCallback: widget.openRecordCallback,
+              )
+            : Column(
+                children: [
+                  _buildTitleBar(context),
+                  CalendarBar(onTap: widget.onOpenCalendar),
+                  AppConfig.listViewDivider(context),
+                  Expanded(child: _buildContent(context)),
+                  const SyncStateWidget(),
+                  _buildBottomBar(context),
+                ],
+              ),
+      ),
     );
   }
 }

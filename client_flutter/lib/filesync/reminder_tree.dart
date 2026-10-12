@@ -342,7 +342,7 @@ class ReminderTree {
   final ValueNotifier<List<ReminderEvent>> refreshNotifier = ValueNotifier<List<ReminderEvent>>(const []);
 
   /// Count of undone reminder tasks occurring today, for badge displays.
-  final ValueNotifier<int> todayCountNotifier = ValueNotifier(0);
+  final ValueNotifier<int> countNotifier = ValueNotifier(0);
 
   /// All reminder entries, sorted ascending by [ReminderEntry.sortAt].
   List<ReminderEntry> get entries => List.unmodifiable(_entries);
@@ -393,17 +393,11 @@ class ReminderTree {
   void _notify(List<ReminderEvent> events) {
     if (events.isEmpty) return;
     refreshNotifier.value = List.unmodifiable(events);
-    _recalcTodayCount();
+    _recalcCount();
   }
 
-  void _recalcTodayCount() {
-    final today = DateTime.now();
-    var count = 0;
-    for (final e in _entries) {
-      if (e.task.done) continue;
-      if (reminderOccursOnDay(e.task, today)) count++;
-    }
-    todayCountNotifier.value = count;
+  void _recalcCount() {
+    countNotifier.value = _entries.length;
   }
 
   /// Adds a record's reminders. Returns true if any entries were added.
