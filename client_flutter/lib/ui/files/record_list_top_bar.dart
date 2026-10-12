@@ -9,22 +9,19 @@ import 'package:note123/ui/files/record_files_tree_control.dart';
 class RecordListTopBar {
   static Widget buildTitleWidget(BuildContext context) {
     var theme = Theme.of(context);
-    return ValueListenableBuilder<int>(
-      valueListenable: RecordListWidgetType.notifier,
-      builder: (context, sortType, _) {
+    final listenable = Listenable.merge([RecordListWidgetType.notifier, RecordOpenedState.get().openedFolderNotifier]);
+    return ListenableBuilder(
+      listenable: listenable,
+      builder: (context, _) {
+        final sortType = RecordListWidgetType.notifier.value;
         if (sortType != RecordListWidgetType.sFlatFolder) {
           return Text(AppConfig.appTitle, overflow: TextOverflow.fade, style: theme.appBarTheme.titleTextStyle);
         }
-
-        return ValueListenableBuilder<String>(
-          valueListenable: RecordOpenedState.get().openedFolderNotifier,
-          builder: (context, path, _) {
-            return Text(
-              path == "/" ? AppConfig.appTitle : path,
-              overflow: TextOverflow.fade,
-              style: theme.appBarTheme.titleTextStyle,
-            );
-          },
+        final path = RecordOpenedState.get().openedFolderNotifier.value;
+        return Text(
+          path == "/" ? AppConfig.appTitle : path,
+          overflow: TextOverflow.fade,
+          style: theme.appBarTheme.titleTextStyle,
         );
       },
     );

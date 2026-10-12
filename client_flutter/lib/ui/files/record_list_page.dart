@@ -66,8 +66,6 @@ class _RecordListPageState extends State<RecordListPage> {
     return Column(
       children: [
         SizedBox(height: 4),
-        if (theme.appBarBackgroundColor == theme.colorScheme.surface)
-          Divider(height: 1, color: theme.colorScheme.outline.withAlpha(80)),
         Row(
           children: [
             SizedBox(width: AppConfig.pageHorizontalPadding),
@@ -97,7 +95,7 @@ class _RecordListPageState extends State<RecordListPage> {
           ),
         ),
         SyncStateWidget(),
-        Divider(height: 1, color: theme.colorScheme.outline.withAlpha(80)),
+        Divider(height: 1, color: theme.colorScheme.outline.withAlpha(40)),
         RecordListBottomBar(
           buttonSpacing: 0,
           leftPadding: AppConfig.pageHorizontalPadding,
