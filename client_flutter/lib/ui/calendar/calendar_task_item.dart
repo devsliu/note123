@@ -54,12 +54,12 @@ class _CalendarTaskItemState extends State<CalendarTaskItem> {
     final theme = Theme.of(context);
     return InkWell(
       onTap: () => widget.onTap(context),
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(4),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          border: Border.all(color: theme.colorScheme.outline.withAlpha(80)),
-          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: theme.colorScheme.outline.withAlpha(150)),
+          borderRadius: BorderRadius.circular(4),
         ),
         child: Row(
           children: [
