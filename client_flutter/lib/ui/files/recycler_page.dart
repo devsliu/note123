@@ -167,47 +167,13 @@ class _RecyclerPageState extends State<RecyclerPage> implements DesktopTabPageSt
   }
 
   Widget _buildItem(BuildContext context, RecycleRecord record) {
-    final theme = Theme.of(context);
-    final secondary = theme.colorScheme.onSurface.withAlpha(120);
-    return InkWell(
+    final shrink = Utils.isDesktop();
+    return ListTile(
+      dense: shrink,
+      visualDensity: shrink ? const VisualDensity(vertical: -4) : null,
       onTap: () => _showActions(record),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppConfig.pageHorizontalPadding, vertical: 10),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          record.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(Utils.formatShortTime(record.deleteAt), style: TextStyle(fontSize: 12, color: secondary)),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    record.path,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: secondary),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(Icons.more_vert, size: 18, color: secondary),
-          ],
-        ),
-      ),
+      title: Text(record.path + record.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      trailing: Text(Utils.formatShortTime(record.deleteAt)),
     );
   }
 }
@@ -258,12 +224,7 @@ class _RecyclerEntryItemState extends State<RecyclerEntryItem> {
             const SizedBox(width: 4),
             Text(l10n.recycler, style: const TextStyle(fontSize: 14)),
             const Spacer(),
-            if (count > 0)
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: theme.colorScheme.primary, borderRadius: BorderRadius.circular(8)),
-                child: Text('$count', style: TextStyle(fontSize: 12, color: theme.colorScheme.onPrimary)),
-              ),
+            if (count > 0) Text('$count', style: TextStyle(fontSize: 14, color: theme.colorScheme.primary)),
           ],
         ),
       ),
