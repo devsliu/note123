@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
-import 'package:note123/filesync/record_utils.dart';
 import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/filesync/user.dart';
 import 'package:note123/model/record_utils.dart';
@@ -14,7 +13,6 @@ import 'package:note123/ui/files/record_export_dialog.dart';
 import 'package:note123/ui/files/record_files_tree_control.dart';
 import 'package:note123/ui/settings/login_dialog.dart';
 import 'package:note123/ui/settings/theme_selector_dialog.dart';
-import 'package:note123/config/app_config.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/layout_mode.dart';
 import 'package:note123/config/prefs.dart';
@@ -244,50 +242,6 @@ class RecordListActions {
         Repository.get().syncRecords(false);
       }
     }
-  }
-
-  static Widget buildTitleWidget(BuildContext context) {
-    var theme = Theme.of(context);
-    final listenable = Listenable.merge([RecordListWidgetType.notifier, RecordOpenedState.get().openedFolderNotifier]);
-    return ListenableBuilder(
-      listenable: listenable,
-      builder: (context, _) {
-        final sortType = RecordListWidgetType.notifier.value;
-        if (sortType != RecordListWidgetType.sFlatFolder) {
-          return Text(AppConfig.appTitle, overflow: TextOverflow.fade, style: theme.appBarTheme.titleTextStyle);
-        }
-        final path = RecordOpenedState.get().openedFolderNotifier.value;
-        return Text(
-          path == "/" ? AppConfig.appTitle : path,
-          overflow: TextOverflow.fade,
-          style: theme.appBarTheme.titleTextStyle,
-        );
-      },
-    );
-  }
-
-  static Widget buildParentButton(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: RecordListWidgetType.notifier,
-      builder: (context, sortType, _) {
-        if (sortType != RecordListWidgetType.sFlatFolder) {
-          return SizedBox.shrink();
-        }
-        return ValueListenableBuilder<String>(
-          valueListenable: RecordOpenedState.get().openedFolderNotifier,
-          builder: (context, path, _) {
-            if (path == "/") return SizedBox.shrink();
-            return IconButton(
-              icon: Icon(Icons.arrow_upward),
-              tooltip: l10n.upperLevel,
-              onPressed: () {
-                RecordOpenedState.get().setOpenedFolder(dirname(path));
-              },
-            );
-          },
-        );
-      },
-    );
   }
 
   static Widget collapseAllButton(BuildContext context) {

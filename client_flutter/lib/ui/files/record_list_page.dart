@@ -57,11 +57,10 @@ class _RecordListPageState extends State<RecordListPage> {
           child: Image.asset('assets/icon/app_icon.png', width: iconSize, height: iconSize),
         ),
       ),
-      titleWidget: RecordListActions.buildTitleWidget(context),
+      title: AppConfig.appTitle,
       actions: [
         RecordListActions.newRecordButton(context, _getFolder, (record) => widget.openRecordCallback(context, record)),
         RecordListActions.newFolderButton(context, _getFolder),
-        RecordListActions.buildParentButton(context),
         RecordListActions.collapseAllButton(context),
         SizedBox(width: AppConfig.pageHorizontalPadding),
       ],

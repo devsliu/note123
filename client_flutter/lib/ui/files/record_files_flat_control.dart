@@ -6,6 +6,7 @@ import 'package:note123/ui/files/record_item_widget.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/config/app_config.dart';
+import 'package:note123/filesync/record_utils.dart';
 
 class RecordFilesFlatControl extends StatefulWidget {
   final bool shrink;
@@ -55,17 +56,43 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
   Widget build(BuildContext context) {
     final folder = RecordOpenedState.get().openedFolder;
     final node = recordTree.findFolder(folder.path);
-    final count = node?.children.length ?? 0;
+    final children = node?.children ?? [];
+    final count = children.length;
+    final isRoot = folder.path == "/";
 
-    return ListView.separated(
-      itemCount: count,
-      itemBuilder: (BuildContext context, int index) {
-        if (count <= index) {
-          return Text("${l10n.outOfBounds}$index");
-        }
-        return buildItemWidget(context, index, node!.children[index] as TreeNode);
-      },
-      separatorBuilder: (_, i) => AppConfig.listViewDivider(context),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!isRoot) _buildPathRow(context, folder.path),
+        Expanded(
+          child: ListView.separated(
+            itemCount: count,
+            itemBuilder: (BuildContext context, int index) {
+              if (count <= index) {
+                return Text("${l10n.outOfBounds}$index");
+              }
+              return buildItemWidget(context, index, children[index] as TreeNode);
+            },
+            separatorBuilder: (_, i) => AppConfig.listViewDivider(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPathRow(BuildContext context, String path) {
+    return InkWell(
+      onTap: () => RecordOpenedState.get().setOpenedFolder(dirname(path)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Row(
+          children: [
+            Icon(Icons.arrow_upward, size: 16),
+            SizedBox(width: 6),
+            Expanded(child: Text(path, overflow: TextOverflow.fade, maxLines: 1)),
+          ],
+        ),
+      ),
     );
   }
 
