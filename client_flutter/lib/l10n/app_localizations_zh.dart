@@ -218,9 +218,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get themePurple => '紫色';
 
   @override
-  String get themeOrange => '橙色';
-
-  @override
   String get themeClassic => '古典';
 
   @override
@@ -617,4 +614,44 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get recyclerCleared => '回收站已清空';
+
+  @override
+  String get importExport => '导入导出';
+
+  @override
+  String get exportMarkdown => '导出 Markdown';
+
+  @override
+  String get exportMd => '导出 MD';
+
+  @override
+  String get exportSelectFolder => '选择导出目标文件夹';
+
+  @override
+  String get exportFailed => '导出失败';
+
+  @override
+  String get exportNoRecords => '该文件夹下没有笔记';
+
+  @override
+  String exportingProgress(int done, int total) {
+    return '正在导出 $done/$total';
+  }
+
+  @override
+  String get exportEncryptedTitle => '文档已加密，请输入密码';
+
+  @override
+  String get exportSkip => '跳过';
+
+  @override
+  String get exportCancelled => '导出已取消';
+
+  @override
+  String exportCompleted(int success, int skipped) {
+    return '导出完成：成功 $success 篇，跳过 $skipped 篇';
+  }
+
+  @override
+  String get exportOpenFolder => '打开文件夹';
 }

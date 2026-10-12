@@ -9,6 +9,7 @@ import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/filesync/user.dart';
 import 'package:note123/model/record_utils.dart';
 import 'package:note123/ui/common/input_dialog.dart';
+import 'package:note123/ui/files/record_export_dialog.dart';
 import 'package:note123/ui/settings/login_dialog.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/layout_mode.dart';
@@ -189,12 +190,34 @@ class RecordListBottomBar extends StatelessWidget {
         },
       ),
 
-      IconButton(
-        onPressed: () {
-          clickOnImportDocuments(context, getFolder());
-        },
+      PopupMenuButton<String>(
         icon: const Icon(Icons.upload_file_outlined),
-        tooltip: l10n.importDocument,
+        tooltip: l10n.importExport,
+        onSelected: (value) {
+          if (value == 'import') {
+            clickOnImportDocuments(context, getFolder());
+          } else if (value == 'export') {
+            RecordExport.start(context, getFolder());
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: 'export',
+            child: ListTile(
+              leading: const Icon(Icons.file_download_outlined),
+              title: Text(l10n.exportMd),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+          PopupMenuItem(
+            value: 'import',
+            child: ListTile(
+              leading: const Icon(Icons.upload_file_outlined),
+              title: Text(l10n.importDocument),
+              contentPadding: EdgeInsets.zero,
+            ),
+          ),
+        ],
       ),
     ];
   }

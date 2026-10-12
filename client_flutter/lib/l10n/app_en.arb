@@ -68,7 +68,6 @@
   "themeDark": "Dark",
   "themeFlat": "Neon",
   "themePurple": "Purple",
-  "themeOrange": "Orange",
   "themeClassic": "Classic",
   "themeSolarized": "Solarized",
   "pleaseSelectRecord": "Please select a note",
@@ -217,5 +216,30 @@
   },
   "recyclerRestoreFailed": "Restore failed",
   "recyclerPurged": "Deleted permanently",
-  "recyclerCleared": "Recycle bin emptied"
+  "recyclerCleared": "Recycle bin emptied",
+
+  "importExport": "Import / Export",
+  "exportMarkdown": "Export Markdown",
+  "exportMd": "Export MD",
+  "exportSelectFolder": "Select destination folder",
+  "exportFailed": "Export failed",
+  "exportNoRecords": "No notes in this folder",
+  "exportingProgress": "Exporting {done}/{total}",
+  "@exportingProgress": {
+    "placeholders": {
+      "done": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "exportEncryptedTitle": "Encrypted document, please enter password",
+  "exportSkip": "Skip",
+  "exportCancelled": "Export cancelled",
+  "exportCompleted": "Export completed: {success} exported, {skipped} skipped",
+  "@exportCompleted": {
+    "placeholders": {
+      "success": {"type": "int"},
+      "skipped": {"type": "int"}
+    }
+  },
+  "exportOpenFolder": "Open folder"
 }

@@ -219,9 +219,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themePurple => 'Purple';
 
   @override
-  String get themeOrange => 'Orange';
-
-  @override
   String get themeClassic => 'Classic';
 
   @override
@@ -622,4 +619,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get recyclerCleared => 'Recycle bin emptied';
+
+  @override
+  String get importExport => 'Import / Export';
+
+  @override
+  String get exportMarkdown => 'Export Markdown';
+
+  @override
+  String get exportMd => 'Export MD';
+
+  @override
+  String get exportSelectFolder => 'Select destination folder';
+
+  @override
+  String get exportFailed => 'Export failed';
+
+  @override
+  String get exportNoRecords => 'No notes in this folder';
+
+  @override
+  String exportingProgress(int done, int total) {
+    return 'Exporting $done/$total';
+  }
+
+  @override
+  String get exportEncryptedTitle =>
+      'Encrypted document, please enter password';
+
+  @override
+  String get exportSkip => 'Skip';
+
+  @override
+  String get exportCancelled => 'Export cancelled';
+
+  @override
+  String exportCompleted(int success, int skipped) {
+    return 'Export completed: $success exported, $skipped skipped';
+  }
+
+  @override
+  String get exportOpenFolder => 'Open folder';
 }
