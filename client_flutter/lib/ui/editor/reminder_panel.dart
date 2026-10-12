@@ -66,25 +66,18 @@ class ReminderPanelState extends State<ReminderPanel> {
     _showEditor(task, isNew: true);
   }
 
-  void _showEditor(ReminderTask task, {required bool isNew}) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => ReminderTaskEditor(
-        task: task,
-        onSaved: (updated) {
-          final idx = _tasks.indexWhere((t) => t.id == updated.id);
-          setState(() {
-            if (idx >= 0) {
-              _tasks[idx] = updated;
-            } else {
-              _tasks.add(updated);
-            }
-          });
-          _scheduleSave();
-          Navigator.of(ctx).pop();
-        },
-      ),
-    );
+  Future<void> _showEditor(ReminderTask task, {required bool isNew}) async {
+    final updated = await showReminderTaskEditor(context, task: task);
+    if (updated == null || !mounted) return;
+    final idx = _tasks.indexWhere((t) => t.id == updated.id);
+    setState(() {
+      if (idx >= 0) {
+        _tasks[idx] = updated;
+      } else {
+        _tasks.add(updated);
+      }
+    });
+    _scheduleSave();
   }
 
   void _removeTask(String id) {

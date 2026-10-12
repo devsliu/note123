@@ -133,6 +133,7 @@ class AppDatabase extends _$AppDatabase {
     required String path,
     required int localFileEditAt,
     required int time,
+    String? reminder,
   }) async {
     return await into(localRecords).insert(
       LocalRecordsCompanion.insert(
@@ -142,6 +143,7 @@ class AppDatabase extends _$AppDatabase {
         localFileEditAt: Value(localFileEditAt),
         localName: Value(name),
         localPath: path,
+        localReminder: Value(reminder ?? ''),
       ),
     );
   }

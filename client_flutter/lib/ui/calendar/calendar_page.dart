@@ -32,7 +32,9 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
-  int _viewMode = 0; // 0 = calendar, 1 = list
+  static const int _modeCalendar = 0;
+  static const int _modeList = 1;
+  int _viewMode = _modeCalendar;
 
   @override
   void initState() {
@@ -96,27 +98,46 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     });
   }
 
-  void _editEntry(ReminderEntry entry) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => ReminderTaskEditor(
-        task: entry.task,
-        subtitle: '${entry.recordPath}${entry.recordName}',
-        onSaved: (updated) {
-          _mutateEntryTask(entry, (tasks) {
-            final idx = tasks.indexWhere((t) => t.id == updated.id);
-            if (idx >= 0) tasks[idx] = updated;
-          });
-          Navigator.of(ctx).pop();
-        },
-      ),
+  Future<void> _editEntry(ReminderEntry entry) async {
+    final updated = await showReminderTaskEditor(
+      context,
+      task: entry.task,
+      subtitle: '${entry.recordPath}${entry.recordName}',
     );
+    if (updated == null || !mounted) return;
+    _mutateEntryTask(entry, (tasks) {
+      final idx = tasks.indexWhere((t) => t.id == updated.id);
+      if (idx >= 0) tasks[idx] = updated;
+    });
   }
 
   void _deleteEntry(ReminderEntry entry) {
     _mutateEntryTask(entry, (tasks) {
       tasks.removeWhere((t) => t.id == entry.task.id);
     });
+  }
+
+  void _onLongClickDay(DateTime day) {
+    setState(() {
+      _selectedDay = day;
+      _focusedDay = day;
+    });
+    _createTask(day: day);
+  }
+
+  Future<void> _createTask({DateTime? day}) async {
+    final task = ReminderTask(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      name: '',
+      date: day != null ? ReminderTask.encodeOnceDate(day.year, day.month, day.day) : 0,
+    );
+    final saved = await showReminderTaskEditor(context, task: task);
+    if (saved == null || !mounted || saved.name.isEmpty) return;
+    final repo = Repository.get();
+    final timeStr = Utils.reminderTimeStr(saved);
+    final title = saved.name.trim();
+    final name = '$timeStr $title';
+    await repo.createRecord('/calendar/', name, true, 0, reminder: ReminderTask.toJsonString([saved]));
   }
 
   @override
@@ -131,6 +152,12 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
             children: [
               _buildBody(context),
               Positioned(right: 16, bottom: 12, child: segmented),
+              if (_viewMode == _modeList)
+                Positioned(
+                  right: 16,
+                  bottom: 56,
+                  child: FloatingActionButton.small(onPressed: _createTask, child: const Icon(Icons.add)),
+                ),
             ],
           ),
         ),
@@ -169,8 +196,8 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
         padding: const WidgetStatePropertyAll(EdgeInsets.symmetric(horizontal: 0)),
       ),
       segments: [
-        ButtonSegment(value: 0, icon: const Icon(Icons.calendar_month, size: 18)),
-        ButtonSegment(value: 1, icon: const Icon(Icons.list, size: 18)),
+        ButtonSegment(value: _modeCalendar, icon: const Icon(Icons.calendar_month, size: 18)),
+        ButtonSegment(value: _modeList, icon: const Icon(Icons.list, size: 18)),
       ],
       selected: {_viewMode},
       onSelectionChanged: (set) => setState(() => _viewMode = set.first),
@@ -179,7 +206,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
 
   Widget _buildBody(BuildContext context) {
     if (_loading) return const Center(child: CircularProgressIndicator());
-    if (_viewMode == 0) return _buildCalendarView(context);
+    if (_viewMode == _modeCalendar) return _buildCalendarView(context);
     return _buildListView(context);
   }
 
@@ -264,54 +291,59 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
         ? (selected ? Colors.white : theme.colorScheme.error)
         : dayColor.withAlpha(selected ? 200 : 110);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
-      decoration: BoxDecoration(
-        color: selected
-            ? theme.colorScheme.primary
-            : isToday
-            ? theme.colorScheme.primary.withAlpha(15)
-            : null,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              isToday ? l10n.today : '${day.day}',
-              maxLines: 1,
-              overflow: TextOverflow.clip,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: dayColor,
-                fontSize: 14,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-            Text(
-              lunar.cellText,
-              maxLines: 1,
-              overflow: TextOverflow.clip,
-              style: TextStyle(
-                color: lunarColor,
-                fontSize: 10,
-                fontWeight: lunar.solarTerm != null ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-            if (text.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 2, left: 2, right: 2),
-                child: Text(
-                  text,
-                  maxLines: 2,
-                  overflow: TextOverflow.clip,
-                  style: TextStyle(color: dayColor, fontSize: 10),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onLongPress: isOutside ? null : () => _onLongClickDay(day),
+      onSecondaryTap: isOutside ? null : () => _onLongClickDay(day),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+        decoration: BoxDecoration(
+          color: selected
+              ? theme.colorScheme.primary
+              : isToday
+              ? theme.colorScheme.primary.withAlpha(15)
+              : null,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                isToday ? l10n.today : '${day.day}',
+                maxLines: 1,
+                overflow: TextOverflow.clip,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: dayColor,
+                  fontSize: 14,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
-          ],
+              Text(
+                lunar.cellText,
+                maxLines: 1,
+                overflow: TextOverflow.clip,
+                style: TextStyle(
+                  color: lunarColor,
+                  fontSize: 10,
+                  fontWeight: lunar.solarTerm != null ? FontWeight.bold : FontWeight.normal,
+                ),
+              ),
+              if (text.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2, left: 2, right: 2),
+                  child: Text(
+                    text,
+                    maxLines: 2,
+                    overflow: TextOverflow.clip,
+                    style: TextStyle(color: dayColor, fontSize: 10),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

@@ -189,6 +189,27 @@ class ReminderTaskEditorState extends State<ReminderTaskEditor> {
   }
 }
 
+/// Show the task editor dialog and return the saved task, or null if cancelled.
+Future<ReminderTask?> showReminderTaskEditor(
+  BuildContext context, {
+  required ReminderTask task,
+  String? subtitle,
+}) async {
+  ReminderTask? result;
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) => ReminderTaskEditor(
+      task: task,
+      subtitle: subtitle,
+      onSaved: (updated) {
+        result = updated;
+        Navigator.of(ctx).pop();
+      },
+    ),
+  );
+  return result;
+}
+
 // ---------------------------------------------------------------------------
 // Date/time editor widgets (one per repeat mode)
 // ---------------------------------------------------------------------------

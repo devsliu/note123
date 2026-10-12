@@ -117,11 +117,24 @@ class Repository {
   // 🎯 CREATE / EDIT / DELETE — local write operations
   // =========================================================================
 
-  Future<LocalRecord?> createRecord(String path, String name, bool sync, int localFileEditAt) async {
+  Future<LocalRecord?> createRecord(
+    String path,
+    String name,
+    bool sync,
+    int localFileEditAt, {
+    String? reminder,
+  }) async {
     if (_db == null || _fileStore == null) return null;
     int time = DateTime.now().millisecondsSinceEpoch;
     final uuid = Uuid().v4();
-    await _db!.insertRecord(uuid: uuid, name: name, path: path, localFileEditAt: localFileEditAt, time: time);
+    await _db!.insertRecord(
+      uuid: uuid,
+      name: name,
+      path: path,
+      localFileEditAt: localFileEditAt,
+      time: time,
+      reminder: reminder,
+    );
     final record = (await _db!.getRecord(uuid))!;
     recordTree.insertRecord(record);
     await _db!.createOperate(Operates.typeLocal, "create record $uuid ${record.localPath}${record.localName}");
