@@ -1151,7 +1151,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchRecords.
   ///
   /// In zh, this message translates to:
-  /// **'搜索标题或路径'**
+  /// **'搜索标题'**
   String get searchRecords;
 
   /// No description provided for @searchNoResults.

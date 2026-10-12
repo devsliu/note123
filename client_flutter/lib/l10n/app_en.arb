@@ -195,7 +195,7 @@
   "reminderChannel": "Reminder",
   "reminderChannelDesc": "Note task reminders",
   "reminderDueBody": "This reminder is due",
-  "searchRecords": "Search title or path",
+  "searchRecords": "Search title",
   "searchNoResults": "No matches",
   "unitYear": "y",
   "unitMonth": "m",

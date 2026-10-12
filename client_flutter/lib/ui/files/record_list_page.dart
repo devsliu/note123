@@ -77,6 +77,7 @@ class _RecordListPageState extends State<RecordListPage> {
             SizedBox(width: AppConfig.pageHorizontalPadding),
           ],
         ),
+        SizedBox(height: 4),
         Expanded(
           child: ValueListenableBuilder<int>(
             valueListenable: RecordListWidgetType.notifier,

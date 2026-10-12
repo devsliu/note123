@@ -566,7 +566,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reminderDueBody => '该提醒已到时间';
 
   @override
-  String get searchRecords => '搜索标题或路径';
+  String get searchRecords => '搜索标题';
 
   @override
   String get searchNoResults => '无匹配结果';

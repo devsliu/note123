@@ -569,7 +569,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reminderDueBody => 'This reminder is due';
 
   @override
-  String get searchRecords => 'Search title or path';
+  String get searchRecords => 'Search title';
 
   @override
   String get searchNoResults => 'No matches';

@@ -71,10 +71,7 @@ class _CalendarTaskItemState extends State<CalendarTaskItem> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(color: theme.colorScheme.primary, borderRadius: BorderRadius.circular(8)),
-                child: Text(
-                  '$_todayCount/$_totalCount',
-                  style: TextStyle(fontSize: 12, color: theme.colorScheme.onPrimary),
-                ),
+                child: Text('$_todayCount', style: TextStyle(fontSize: 12, color: theme.colorScheme.onPrimary)),
               ),
             if (_todayCount == 0) Text('$_totalCount', style: TextStyle(fontSize: 12)),
           ],
