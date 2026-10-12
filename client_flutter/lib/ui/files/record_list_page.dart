@@ -70,21 +70,24 @@ class _RecordListPageState extends State<RecordListPage> {
     return Container(
       color: theme.appBarBackgroundColor,
       padding: EdgeInsets.symmetric(horizontal: desktop ? 4 : AppConfig.pageHorizontalPadding, vertical: 2.0),
-      child: Row(
-        spacing: 4,
-        children: [
-          RecordListActions.recordsCountIndicator(context),
-          RecordListActions.sortTypeButton(context),
-          RecordListActions.importExportButton(context, _getFolder),
-          RecordListActions.recyclerButton(context, widget.onOpenRecycler),
-          Spacer(),
-          RecordListActions.newRecordButton(
-            context,
-            _getFolder,
-            (record) => widget.openRecordCallback(context, record),
-          ),
-          RecordListActions.newFolderButton(context, _getFolder),
-        ],
+      child: IconButtonTheme(
+        data: theme.appBarIconButtonTheme,
+        child: Row(
+          spacing: 4,
+          children: [
+            RecordListActions.recordsCountIndicator(context),
+            RecordListActions.sortTypeButton(context),
+            RecordListActions.importExportButton(context, _getFolder),
+            RecordListActions.recyclerButton(context, widget.onOpenRecycler),
+            Spacer(),
+            RecordListActions.newRecordButton(
+              context,
+              _getFolder,
+              (record) => widget.openRecordCallback(context, record),
+            ),
+            RecordListActions.newFolderButton(context, _getFolder),
+          ],
+        ),
       ),
     );
   }

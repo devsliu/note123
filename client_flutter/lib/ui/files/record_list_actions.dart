@@ -105,6 +105,7 @@ class RecordListActions {
 
   static Widget importExportButton(BuildContext context, ReturnCallback<String> getFolder) {
     return PopupMenuButton<String>(
+      iconColor: Theme.of(context).appBarIconColor,
       icon: const Icon(Icons.import_export_outlined),
       tooltip: l10n.importExport,
       onSelected: (value) {
@@ -332,7 +333,7 @@ class RecordListActions {
           message: "$count ${l10n.files}",
           child: IconButton(
             onPressed: () {},
-            icon: Text("$count", style: TextStyle(fontSize: 14)),
+            icon: Text("$count", style: TextStyle(fontSize: 14, color: Theme.of(context).appBarIconColor)),
           ),
         );
       },
