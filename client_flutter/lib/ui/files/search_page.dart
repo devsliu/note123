@@ -154,7 +154,8 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
         final file = list[index];
         return FileWidget(
           showIcon: true,
-          horizontalPadding: 16.0,
+          leftPadding: 16.0,
+          rightPadding: 16.0,
           verticalPadding: widget.shrink ? 4.0 : 10.0,
           content: file,
           isSelected: RecordOpenedState.get().openedFile?.key == file.key,

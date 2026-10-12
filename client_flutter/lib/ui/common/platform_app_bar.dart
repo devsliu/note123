@@ -13,13 +13,15 @@ PreferredSizeWidget createPlatformAppBar({
   Color? backgroundColor,
   Color? foregroundColor,
   bool showWindowButtons = true,
+  double? titleSpacing,
 }) {
   // titleWidget takes precedence over title; one of them should be provided
   // Mobile: return standard AppBar
   if (!Utils.isDesktop()) {
+    titleSpacing ??= automaticallyImplyLeading || leading != null ? 0 : AppConfig.pageHorizontalPadding;
     return AppBar(
       title: titleWidget ?? Text(title ?? ''),
-      titleSpacing: automaticallyImplyLeading || leading != null ? 0 : AppConfig.pageHorizontalPadding,
+      titleSpacing: titleSpacing,
       actions: actions,
       leading: leading,
       automaticallyImplyLeading: automaticallyImplyLeading,
@@ -44,6 +46,8 @@ PreferredSizeWidget createPlatformAppBar({
             color: effectiveForegroundColor,
           );
         }
+
+        titleSpacing ??= leading != null ? 0 : AppConfig.pageHorizontalPadding;
         return Container(
           height: windowTitleBarHeight,
           color: effectiveBackgroundColor,
@@ -58,7 +62,7 @@ PreferredSizeWidget createPlatformAppBar({
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: EdgeInsets.only(left: leading != null ? 0 : AppConfig.pageHorizontalPadding),
+                      padding: EdgeInsets.only(left: titleSpacing!),
                       child:
                           titleWidget ??
                           Text(

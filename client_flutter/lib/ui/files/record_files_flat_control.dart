@@ -74,7 +74,8 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
     if (file is TreeContentFile) {
       return FileWidget(
         showIcon: true,
-        horizontalPadding: 16.0,
+        leftPadding: 8.0,
+        rightPadding: 12.0,
         verticalPadding: widget.shrink ? 4.0 : 12.0,
         content: file,
         isSelected: RecordOpenedState.get().openedFile?.key == file.key,
@@ -84,7 +85,8 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
       );
     } else {
       return FolderWidget(
-        horizontalPadding: 16.0,
+        leftPadding: 8.0,
+        rightPadding: 12.0,
         verticalPadding: widget.shrink ? 4.0 : 12.0,
         node: node,
         isSelected: false,

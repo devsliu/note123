@@ -125,7 +125,8 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
     Widget child = (file is TreeContentFile)
         ? TreeFileWidget(
             node: node,
-            horizontalPadding: 8.0,
+            leftPadding: 4.0,
+            rightPadding: 12.0,
             verticalPadding: widget.verticalPadding2,
             showIcon: true,
             isSelected: isSelected,
@@ -133,7 +134,8 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
           )
         : TreeFolderWidget(
             node: node,
-            horizontalPadding: 8.0,
+            leftPadding: 4.0,
+            rightPadding: 12.0,
             verticalPadding: widget.verticalPadding2,
             isSelected: isSelected,
             onContentPressed: onContentPressed,

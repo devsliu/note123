@@ -57,7 +57,8 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
 
         return FileWidget(
           showIcon: false,
-          horizontalPadding: 16.0,
+          leftPadding: 8.0,
+          rightPadding: 12.0,
           verticalPadding: widget.shrink ? 4.0 : 10.0,
           content: list[index],
           isSelected: RecordOpenedState.get().openedFile?.key == file.key,

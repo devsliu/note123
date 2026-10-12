@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/model/record_opened_state.dart';
-import 'package:note123/ui/calendar/calendar_task_item.dart';
 import 'package:note123/ui/common/platform_app_bar.dart';
 import 'package:note123/ui/files/record_files_flat_control.dart';
 import 'package:note123/ui/files/record_files_list_control.dart';
 import 'package:note123/ui/files/record_files_tree_control.dart';
 import 'package:note123/ui/files/search_page.dart';
-import 'package:note123/ui/files/record_list_bottom_bar.dart';
-import 'package:note123/ui/files/record_list_top_bar.dart';
-import 'package:note123/ui/files/recycler_page.dart';
+import 'package:note123/ui/files/record_list_actions.dart';
 import 'package:note123/ui/settings/settings_button.dart';
+import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/layout_mode.dart';
 import 'package:note123/config/theme.dart';
 import 'package:note123/utils/utils.dart';
@@ -38,44 +36,88 @@ class RecordListPage extends StatefulWidget {
 class _RecordListPageState extends State<RecordListPage> {
   bool _showSearch = false;
 
+  String _getFolder() {
+    if (RecordListWidgetType.notifier.value == RecordListWidgetType.sTreeFolder) {
+      return "/";
+    }
+    return RecordOpenedState.get().openedFolder.path;
+  }
+
   PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final bool desktop = Utils.isDesktop();
+    final double railWidth = desktop ? 40 : 48;
+    final double iconSize = desktop ? 22 : 26;
     return createPlatformAppBar(
       automaticallyImplyLeading: false,
+      titleSpacing: 8,
       showWindowButtons: false,
-      titleWidget: RecordListTopBar.buildTitleWidget(context),
+      leading: SizedBox(
+        width: railWidth,
+        child: Center(
+          child: Image.asset('assets/icon/app_icon.png', width: iconSize, height: iconSize),
+        ),
+      ),
+      titleWidget: RecordListActions.buildTitleWidget(context),
       actions: [
-        ..._buildTopActions(context),
+        RecordListActions.newRecordButton(context, _getFolder, (record) => widget.openRecordCallback(context, record)),
+        RecordListActions.newFolderButton(context, _getFolder),
+        RecordListActions.buildParentButton(context),
+        RecordListActions.collapseAllButton(context),
         SizedBox(width: AppConfig.pageHorizontalPadding),
       ],
     );
   }
 
-  List<Widget> _buildTopActions(BuildContext context) {
-    return [
-      RecordListTopBar.buildParentButton(context),
-      RecordListTopBar.collapseAllButton(context),
-      SyncButton(),
-      SettingsButton(),
-      IconButton(onPressed: () => setState(() => _showSearch = true), icon: const Icon(Icons.search)),
-    ];
+  Widget _buildLeftRail(BuildContext context) {
+    final theme = Theme.of(context);
+    final bool desktop = Utils.isDesktop();
+    final double railWidth = desktop ? 40 : 48;
+    final double iconSize = desktop ? 20 : 24;
+    final double minSize = desktop ? 36 : 48;
+    return Container(
+      width: railWidth,
+      color: theme.appBarBackgroundColor,
+      child: IconButtonTheme(
+        data: IconButtonThemeData(
+          style: ButtonStyle(
+            iconSize: WidgetStatePropertyAll(iconSize),
+            minimumSize: WidgetStatePropertyAll(Size(minSize, minSize)),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            shape: WidgetStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
+          ),
+        ),
+        child: Column(
+          spacing: 4,
+          children: [
+            const SizedBox(height: 4),
+            SyncButton(),
+            SettingsButton(),
+            IconButton(
+              onPressed: () => setState(() => _showSearch = true),
+              icon: const Icon(Icons.search),
+              tooltip: l10n.searchRecords,
+            ),
+            RecordListActions.sortTypeButton(context),
+            RecordListActions.importExportButton(context, _getFolder),
+            RecordListActions.calendarButton(context, widget.onOpenCalendar),
+            RecordListActions.recyclerButton(context, widget.onOpenRecycler),
+            RecordListActions.themeButton(context),
+            RecordListActions.languageButton(context),
+            const Spacer(),
+            RecordListActions.recordsCountIndicator(context),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildBody(BuildContext context) {
     final theme = Theme.of(context);
     final bool desktop = Utils.isDesktop();
-    return Column(
+    return Row(
       children: [
-        SizedBox(height: 4),
-        Row(
-          children: [
-            SizedBox(width: AppConfig.pageHorizontalPadding),
-            Expanded(child: CalendarTaskItem(onTap: widget.onOpenCalendar)),
-            SizedBox(width: 6),
-            Expanded(child: RecyclerEntryItem(onTap: widget.onOpenRecycler)),
-            SizedBox(width: AppConfig.pageHorizontalPadding),
-          ],
-        ),
-        SizedBox(height: 4),
+        _buildLeftRail(context),
+        VerticalDivider(width: 1, color: theme.colorScheme.outline.withAlpha(40)),
         Expanded(
           child: ValueListenableBuilder<int>(
             valueListenable: RecordListWidgetType.notifier,
@@ -94,15 +136,6 @@ class _RecordListPageState extends State<RecordListPage> {
             },
           ),
         ),
-        SyncStateWidget(),
-        Divider(height: 1, color: theme.colorScheme.outline.withAlpha(40)),
-        RecordListBottomBar(
-          buttonSpacing: 0,
-          leftPadding: AppConfig.pageHorizontalPadding,
-          rightPadding: AppConfig.pageHorizontalPadding,
-          getFolder: () => RecordOpenedState.get().openedFolder.path,
-          openRecordCallback: widget.openRecordCallback,
-        ),
       ],
     );
   }
@@ -112,8 +145,7 @@ class _RecordListPageState extends State<RecordListPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return; // Return directly if already handled
-        // Search page: back first returns to the list page
+        if (didPop) return;
         if (_showSearch) {
           setState(() => _showSearch = false);
           return;
@@ -124,7 +156,7 @@ class _RecordListPageState extends State<RecordListPage> {
             SystemNavigator.pop();
           } else {
             Navigator.pop(context);
-          } // Manually trigger back navigation
+          }
         } else {
           state.setOpenedFolder(state.openedFolder.dir);
         }
@@ -135,7 +167,11 @@ class _RecordListPageState extends State<RecordListPage> {
               onBack: () => setState(() => _showSearch = false),
               openRecordCallback: widget.openRecordCallback,
             )
-          : Scaffold(appBar: _buildAppBar(context), body: _buildBody(context)),
+          : Scaffold(
+              appBar: _buildAppBar(context),
+              body: _buildBody(context),
+              bottomNavigationBar: const SyncStateWidget(),
+            ),
     );
   }
 }

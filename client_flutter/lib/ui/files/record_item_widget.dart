@@ -10,14 +10,16 @@ abstract class _BaseItemWidget extends StatelessWidget {
   final TreeContent content;
   final bool isSelected;
   final ValueCallback<TreeContent> onContentPressed;
-  final double horizontalPadding;
+  final double leftPadding;
+  final double rightPadding;
   final double verticalPadding;
   const _BaseItemWidget({
     super.key,
     required this.content,
     required this.isSelected,
     required this.onContentPressed,
-    required this.horizontalPadding,
+    required this.leftPadding,
+    required this.rightPadding,
     required this.verticalPadding,
   });
 
@@ -64,7 +66,7 @@ abstract class _BaseItemWidget extends StatelessWidget {
       hoverColor: theme.colorScheme.primary.withAlpha(50),
       child: Container(
         alignment: Alignment.center,
-        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
+        padding: EdgeInsets.only(left: leftPadding, right: rightPadding, top: verticalPadding, bottom: verticalPadding),
         color: isSelected ? theme.colorScheme.primary.withAlpha(70) : Colors.transparent,
         child: buildContentWidget(context),
       ),
@@ -80,7 +82,8 @@ class FolderWidget extends _BaseItemWidget {
     required super.isSelected,
     required super.onContentPressed,
     required this.node,
-    required super.horizontalPadding,
+    required super.leftPadding,
+    required super.rightPadding,
     required super.verticalPadding,
   }) : super(content: node.content);
 
@@ -117,7 +120,8 @@ class TreeFolderWidget extends FolderWidget {
     required super.isSelected,
     required super.onContentPressed,
     required super.node,
-    required super.horizontalPadding,
+    required super.leftPadding,
+    required super.rightPadding,
     required super.verticalPadding,
   });
 
@@ -158,7 +162,8 @@ class FileWidget extends _BaseItemWidget {
     required this.showIcon,
     required super.isSelected,
     required super.onContentPressed,
-    required super.horizontalPadding,
+    required super.leftPadding,
+    required super.rightPadding,
     required super.verticalPadding,
     required super.content,
   });
@@ -213,7 +218,8 @@ class TreeFileWidget extends FileWidget {
     super.key,
     required super.isSelected,
     required super.onContentPressed,
-    required super.horizontalPadding,
+    required super.leftPadding,
+    required super.rightPadding,
     required super.verticalPadding,
     required this.node,
     required super.showIcon,

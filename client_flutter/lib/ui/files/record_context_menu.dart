@@ -4,7 +4,7 @@ import 'package:note123/filesync/file_store.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/ui/common/input_dialog.dart';
-import 'package:note123/ui/files/record_list_bottom_bar.dart';
+import 'package:note123/ui/files/record_list_actions.dart';
 import 'package:note123/ui/files/record_export_dialog.dart';
 import 'package:note123/ui/files/record_move_dialog.dart';
 import 'package:note123/config/language_manager.dart';
@@ -90,11 +90,11 @@ Future<void> showRecordContextMenu(
       await _lockRecord(context, file, pass, false);
     });
   } else if (result == 'newRecord' && isFolder) {
-    RecordListBottomBar.clickOnCreateRecordButton(context, file.path, onContentPressed);
+    RecordListActions.clickOnCreateRecordButton(context, file.path, onContentPressed);
   } else if (result == 'newFolder' && isFolder) {
-    RecordListBottomBar.clickOnCreateFolderButton(context, file.path);
+    RecordListActions.clickOnCreateFolderButton(context, file.path);
   } else if (result == 'importDocument' && isFolder) {
-    RecordListBottomBar.clickOnImportDocuments(context, file.path);
+    RecordListActions.clickOnImportDocuments(context, file.path);
   } else if (result == 'exportMarkdown' && isFolder) {
     RecordExport.start(context, file.path);
   }
