@@ -145,10 +145,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     final saved = await showReminderTaskEditor(context, task: task);
     if (saved == null || !mounted || saved.name.isEmpty) return;
     final repo = Repository.get();
-    final timeStr = Utils.reminderTimeStr(saved);
-    final title = saved.name.trim();
-    final name = '$timeStr $title';
-    await repo.createRecord('/calendar/', name, true, 0, reminder: ReminderTask.toJsonString([saved]));
+    await repo.createRecord('/calendar/', '##reminder##', true, 0, reminder: ReminderTask.toJsonString([saved]));
   }
 
   @override

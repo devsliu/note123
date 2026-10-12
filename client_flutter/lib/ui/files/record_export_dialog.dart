@@ -188,7 +188,7 @@ class _ExportProgressDialogState extends State<_ExportProgressDialog> {
     var candidate = p.joinAll([widget.targetDir, ...segments, '$baseName.md']);
     var n = 1;
     while (_writtenFiles.contains(candidate.toLowerCase()) || await File(candidate).exists()) {
-      candidate = p.joinAll([widget.targetDir, ...segments, '$baseName ($n).md']);
+      candidate = p.joinAll([widget.targetDir, ...segments, '$baseName$n.md']);
       n++;
     }
     final out = File(candidate);
