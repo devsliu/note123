@@ -5,7 +5,7 @@ import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/utils/utils.dart';
-import 'package:note123/ui/editor/reminder_task_editor.dart';
+import 'package:note123/ui/calendar/reminder_task_editor.dart';
 
 class ReminderPanel extends StatefulWidget {
   final String uuid;
@@ -105,8 +105,8 @@ class ReminderPanelState extends State<ReminderPanel> {
   Widget build(BuildContext context) {
     if (_tasks.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
-    final itemHeight = 36.0;
-    final maxHeight = widget.maxLines * itemHeight + 8;
+    final itemHeight = 32.0;
+    final maxHeight = widget.maxLines * itemHeight + 4 + 32; // +32: header row scrolls with the items
 
     final rows = <Widget>[];
     for (var i = 0; i < _tasks.length; i++) {
@@ -121,9 +121,28 @@ class ReminderPanelState extends State<ReminderPanel> {
         ),
       );
     }
-    final list = ConstrainedBox(
-      constraints: BoxConstraints(maxHeight: maxHeight),
-      child: SingleChildScrollView(child: Column(children: rows)),
+    final header = Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: Row(
+        children: [
+          Icon(Icons.notifications_active_outlined, size: 14, color: theme.colorScheme.primary),
+          const SizedBox(width: 4),
+          Text(
+            l10n.reminderTasks,
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+          ),
+          const Spacer(),
+          if (widget.editable)
+            IconButton(
+              icon: Icon(Icons.add, size: 16, color: theme.colorScheme.primary),
+              onPressed: showAddDialog,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
+              style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+              tooltip: l10n.addReminder,
+            ),
+        ],
+      ),
     );
 
     return Container(
@@ -132,32 +151,15 @@ class ReminderPanelState extends State<ReminderPanel> {
         color: theme.colorScheme.surface,
         border: Border(top: BorderSide(color: theme.colorScheme.outline.withAlpha(100))),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.notifications_active_outlined, size: 14, color: theme.colorScheme.primary),
-              const SizedBox(width: 4),
-              Text(
-                l10n.reminderTasks,
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
-              ),
-              const Spacer(),
-              if (widget.editable)
-                IconButton(
-                  icon: Icon(Icons.add, size: 16, color: theme.colorScheme.primary),
-                  onPressed: showAddDialog,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
-                  style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-                  tooltip: l10n.addReminder,
-                ),
-            ],
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [header, ...rows],
           ),
-          list,
-        ],
+        ),
       ),
     );
   }

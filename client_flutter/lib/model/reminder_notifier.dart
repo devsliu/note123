@@ -12,6 +12,7 @@ import 'package:note123/config/language_manager.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:note123/utils/app_logger.dart';
+import 'package:note123/utils/utils.dart';
 
 /// Schedules local notifications for reminder tasks.
 ///
@@ -174,7 +175,7 @@ class ReminderNotifier with WidgetsBindingObserver {
       final occurrenceMs = toSchedule[i].$2;
       final id = _notificationId('slot_$i');
       final title = task.name.isEmpty ? l10n.reminder : task.name;
-      final body = _buildBody(task);
+      final body = _buildBody(task, entry.recordPath, entry.recordName);
       final detail = _notificationDetails();
       final payload = jsonEncode({'recordUuid': entry.recordUuid});
       AppLogger.d("[ReminderNotifier] scheduling slot $i task ${task.id} at $occurrenceMs");
@@ -239,8 +240,10 @@ class ReminderNotifier with WidgetsBindingObserver {
     );
   }
 
-  String _buildBody(ReminderTask task) {
-    return l10n.reminderDueBody;
+  String _buildBody(ReminderTask task, String path, String name) {
+    // Note location (e.g. "/work/meeting") plus the same time formatting as
+    // the calendar task item, e.g. "周一 08:00" or "2026-10-12 14:30".
+    return '${l10n.reminderDueBody} \n$path$name \n${Utils.reminderTimeStr(task)}';
   }
 
   /// Show a notification immediately. Useful for verifying that the platform

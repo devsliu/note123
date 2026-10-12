@@ -87,6 +87,27 @@ abstract class PathRecordCounts extends View {
   Query as() => select([records.localPath, recordCount]).from(records)..groupBy([records.localPath]);
 }
 
+/// Recycle bin entry: metadata snapshot of a locally deleted record.
+/// The content file is kept in the recycler/ folder named by uuid.
+/// Restore re-creates the record as a pure local edit (remote_* zeroed, uuid unchanged),
+/// which is pushed to the server as a new record on next sync.
+@DataClassName('RecycleRecord')
+class RecycleRecords extends Table {
+  TextColumn get uuid => text()();
+
+  // Snapshot of the deleted record's local_* fields
+  TextColumn get path => text().withDefault(const Constant(''))();
+  TextColumn get name => text().withDefault(const Constant(''))();
+  TextColumn get reminder => text().withDefault(const Constant(''))();
+  IntColumn get locked => integer().withDefault(const Constant(0))();
+
+  /// Deletion timestamp (ms)
+  IntColumn get deleteAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {uuid};
+}
+
 @DataClassName('Operate')
 class Operates extends Table {
   static const typeLocal = "local";

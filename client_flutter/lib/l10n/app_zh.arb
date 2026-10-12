@@ -68,7 +68,6 @@
   "themeDark": "深色",
   "themeFlat": "霓虹",
   "themePurple": "紫色",
-  "themeOrange": "橙色",
   "themeClassic": "古典",
   "themeSolarized": "日光",
   "pleaseSelectRecord": "请选择笔记",
@@ -195,10 +194,52 @@
   "reminderChannel":"提醒",
   "reminderChannelDesc":"笔记任务提醒",
   "reminderDueBody":"该提醒已到时间",
+  "searchRecords":"搜索标题",
+  "searchNoResults":"无匹配结果",
   "unitYear":"年",
   "unitMonth":"月",
   "unitDay":"日",
   "unitHour":"时",
   "unitMinute":"分",
-  "atLeastOneWeekday":"请至少选择一个星期"
+  "atLeastOneWeekday":"请至少选择一个星期",
+
+  "recycler":"回收站",
+  "purgeRecyclerItem":"彻底删除",
+  "clearRecycler":"清空回收站",
+  "confirmClearRecycler":"确定要清空回收站吗？",
+  "confirmPurgeRecycler":"确定要彻底删除吗？删除后无法恢复",
+  "recyclerRestored":"已还原 {name}",
+  "@recyclerRestored": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "recyclerRestoreFailed":"还原失败",
+  "recyclerPurged":"已彻底删除",
+  "recyclerCleared":"回收站已清空",
+
+  "importExport":"导入导出",
+  "exportMarkdown":"导出 Markdown",
+  "exportMd":"导出 MD",
+  "exportSelectFolder":"选择导出目标文件夹",
+  "exportFailed":"导出失败",
+  "exportNoRecords":"该文件夹下没有笔记",
+  "exportingProgress":"正在导出 {done}/{total}",
+  "@exportingProgress": {
+    "placeholders": {
+      "done": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "exportEncryptedTitle":"文档已加密，请输入密码",
+  "exportSkip":"跳过",
+  "exportCancelled":"导出已取消",
+  "exportCompleted":"导出完成：成功 {success} 篇，跳过 {skipped} 篇",
+  "@exportCompleted": {
+    "placeholders": {
+      "success": {"type": "int"},
+      "skipped": {"type": "int"}
+    }
+  },
+  "exportOpenFolder":"打开文件夹"
 }

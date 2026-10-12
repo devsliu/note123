@@ -218,9 +218,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get themePurple => '紫色';
 
   @override
-  String get themeOrange => '橙色';
-
-  @override
   String get themeClassic => '古典';
 
   @override
@@ -566,6 +563,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get reminderDueBody => '该提醒已到时间';
 
   @override
+  String get searchRecords => '搜索标题';
+
+  @override
+  String get searchNoResults => '无匹配结果';
+
+  @override
   String get unitYear => '年';
 
   @override
@@ -582,4 +585,73 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get atLeastOneWeekday => '请至少选择一个星期';
+
+  @override
+  String get recycler => '回收站';
+
+  @override
+  String get purgeRecyclerItem => '彻底删除';
+
+  @override
+  String get clearRecycler => '清空回收站';
+
+  @override
+  String get confirmClearRecycler => '确定要清空回收站吗？';
+
+  @override
+  String get confirmPurgeRecycler => '确定要彻底删除吗？删除后无法恢复';
+
+  @override
+  String recyclerRestored(String name) {
+    return '已还原 $name';
+  }
+
+  @override
+  String get recyclerRestoreFailed => '还原失败';
+
+  @override
+  String get recyclerPurged => '已彻底删除';
+
+  @override
+  String get recyclerCleared => '回收站已清空';
+
+  @override
+  String get importExport => '导入导出';
+
+  @override
+  String get exportMarkdown => '导出 Markdown';
+
+  @override
+  String get exportMd => '导出 MD';
+
+  @override
+  String get exportSelectFolder => '选择导出目标文件夹';
+
+  @override
+  String get exportFailed => '导出失败';
+
+  @override
+  String get exportNoRecords => '该文件夹下没有笔记';
+
+  @override
+  String exportingProgress(int done, int total) {
+    return '正在导出 $done/$total';
+  }
+
+  @override
+  String get exportEncryptedTitle => '文档已加密，请输入密码';
+
+  @override
+  String get exportSkip => '跳过';
+
+  @override
+  String get exportCancelled => '导出已取消';
+
+  @override
+  String exportCompleted(int success, int skipped) {
+    return '导出完成：成功 $success 篇，跳过 $skipped 篇';
+  }
+
+  @override
+  String get exportOpenFolder => '打开文件夹';
 }

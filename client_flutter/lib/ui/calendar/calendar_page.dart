@@ -6,7 +6,7 @@ import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/ui/desktop/desktop_tabs_page.dart';
-import 'package:note123/ui/editor/reminder_task_editor.dart';
+import 'package:note123/ui/calendar/reminder_task_editor.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/utils/lunar.dart';
 
@@ -344,84 +344,72 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     final theme = Theme.of(context);
     final timeStr = Utils.reminderTimeStr(task);
     final nameColor = task.done ? theme.colorScheme.onSurface.withAlpha(120) : theme.colorScheme.onSurface;
-    return InkWell(
+    final shrink = Utils.isDesktop();
+    return ListTile(
+      dense: shrink,
+      visualDensity: shrink ? const VisualDensity(vertical: -4) : null,
+      contentPadding: const EdgeInsets.only(left: AppConfig.pageHorizontalPadding, right: 8),
       onTap: () => _openRecord(entry.recordUuid),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    task.name.isEmpty ? l10n.unnamedTask : task.name,
-                    style: TextStyle(decoration: task.done ? TextDecoration.lineThrough : null, color: nameColor),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${entry.recordPath}${entry.recordName}  ·  $timeStr',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withAlpha(180)),
-                  ),
-                ],
-              ),
-            ),
-            PopupMenuButton<String>(
-              icon: Icon(Icons.edit_outlined, size: 18, color: theme.colorScheme.primary),
-              tooltip: l10n.edit,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-              splashRadius: 18,
-              popUpAnimationStyle: const AnimationStyle(duration: Duration(milliseconds: 120)),
-              onSelected: (v) {
-                switch (v) {
-                  case 'toggle':
-                    _toggleDone(entry);
-                    break;
-                  case 'edit':
-                    _editEntry(entry);
-                    break;
-                  case 'delete':
-                    _deleteEntry(entry);
-                    break;
-                }
-              },
-              itemBuilder: (_) => [
-                PopupMenuItem(
-                  value: 'toggle',
-                  child: Row(
-                    children: [
-                      Icon(task.done ? Icons.check_box : Icons.check_box_outline_blank, size: 18),
-                      const SizedBox(width: 8),
-                      Text(task.done ? l10n.markUnfinished : l10n.markFinished),
-                    ],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [const Icon(Icons.edit_outlined, size: 18), const SizedBox(width: 8), Text(l10n.edit)],
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
-                      const SizedBox(width: 8),
-                      Text(l10n.delete),
-                    ],
-                  ),
-                ),
+      title: Text(
+        task.name.isEmpty ? l10n.unnamedTask : task.name,
+        style: TextStyle(decoration: task.done ? TextDecoration.lineThrough : null, color: nameColor),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        '${entry.recordPath}${entry.recordName}  ·  $timeStr',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withAlpha(180)),
+      ),
+      trailing: PopupMenuButton<String>(
+        icon: Icon(Icons.edit_outlined, size: 18, color: theme.colorScheme.primary),
+        tooltip: l10n.edit,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+        splashRadius: 18,
+        popUpAnimationStyle: const AnimationStyle(duration: Duration(milliseconds: 120)),
+        onSelected: (v) {
+          switch (v) {
+            case 'toggle':
+              _toggleDone(entry);
+              break;
+            case 'edit':
+              _editEntry(entry);
+              break;
+            case 'delete':
+              _deleteEntry(entry);
+              break;
+          }
+        },
+        itemBuilder: (_) => [
+          PopupMenuItem(
+            value: 'toggle',
+            child: Row(
+              children: [
+                Icon(task.done ? Icons.check_box : Icons.check_box_outline_blank, size: 18),
+                const SizedBox(width: 8),
+                Text(task.done ? l10n.markUnfinished : l10n.markFinished),
               ],
             ),
-          ],
-        ),
+          ),
+          PopupMenuItem(
+            value: 'edit',
+            child: Row(
+              children: [const Icon(Icons.edit_outlined, size: 18), const SizedBox(width: 8), Text(l10n.edit)],
+            ),
+          ),
+          PopupMenuItem(
+            value: 'delete',
+            child: Row(
+              children: [
+                Icon(Icons.delete_outline, size: 18, color: theme.colorScheme.error),
+                const SizedBox(width: 8),
+                Text(l10n.delete),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

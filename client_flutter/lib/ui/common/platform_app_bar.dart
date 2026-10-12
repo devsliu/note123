@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:note123/config/app_config.dart';
 import 'package:note123/ui/desktop/desktop_title_bar.dart';
 
 import '../../utils/utils.dart';
 
 PreferredSizeWidget createPlatformAppBar({
-  required String title,
+  String? title,
+  Widget? titleWidget,
   List<Widget>? actions,
   Widget? leading,
   bool automaticallyImplyLeading = true,
   Color? backgroundColor,
   Color? foregroundColor,
+  bool showWindowButtons = true,
 }) {
+  // titleWidget takes precedence over title; one of them should be provided
   // Mobile: return standard AppBar
   if (!Utils.isDesktop()) {
     return AppBar(
-      title: Text(title),
-      titleSpacing: 0,
+      title: titleWidget ?? Text(title ?? ''),
+      titleSpacing: automaticallyImplyLeading || leading != null ? 0 : AppConfig.pageHorizontalPadding,
       actions: actions,
       leading: leading,
       automaticallyImplyLeading: automaticallyImplyLeading,
@@ -33,21 +37,20 @@ PreferredSizeWidget createPlatformAppBar({
         final appBarTheme = theme.appBarTheme;
         final effectiveBackgroundColor = backgroundColor ?? appBarTheme.backgroundColor ?? theme.primaryColor;
         final effectiveForegroundColor = foregroundColor ?? appBarTheme.foregroundColor ?? Colors.white;
-
+        if (leading == null && automaticallyImplyLeading) {
+          leading = IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+            color: effectiveForegroundColor,
+          );
+        }
         return Container(
           height: windowTitleBarHeight,
           color: effectiveBackgroundColor,
           child: Row(
             children: [
               // Left leading/back button
-              if (automaticallyImplyLeading && Navigator.canPop(context))
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => Navigator.pop(context),
-                  color: effectiveForegroundColor,
-                )
-              else
-                ?leading,
+              ?leading,
 
               // Draggable area (includes title)
               Expanded(
@@ -55,13 +58,15 @@ PreferredSizeWidget createPlatformAppBar({
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 8.0),
-                      child: Text(
-                        title,
-                        style:
-                            appBarTheme.titleTextStyle?.copyWith(color: effectiveForegroundColor) ??
-                            theme.textTheme.titleMedium?.copyWith(color: effectiveForegroundColor),
-                      ),
+                      padding: EdgeInsets.only(left: leading != null ? 0 : AppConfig.pageHorizontalPadding),
+                      child:
+                          titleWidget ??
+                          Text(
+                            title ?? '',
+                            style:
+                                appBarTheme.titleTextStyle?.copyWith(color: effectiveForegroundColor) ??
+                                theme.textTheme.titleMedium?.copyWith(color: effectiveForegroundColor),
+                          ),
                     ),
                   ),
                 ),
@@ -70,8 +75,8 @@ PreferredSizeWidget createPlatformAppBar({
               // Right-side actions
               ...?actions,
 
-              // Window control buttons
-              const WindowManagerButtons(),
+              // Window control buttons (minimize / maximize / close)
+              if (showWindowButtons) const WindowManagerButtons(),
             ],
           ),
         );

@@ -141,7 +141,7 @@ class SyncEngine {
   ) async {
     if (remoteRecords.isEmpty) return;
     final List<String> deleteUuids = [];
-    final List<LocalRecord> upsertRecords = [];
+    final List<String> upsertUuids = [];
     // Local file operations (fast, no network): delete/move files
     final List<void Function()> fileActions = [];
     // Base file downloads (slow, need HTTP): dedup with Set, only download once per uuid
@@ -168,7 +168,7 @@ class SyncEngine {
             Operates.typeDownload,
             "create record ${newRecord.uuid} ${newRecord.localPath}${newRecord.localName} version:${newRecord.remoteVersion}",
           );
-          upsertRecords.add(newRecord);
+          upsertUuids.add(newRecord.uuid);
           downloadUUids.add(remote.uuid);
         }
         // === Remote already deleted ===
@@ -186,8 +186,7 @@ class SyncEngine {
             // Remote already deleted, this one needs to be pushed to server later
             // Clear remote_* so push treats it as a new record via upsertRecord
             await db.clearRecordRemote(remote.uuid, batchNo: batchNo);
-            final refreshed = await db.getRecord(remote.uuid);
-            if (refreshed != null) upsertRecords.add(refreshed);
+            upsertUuids.add(remote.uuid);
             // If local has no work file, try to copy downloaded source file to work file directory
             fileActions.add(() => fileStore.moveBaseFileToWorkIfWorkFileNotExist(remote.uuid));
           }
@@ -199,12 +198,17 @@ class SyncEngine {
             // Remote version updated, undo local delete / align local state (handled by one replaceLocalRecord)
             var newRecord = remote.toLocalRecord(batchNo, baseFileVersion: local.baseFileVersion);
             await db.replaceRecord(newRecord);
-            upsertRecords.add(newRecord);
+            // Record is alive again from remote: undo the recycle-bin capture made at delete time
+            await db.deleteRecycleRecord(remote.uuid);
+            upsertUuids.add(newRecord.uuid);
             await db.createOperate(
               Operates.typeDownload,
               "edit record ${remote.uuid} ${remote.path}${remote.name} version:${remote.version}",
             );
-            fileActions.add(() => fileStore.deleteWorkFile(remote.uuid));
+            fileActions.add(() {
+              fileStore.deleteRecyclerFile(remote.uuid);
+              fileStore.deleteWorkFile(remote.uuid);
+            });
             // Server file updated, download latest base (judge by fileVersion)
             if (local.baseFileVersion < remote.fileVersion) {
               downloadUUids.add(remote.uuid);
@@ -222,8 +226,7 @@ class SyncEngine {
           if (local.baseFileVersion < remote.fileVersion) {
             downloadUUids.add(remote.uuid);
           }
-          final conflicted = await db.getRecord(remote.uuid);
-          if (conflicted != null) upsertRecords.add(conflicted);
+          upsertUuids.add(remote.uuid);
           await db.createOperate(
             Operates.typeDownload,
             "conflict record ${remote.uuid} ${remote.path}${remote.name} remoteV:${remote.version} localV:$localVersion",
@@ -238,7 +241,17 @@ class SyncEngine {
       }
     }); // transaction ends, release DB lock
 
-    recordTree.batchUpdateRecords(deleteUuids, upsertRecords);
+    // Re-read the latest records from DB before updating the tree. A concurrent
+    // local edit (editRecord/deleteRecord etc.) blocks on the DB lock during our
+    // transaction and runs right after commit, so the rows written inside the
+    // transaction may already be stale. Feeding stale snapshots to the tree
+    // would desync it from DB (e.g. tree shows localEditType=none while DB has
+    // localEditType=edit). Re-reading guarantees tree always mirrors DB.
+    final List<LocalRecord> finalRecords = upsertUuids.isEmpty
+        ? const []
+        : await (db.select(db.localRecords)..where((t) => t.uuid.isIn(upsertUuids))).get();
+
+    recordTree.batchUpdateRecords(deleteUuids, finalRecords);
     // UI already updated, run file actions in background without blocking sync return.
     // When user opens a record, loadContent will wait for downloadBaseFile internally (dedup by uuid).
     // Download failures must log, otherwise file loss goes unnoticed until user opens the record.
@@ -326,6 +339,7 @@ class SyncEngine {
     for (var localRecord in await db.getDeleteRecords()) {
       final result = await HttpApi.deleteRecord(localRecord.uuid);
       if (result.isSuccess() || result.code == HttpApi.ResultErrorRecordNotFound) {
+        // Recycle bin capture already happened at delete time (Repository.deleteRecord/deleteFolder).
         // Only delete DB + files on successful request, prevent data loss from network failure
         recordTree.deleteRecord(localRecord.uuid);
         await db.deleteRecord(localRecord.uuid);
@@ -336,7 +350,15 @@ class SyncEngine {
           "delete record ${localRecord.uuid} ${localRecord.localPath}${localRecord.localName} version:${localRecord.remoteVersion}",
         );
       } else if (result.code == HttpApi.ResultErrorRecordConflict) {
-        // Server rejected deletion (record modified by someone else), restore to latest remote state
+        // Server rejected deletion (record modified by someone else), restore to latest remote state.
+        // Undo the recycle-bin capture made at delete time: move content file back to work folder
+        // and drop the recycler row, so the restored record is not duplicated in the recycle bin.
+        try {
+          fileStore.moveRecyclerFileToWork(localRecord.uuid);
+          await db.deleteRecycleRecord(localRecord.uuid);
+        } catch (e) {
+          AppLogger.e("[pushRecords] undo recycler capture failed uuid=${localRecord.uuid}: $e");
+        }
         final remote = result.data!;
         final newRecord = remote.toLocalRecord(0, baseFileVersion: localRecord.baseFileVersion);
         int rows = await db.replaceRecord(newRecord);

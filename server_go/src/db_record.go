@@ -91,11 +91,14 @@ func (db *DB) UpsertRecord(userId int64, uuid, path, name, md5, reminder string,
 	var conflictRecord *Record
 	var bizResult ResultCode = ResultSuccess
 	err := db.ExecInTransaction(func(tx *sql.Tx) error {
-		// Conflict detection: reject overwrite when server version > client baseVersion
+		// Conflict detection: reject overwrite when server version > client baseVersion.
+		// Tombstones are exempt: any upsert onto a deleted record means re-creation/restore,
+		// so revive it directly instead of returning a conflict (the client no longer knows
+		// the tombstone version after restore).
 		exist := &Record{}
 		querySql := fmt.Sprintf("SELECT "+recordColumns+" FROM record_%d WHERE uuid=?", userId)
 		if qErr := tx.QueryRow(querySql, uuid).Scan(exist.scanTargets()...); qErr == nil {
-			if exist.Version > baseVersion {
+			if exist.DeleteAt == 0 && exist.Version > baseVersion {
 				conflictRecord = exist
 				bizResult = ResultErrorRecordConflict
 				return nil
@@ -121,12 +124,12 @@ func (db *DB) UpsertRecord(userId int64, uuid, path, name, md5, reminder string,
 				editAt=excluded.editAt,
 				version=excluded.version,
 				deleteAt=0,
-				createAt=excluded.createAt,
+				createAt=CASE WHEN excluded.createAt > 0 THEN excluded.createAt ELSE record_%d.createAt END,
 				fileEditAt=CASE WHEN excluded.fileEditAt > 0 THEN excluded.fileEditAt ELSE record_%d.fileEditAt END,
 				fileVersion=CASE WHEN excluded.md5 != '' AND excluded.md5 != record_%d.md5 THEN record_%d.fileVersion + 1 ELSE record_%d.fileVersion END,
 				locked=excluded.locked,
 				reminder=excluded.reminder
-		`, userId, userId, userId, userId, userId, userId)
+		`, userId, userId, userId, userId, userId, userId, userId)
 		_, err = tx.Exec(sqlStmt, uuid, path, name, md5, version, createAt, editAt, fileEditAt, insertFileVersion, locked, reminder)
 		if err != nil {
 			return err

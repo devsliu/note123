@@ -36,6 +36,9 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
   /// 打开日历页。
   void openCalendar(BuildContext context);
 
+  /// 打开回收站页。
+  void openRecycler(BuildContext context);
+
   /// 构建 app 主体（不含 MaterialApp 外壳）。
   Widget buildHome(BuildContext context);
 

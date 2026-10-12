@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:note123/config/app_config.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/filesync/repository.dart';
@@ -55,8 +54,13 @@ class _CalendarTaskItemState extends State<CalendarTaskItem> {
     final theme = Theme.of(context);
     return InkWell(
       onTap: () => widget.onTap(context),
+      borderRadius: BorderRadius.circular(8),
       child: Container(
-        padding: const EdgeInsets.only(left: AppConfig.pageHorizontalPadding, right: 8, top: 10, bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          border: Border.all(color: theme.colorScheme.outline.withAlpha(80)),
+          borderRadius: BorderRadius.circular(8),
+        ),
         child: Row(
           children: [
             Icon(Icons.calendar_today, size: 18, color: theme.colorScheme.primary),
@@ -67,10 +71,7 @@ class _CalendarTaskItemState extends State<CalendarTaskItem> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(color: theme.colorScheme.primary, borderRadius: BorderRadius.circular(8)),
-                child: Text(
-                  '$_todayCount/$_totalCount',
-                  style: TextStyle(fontSize: 12, color: theme.colorScheme.onPrimary),
-                ),
+                child: Text('$_todayCount', style: TextStyle(fontSize: 12, color: theme.colorScheme.onPrimary)),
               ),
             if (_todayCount == 0) Text('$_totalCount', style: TextStyle(fontSize: 12)),
           ],

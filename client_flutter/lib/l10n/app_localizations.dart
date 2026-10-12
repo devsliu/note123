@@ -506,12 +506,6 @@ abstract class AppLocalizations {
   /// **'紫色'**
   String get themePurple;
 
-  /// No description provided for @themeOrange.
-  ///
-  /// In zh, this message translates to:
-  /// **'橙色'**
-  String get themeOrange;
-
   /// No description provided for @themeClassic.
   ///
   /// In zh, this message translates to:
@@ -1148,6 +1142,18 @@ abstract class AppLocalizations {
   /// **'该提醒已到时间'**
   String get reminderDueBody;
 
+  /// No description provided for @searchRecords.
+  ///
+  /// In zh, this message translates to:
+  /// **'搜索标题'**
+  String get searchRecords;
+
+  /// No description provided for @searchNoResults.
+  ///
+  /// In zh, this message translates to:
+  /// **'无匹配结果'**
+  String get searchNoResults;
+
   /// No description provided for @unitYear.
   ///
   /// In zh, this message translates to:
@@ -1183,6 +1189,132 @@ abstract class AppLocalizations {
   /// In zh, this message translates to:
   /// **'请至少选择一个星期'**
   String get atLeastOneWeekday;
+
+  /// No description provided for @recycler.
+  ///
+  /// In zh, this message translates to:
+  /// **'回收站'**
+  String get recycler;
+
+  /// No description provided for @purgeRecyclerItem.
+  ///
+  /// In zh, this message translates to:
+  /// **'彻底删除'**
+  String get purgeRecyclerItem;
+
+  /// No description provided for @clearRecycler.
+  ///
+  /// In zh, this message translates to:
+  /// **'清空回收站'**
+  String get clearRecycler;
+
+  /// No description provided for @confirmClearRecycler.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要清空回收站吗？'**
+  String get confirmClearRecycler;
+
+  /// No description provided for @confirmPurgeRecycler.
+  ///
+  /// In zh, this message translates to:
+  /// **'确定要彻底删除吗？删除后无法恢复'**
+  String get confirmPurgeRecycler;
+
+  /// No description provided for @recyclerRestored.
+  ///
+  /// In zh, this message translates to:
+  /// **'已还原 {name}'**
+  String recyclerRestored(String name);
+
+  /// No description provided for @recyclerRestoreFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'还原失败'**
+  String get recyclerRestoreFailed;
+
+  /// No description provided for @recyclerPurged.
+  ///
+  /// In zh, this message translates to:
+  /// **'已彻底删除'**
+  String get recyclerPurged;
+
+  /// No description provided for @recyclerCleared.
+  ///
+  /// In zh, this message translates to:
+  /// **'回收站已清空'**
+  String get recyclerCleared;
+
+  /// No description provided for @importExport.
+  ///
+  /// In zh, this message translates to:
+  /// **'导入导出'**
+  String get importExport;
+
+  /// No description provided for @exportMarkdown.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出 Markdown'**
+  String get exportMarkdown;
+
+  /// No description provided for @exportMd.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出 MD'**
+  String get exportMd;
+
+  /// No description provided for @exportSelectFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'选择导出目标文件夹'**
+  String get exportSelectFolder;
+
+  /// No description provided for @exportFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出失败'**
+  String get exportFailed;
+
+  /// No description provided for @exportNoRecords.
+  ///
+  /// In zh, this message translates to:
+  /// **'该文件夹下没有笔记'**
+  String get exportNoRecords;
+
+  /// No description provided for @exportingProgress.
+  ///
+  /// In zh, this message translates to:
+  /// **'正在导出 {done}/{total}'**
+  String exportingProgress(int done, int total);
+
+  /// No description provided for @exportEncryptedTitle.
+  ///
+  /// In zh, this message translates to:
+  /// **'文档已加密，请输入密码'**
+  String get exportEncryptedTitle;
+
+  /// No description provided for @exportSkip.
+  ///
+  /// In zh, this message translates to:
+  /// **'跳过'**
+  String get exportSkip;
+
+  /// No description provided for @exportCancelled.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出已取消'**
+  String get exportCancelled;
+
+  /// No description provided for @exportCompleted.
+  ///
+  /// In zh, this message translates to:
+  /// **'导出完成：成功 {success} 篇，跳过 {skipped} 篇'**
+  String exportCompleted(int success, int skipped);
+
+  /// No description provided for @exportOpenFolder.
+  ///
+  /// In zh, this message translates to:
+  /// **'打开文件夹'**
+  String get exportOpenFolder;
 }
 
 class _AppLocalizationsDelegate
