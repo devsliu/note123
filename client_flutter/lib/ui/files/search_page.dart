@@ -2,43 +2,37 @@ import 'package:flutter/material.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/model/record_opened_state.dart';
+import 'package:note123/ui/common/platform_app_bar.dart';
 import 'package:note123/ui/files/record_item_widget.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/config/app_config.dart';
 
-/// Slim search box shown above the record list. Typing updates
-/// [RecordOpenedState.searchQueryNotifier]; list pages switch to a flat
-/// result list rendered by [RecordSearchResultsControl] while it is non-empty.
-class RecordSearchBox extends StatefulWidget {
+/// Full-page record search: app bar with a back button and a search input,
+/// body shows title/path matches. Replaces the whole list page while active.
+class SearchPage extends StatefulWidget {
   final bool shrink;
-  const RecordSearchBox({super.key, required this.shrink});
+  final VoidCallback onBack;
+  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+
+  const SearchPage({super.key, required this.shrink, required this.onBack, required this.openRecordCallback});
 
   @override
-  State<RecordSearchBox> createState() => _RecordSearchBoxState();
+  State<SearchPage> createState() => _SearchPageState();
 }
 
-class _RecordSearchBoxState extends State<RecordSearchBox> {
+class _SearchPageState extends State<SearchPage> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  bool _keyboardVisible = false;
+  String _query = "";
 
   @override
   void initState() {
     super.initState();
-    _controller.addListener(() => setState(() {}));
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final visible = MediaQuery.of(context).viewInsets.bottom > 0;
-    // Soft keyboard collapsed (back gesture / tap outside): drop focus so the
-    // field does not stay focused with the keyboard gone
-    if (_keyboardVisible && !visible) {
-      _focusNode.unfocus();
-    }
-    _keyboardVisible = visible;
+    _controller.addListener(() {
+      final q = _controller.text.trim();
+      if (q != _query) setState(() => _query = q);
+    });
   }
 
   @override
@@ -50,58 +44,66 @@ class _RecordSearchBoxState extends State<RecordSearchBox> {
 
   void _clear() {
     _controller.clear();
-    RecordOpenedState.get().searchQueryNotifier.value = "";
-    _focusNode.unfocus();
+    _focusNode.requestFocus();
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return createPlatformAppBar(
+      automaticallyImplyLeading: false,
+      showWindowButtons: false,
+      leading: IconButton(onPressed: widget.onBack, icon: const Icon(Icons.arrow_back)),
+      titleWidget: TextField(
+        controller: _controller,
+        focusNode: _focusNode,
+        autofocus: true,
+        textAlignVertical: TextAlignVertical.center,
+        onTapOutside: (_) => _focusNode.unfocus(),
+        style: const TextStyle(fontSize: 14),
+        decoration: InputDecoration(
+          isDense: true,
+          hintText: l10n.searchRecords,
+          hintStyle: const TextStyle(fontSize: 14),
+          suffixIcon: _controller.text.isEmpty
+              ? null
+              : IconButton(icon: const Icon(Icons.close, size: 16), onPressed: _clear),
+          suffixIconConstraints: const BoxConstraints(minWidth: 40, minHeight: 34),
+          contentPadding: const EdgeInsets.only(left: 0, right: 12, top: 10, bottom: 10),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsets.only(top: widget.shrink ? 2 : 4, bottom: widget.shrink ? 4 : 6),
-      child: TextField(
-        controller: _controller,
-        focusNode: _focusNode,
-        onTapOutside: (_) => _focusNode.unfocus(),
-        style: const TextStyle(fontSize: 14),
-        onChanged: (v) => RecordOpenedState.get().searchQueryNotifier.value = v.trim(),
-        decoration: InputDecoration(
-          isDense: true,
-          hintText: l10n.searchRecords,
-          prefixIcon: const Icon(Icons.search, size: 18),
-          prefixIconConstraints: const BoxConstraints(minWidth: 34, minHeight: 34),
-          suffixIcon: _controller.text.isEmpty
-              ? null
-              : IconButton(icon: const Icon(Icons.close, size: 16), onPressed: _clear),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-          filled: true,
-          fillColor: theme.colorScheme.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide(color: theme.colorScheme.outline.withAlpha(80)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide(color: theme.colorScheme.outline.withAlpha(80)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(6),
-            borderSide: BorderSide(color: theme.colorScheme.primary),
-          ),
+    return Scaffold(
+      appBar: _buildAppBar(context),
+      body: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: RecordSearchResultsControl(
+          query: _query,
+          shrink: widget.shrink,
+          openRecordCallback: widget.openRecordCallback,
         ),
       ),
     );
   }
 }
 
-/// Flat list of records matching the current search query by title or path
-/// (case-insensitive). Shown instead of the normal list controls while
-/// the search query is non-empty.
+/// Flat list of records matching [query] by title or path (case-insensitive).
 class RecordSearchResultsControl extends StatefulWidget {
+  final String query;
   final bool shrink;
   final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
 
-  const RecordSearchResultsControl({super.key, required this.shrink, required this.openRecordCallback});
+  const RecordSearchResultsControl({
+    super.key,
+    required this.query,
+    required this.shrink,
+    required this.openRecordCallback,
+  });
 
   @override
   State<RecordSearchResultsControl> createState() => _RecordSearchResultsControlState();
@@ -115,14 +117,12 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
     super.initState();
     recordTree.refreshNotifier.addListener(onRefreshChanged);
     RecordOpenedState.get().openedFileNotifier.addListener(onRefreshChanged);
-    RecordOpenedState.get().searchQueryNotifier.addListener(onRefreshChanged);
   }
 
   @override
   void dispose() {
     recordTree.refreshNotifier.removeListener(onRefreshChanged);
     RecordOpenedState.get().openedFileNotifier.removeListener(onRefreshChanged);
-    RecordOpenedState.get().searchQueryNotifier.removeListener(onRefreshChanged);
     super.dispose();
   }
 
@@ -131,7 +131,7 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
   }
 
   List<TreeContentFile> _matches() {
-    final query = RecordOpenedState.get().searchQueryNotifier.value.toLowerCase();
+    final query = widget.query.toLowerCase();
     if (query.isEmpty) return const [];
     return recordTree.sortedFiles.where((f) {
       return f.name.toLowerCase().contains(query) || f.path.toLowerCase().contains(query);
@@ -140,6 +140,7 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
 
   @override
   Widget build(BuildContext context) {
+    if (widget.query.isEmpty) return const SizedBox.shrink();
     final list = _matches();
     if (list.isEmpty) {
       final theme = Theme.of(context);

@@ -28,10 +28,6 @@ class RecordOpenedState {
   //uuid
   final ValueNotifier<String> openedFileNotifier = ValueNotifier<String>("");
 
-  /// Non-empty means list pages show flat search results (title/path match)
-  /// instead of the normal folder/list view.
-  final ValueNotifier<String> searchQueryNotifier = ValueNotifier<String>("");
-
   /// Stack of opened record uuids; the last element is the currently active one.
   final List<String> openedUuids = [];
 

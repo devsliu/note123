@@ -19,7 +19,7 @@ PreferredSizeWidget createPlatformAppBar({
   if (!Utils.isDesktop()) {
     return AppBar(
       title: titleWidget ?? Text(title ?? ''),
-      titleSpacing: automaticallyImplyLeading ? 0 : AppConfig.pageHorizontalPadding,
+      titleSpacing: automaticallyImplyLeading || leading != null ? 0 : AppConfig.pageHorizontalPadding,
       actions: actions,
       leading: leading,
       automaticallyImplyLeading: automaticallyImplyLeading,
@@ -37,21 +37,20 @@ PreferredSizeWidget createPlatformAppBar({
         final appBarTheme = theme.appBarTheme;
         final effectiveBackgroundColor = backgroundColor ?? appBarTheme.backgroundColor ?? theme.primaryColor;
         final effectiveForegroundColor = foregroundColor ?? appBarTheme.foregroundColor ?? Colors.white;
-
+        if (leading == null && automaticallyImplyLeading) {
+          leading = IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+            color: effectiveForegroundColor,
+          );
+        }
         return Container(
           height: windowTitleBarHeight,
           color: effectiveBackgroundColor,
           child: Row(
             children: [
               // Left leading/back button
-              if (automaticallyImplyLeading && Navigator.canPop(context))
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => Navigator.pop(context),
-                  color: effectiveForegroundColor,
-                )
-              else
-                ?leading,
+              ?leading,
 
               // Draggable area (includes title)
               Expanded(
@@ -59,7 +58,7 @@ PreferredSizeWidget createPlatformAppBar({
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Padding(
-                      padding: const EdgeInsets.only(left: AppConfig.pageHorizontalPadding),
+                      padding: EdgeInsets.only(left: leading != null ? 0 : AppConfig.pageHorizontalPadding),
                       child:
                           titleWidget ??
                           Text(
