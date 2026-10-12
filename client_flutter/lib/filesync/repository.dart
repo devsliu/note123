@@ -27,6 +27,7 @@ class Repository {
   FileStore? _fileStore;
   String _baseUrl = '';
   SyncEngine? _syncEngine;
+  StreamSubscription<int>? _recyclerCountSub;
 
   AppDatabase? get db => _db;
   FileStore? get fileStore => _fileStore;
@@ -77,6 +78,8 @@ class Repository {
     if (_userId == userId) return;
     // Wait for ongoing sync to finish, prevent background sync from writing to closed DB and crashing
     await _syncEngine?.waitForSync();
+    await _recyclerCountSub?.cancel();
+    _recyclerCountSub = null;
     await _db?.close();
     _fileStore = null;
     _db = null;
@@ -92,14 +95,14 @@ class Repository {
         recordTree: recordTree,
         syncStateNotifier: syncStateNotifier,
       );
+      // Badge count is pushed only when the recycle table actually changes
+      _recyclerCountSub = _db!.watchRecycleCount().listen((c) => recyclerCountNotifier.value = c);
       recordTree.build(await _db!.getAllLocalRecords());
+      syncRecords(true);
+    } else {
+      recyclerCountNotifier.value = 0;
     }
     _userId = userId;
-    await _refreshRecyclerCount();
-  }
-
-  Future<void> _refreshRecyclerCount() async {
-    recyclerCountNotifier.value = _db == null ? 0 : await _db!.getRecycleCount();
   }
 
   bool shouldSyncFromBackground() => _syncEngine?.shouldSyncFromBackground() ?? false;
@@ -345,8 +348,6 @@ class Repository {
   Future<void> syncRecords(bool forcePull) async {
     if (_syncEngine == null) return;
     await _syncEngine!.sync(forcePull);
-    // Delete push success may have captured records into the recycle bin, refresh badge
-    await _refreshRecyclerCount();
   }
 
   // =========================================================================
@@ -398,7 +399,6 @@ class Repository {
     final record = await db.getRecord(uuid);
     if (record != null) recordTree.insertRecord(record);
     await db.createOperate(Operates.typeLocal, "restore record $uuid ${entry.path}${entry.name} from recycler");
-    await _refreshRecyclerCount();
     unawaited(syncRecords(false));
     return true;
   }
@@ -409,7 +409,6 @@ class Repository {
     await _db!.deleteRecycleRecord(uuid);
     _fileStore?.deleteRecyclerFile(uuid);
     await _db!.createOperate(Operates.typeLocal, "purge recycler record $uuid");
-    await _refreshRecyclerCount();
   }
 
   /// Empty the recycle bin: delete all metadata rows and recycler content files.
@@ -421,6 +420,5 @@ class Repository {
       _fileStore?.deleteRecyclerFile(row.uuid);
     }
     await _db!.createOperate(Operates.typeLocal, "clear recycler records, count:${rows.length}");
-    await _refreshRecyclerCount();
   }
 }

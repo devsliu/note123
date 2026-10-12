@@ -69,11 +69,12 @@ class AppDatabase extends _$AppDatabase {
   Future<RecycleRecord?> getRecycleRecord(String uuid) async =>
       await (select(recycleRecords)..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
 
-  Future<int> getRecycleCount() async {
+  /// Re-emits the recycle bin row count whenever the table changes (initial
+  /// value emitted on listen). Avoids polling after every sync.
+  Stream<int> watchRecycleCount() {
     final count = recycleRecords.uuid.count();
     final query = selectOnly(recycleRecords)..addColumns([count]);
-    final row = await query.getSingle();
-    return row.read(count) ?? 0;
+    return query.watchSingle().map((row) => row.read(count) ?? 0);
   }
 
   Future<int> insertRecycleRecord({
