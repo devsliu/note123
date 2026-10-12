@@ -91,30 +91,28 @@ class _RecyclerPageState extends State<RecyclerPage> implements DesktopTabPageSt
   }
 
   void _showActions(RecycleRecord record) {
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.restore_outlined),
-              title: Text(l10n.restore),
-              onTap: () {
-                Navigator.pop(ctx);
-                _restore(record);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete_forever_outlined, color: Colors.red),
-              title: Text(l10n.purgeRecyclerItem, style: const TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(ctx);
-                _purge(record);
-              },
-            ),
-          ],
-        ),
+      builder: (ctx) => AlertDialog(
+        title: Text(record.path + record.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _restore(record);
+            },
+            icon: const Icon(Icons.restore_outlined),
+            label: Text(l10n.restore),
+          ),
+          TextButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _purge(record);
+            },
+            icon: const Icon(Icons.delete_forever_outlined, color: Colors.red),
+            label: Text(l10n.purgeRecyclerItem, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
       ),
     );
   }
@@ -124,7 +122,25 @@ class _RecyclerPageState extends State<RecyclerPage> implements DesktopTabPageSt
     final theme = Theme.of(context);
     if (!widget.showAppBar) {
       return SizedBox.expand(
-        child: Material(color: theme.colorScheme.surface, child: _buildBody(context)),
+        child: Material(
+          color: theme.colorScheme.surface,
+          child: Stack(
+            children: [
+              _buildBody(context),
+              if (_records.isNotEmpty)
+                Positioned(
+                  right: AppConfig.pageHorizontalPadding,
+                  bottom: AppConfig.pageHorizontalPadding,
+                  child: FloatingActionButton(
+                    onPressed: _clear,
+                    tooltip: l10n.clearRecycler,
+                    shape: const CircleBorder(),
+                    child: const Icon(Icons.delete_sweep_outlined),
+                  ),
+                ),
+            ],
+          ),
+        ),
       );
     }
     return Scaffold(
