@@ -6,7 +6,7 @@ import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/ui/desktop/desktop_tabs_page.dart';
-import 'package:note123/ui/editor/reminder_task_editor.dart';
+import 'package:note123/ui/calendar/reminder_task_editor.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/utils/lunar.dart';
 
