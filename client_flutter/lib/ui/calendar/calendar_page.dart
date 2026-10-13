@@ -80,9 +80,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     final repo = Repository.get();
     final record = await repo.db?.getRecord(entry.recordUuid);
     if (record == null) return;
-    final tasks = ReminderTask.fromJsonString(
-      record.localReminder.isNotEmpty ? record.localReminder : record.remoteReminder,
-    );
+    final tasks = ReminderTask.fromJsonString(record.localReminder);
     update(tasks);
     final json = ReminderTask.toJsonString(tasks);
     await repo.editRecord(entry.recordUuid, false, DateTime.now().millisecondsSinceEpoch, reminder: json);

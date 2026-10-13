@@ -378,8 +378,8 @@ class SyncEngine {
       final file = File(fileStore.getWorkFile(localRecord.uuid));
       final fileExist = file.existsSync();
 
-      final uploadPath = localRecord.localPath.isNotEmpty ? localRecord.localPath : localRecord.remotePath;
-      final uploadName = localRecord.localName.isNotEmpty ? localRecord.localName : localRecord.remoteName;
+      final uploadPath = localRecord.localPath;
+      final uploadName = localRecord.localName;
       final baseVersion = localRecord.localVersion;
       final uploadFileEditAt = fileExist && localRecord.localFileEditAt > 0
           ? localRecord.localFileEditAt
@@ -390,7 +390,7 @@ class SyncEngine {
         uploadPath,
         uploadName,
         localRecord.remoteCreateAt,
-        localRecord.localEditAt > 0 ? localRecord.localEditAt : localRecord.remoteEditAt,
+        localRecord.localEditAt,
         uploadFileEditAt,
         localRecord.localLocked,
         localRecord.localReminder,
