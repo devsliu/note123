@@ -223,10 +223,10 @@ class Repository {
     try {
       await _db!.insertRecycleRecord(
         uuid: record.uuid,
-        path: record.localPath.isNotEmpty ? record.localPath : record.remotePath,
-        name: record.localName.isNotEmpty ? record.localName : record.remoteName,
-        reminder: record.localReminder.isNotEmpty ? record.localReminder : record.remoteReminder,
-        locked: record.localLocked != 0 ? record.localLocked : record.remoteLocked,
+        path: record.localPath,
+        name: record.localName,
+        reminder: record.localReminder,
+        locked: record.localLocked,
         deleteAt: deleteAt,
       );
       _fileStore?.moveFileToRecycler(record.uuid);
@@ -260,20 +260,16 @@ class Repository {
 
     final tableName = db.localRecords.actualTableName;
     final localPathCol = db.localRecords.localPath.name;
-    final remotePathCol = db.localRecords.remotePath.name;
     final editAtCol = db.localRecords.localEditAt.name;
     final typeCol = db.localRecords.localEditType.name;
 
     await db.customUpdate(
       'UPDATE $tableName '
       'SET $localPathCol = ? || SUBSTR($localPathCol, ?), '
-      '    $remotePathCol = ? || SUBSTR($remotePathCol, ?), '
       '    $editAtCol = ?, '
       '    $typeCol = ${LocalEditType.edit} '
       'WHERE $localPathCol LIKE ? AND $typeCol != ${LocalEditType.delete}',
       variables: [
-        Variable.withString(newPath),
-        Variable.withInt(oldPath.runes.length + 1),
         Variable.withString(newPath),
         Variable.withInt(oldPath.runes.length + 1),
         Variable.withInt(time),

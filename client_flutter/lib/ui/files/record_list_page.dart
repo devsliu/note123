@@ -143,7 +143,7 @@ class _RecordListPageState extends State<RecordListPage> {
               appBar: _buildTitleBar(context),
               body: Column(
                 children: [
-                  CalendarBar(onTap: widget.onOpenCalendar),
+                  CalendarBar(onTap: widget.onOpenCalendar, shrink: Utils.isDesktop()),
                   AppConfig.listViewDivider(context),
                   Expanded(child: _buildContent(context)),
                   const SyncStateWidget(),

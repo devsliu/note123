@@ -5,12 +5,14 @@ import 'package:note123/utils/utils.dart';
 
 class CalendarBar extends StatelessWidget {
   final ValueCallback<BuildContext> onTap;
+  final bool shrink;
 
-  const CalendarBar({super.key, required this.onTap});
+  const CalendarBar({super.key, required this.onTap, this.shrink = false});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final paddingV = shrink ? 4.0 : 10.0;
     return ValueListenableBuilder<int>(
       valueListenable: Repository.get().reminderTree.countNotifier,
       builder: (context, count, _) {
@@ -18,8 +20,7 @@ class CalendarBar extends StatelessWidget {
           onTap: () => onTap(context),
           hoverColor: theme.colorScheme.primary.withAlpha(50),
           child: Container(
-            height: 40,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: EdgeInsets.only(left: 12, right: 8, top: paddingV, bottom: paddingV),
             child: Row(
               children: [
                 Icon(Icons.calendar_today, size: 18, color: theme.colorScheme.primary),

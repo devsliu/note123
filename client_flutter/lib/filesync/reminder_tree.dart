@@ -403,19 +403,14 @@ class ReminderTree {
   /// Adds a record's reminders. Returns true if any entries were added.
   bool _addRecord(LocalRecord record) {
     if (record.localEditType == LocalEditType.delete) return false;
-    final json = record.localReminder.isNotEmpty ? record.localReminder : record.remoteReminder;
+    final json = record.localReminder;
     if (json.isEmpty) return false;
     final tasks = ReminderTask.fromJsonString(json);
     if (tasks.isEmpty) return false;
     final list = <ReminderEntry>[];
     for (final task in tasks) {
       list.add(
-        ReminderEntry(
-          recordUuid: record.uuid,
-          recordName: record.localName.isNotEmpty ? record.localName : record.remoteName,
-          recordPath: record.localPath.isNotEmpty ? record.localPath : record.remotePath,
-          task: task,
-        ),
+        ReminderEntry(recordUuid: record.uuid, recordName: record.localName, recordPath: record.localPath, task: task),
       );
     }
     _byRecord[record.uuid] = list;
