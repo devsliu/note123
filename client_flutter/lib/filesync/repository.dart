@@ -87,7 +87,7 @@ class Repository {
     recordTree.build([]);
     if (userId != 0) {
       _fileStore = FileStore(join(appRootDir, userId.toString()));
-      _db = createRecordsDatabase(File(join(_fileStore!.rootDir, "records_v6.db")));
+      _db = createRecordsDatabase(File(join(_fileStore!.rootDir, "records_v7.db")));
       _fileStore!.db = _db!;
       _syncEngine = SyncEngine(
         db: _db!,
@@ -117,7 +117,14 @@ class Repository {
   // 🎯 CREATE / EDIT / DELETE — local write operations
   // =========================================================================
 
-  Future<RecordEntry?> createRecord(String path, String name, bool sync, int fileEditAt, {String? reminder}) async {
+  Future<RecordEntry?> createRecord(
+    String path,
+    String name,
+    bool sync,
+    int fileEditAt, {
+    String? reminder,
+    String? tags,
+  }) async {
     if (_db == null || _fileStore == null) return null;
     int time = DateTime.now().millisecondsSinceEpoch;
     final uuid = Uuid().v4();
@@ -129,6 +136,7 @@ class Repository {
       editAt: time,
       createAt: time,
       reminder: reminder,
+      tags: tags,
     );
     final record = (await _db!.getRecord(uuid))!;
     recordTree.insertRecord(record);
@@ -142,6 +150,7 @@ class Repository {
   /// md5: md5 of the work file content (post-encryption if locked).
   /// path/name/locked/md5: optional; when null the field is left unchanged.
   /// reminder: optional JSON string of reminder tasks; pass null to leave it unchanged.
+  /// tags: optional comma-separated tag string; pass null to leave it unchanged.
   Future<RecordEntry?> editRecord(
     String uuid,
     bool fileEdit,
@@ -151,6 +160,7 @@ class Repository {
     int? locked,
     String? md5,
     String? reminder,
+    String? tags,
   }) async {
     if (_db == null) return null;
     AppDatabase db = _db!;
@@ -168,6 +178,7 @@ class Repository {
       fileEditAt: fileEdit ? time : null,
       locked: locked,
       reminder: reminder,
+      tags: tags,
     );
 
     final record = await db.getRecord(uuid);
@@ -221,6 +232,7 @@ class Repository {
         path: record.path,
         name: record.name,
         reminder: record.reminder,
+        tags: record.tags,
         locked: record.locked,
         deleteAt: deleteAt,
       );
@@ -398,6 +410,7 @@ class Repository {
         path: entry.path,
         locked: entry.locked,
         reminder: entry.reminder,
+        tags: entry.tags,
         fileEditAt: _fileStore!.isWorkFileExist(uuid) ? time : 0,
         editAt: time,
         createAt: time,

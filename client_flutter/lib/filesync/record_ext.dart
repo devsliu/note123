@@ -36,6 +36,7 @@ class RecordEntry {
         deleteAt: 0,
         md5: '',
         locked: 0,
+        tags: '',
       );
     }
     return RemoteRecord.fromJson(jsonDecode(local.remoteJson) as Map<String, dynamic>);

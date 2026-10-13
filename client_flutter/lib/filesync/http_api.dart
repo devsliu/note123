@@ -251,6 +251,7 @@ class HttpApi {
     int? fileEditAt,
     int? locked,
     String? reminder,
+    String? tags,
   }) async {
     return _apiWrapper("updateRecord $uuid ${path ?? ''}${name ?? ''} ${filePath ?? ''}", (client, baseUrl) async {
       var req = http.MultipartRequest('POST', Uri.parse('$baseUrl/record/update?uuid=$uuid'));
@@ -263,6 +264,7 @@ class HttpApi {
       if (fileEditAt != null) req.fields['fileEditAt'] = fileEditAt.toString();
       if (locked != null) req.fields['locked'] = locked.toString();
       if (reminder != null) req.fields['reminder'] = reminder;
+      if (tags != null) req.fields['tags'] = tags;
       if (filePath != null && filePath.isNotEmpty) {
         // If filePath is not empty, it means file needs to be uploaded
         req.files.add(await http.MultipartFile.fromPath('file', filePath, filename: uuid));

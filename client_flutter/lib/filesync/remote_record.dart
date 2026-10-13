@@ -18,6 +18,7 @@ class RemoteRecord {
   final String md5;
   final int locked;
   final String reminder;
+  final String tags;
 
   RemoteRecord({
     required this.uuid,
@@ -32,6 +33,7 @@ class RemoteRecord {
     required this.deleteAt,
     required this.md5,
     this.reminder = '',
+    this.tags = '',
   });
 
   /// RemoteRecord → LocalRecord: copy all remote_*, local_* = remote_* (synced baseline).
@@ -63,6 +65,7 @@ class RemoteRecord {
       path: formattedPath,
       locked: locked,
       reminder: reminder,
+      tags: tags,
     );
   }
 
@@ -79,6 +82,7 @@ class RemoteRecord {
     deleteAt: (json['deleteAt'] as num?)?.toInt() ?? 0,
     md5: json['md5'] as String? ?? '',
     reminder: _normalizeReminder(json['reminder'] as String?),
+    tags: json['tags'] as String? ?? '',
   );
 
   Map<String, Object?> toJson() => {
@@ -94,6 +98,7 @@ class RemoteRecord {
     'md5': md5,
     'locked': locked,
     'reminder': _normalizeReminder(reminder),
+    'tags': tags,
   };
 
   /// Normalize reminder: empty JSON array ("[]") or "null" becomes "".

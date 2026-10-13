@@ -31,18 +31,19 @@ type Record struct {
 	FileVersion int64  `json:"fileVersion"` // note file version; 0 without file content, first content is 1, then +1 on each change
 	Locked      int64  `json:"locked"`      // whether the note is locked; 0 = unlocked, non-0 = lock timestamp
 	Reminder    string `json:"reminder"`    // JSON array of reminder tasks, "" means no reminders
+	Tags        string `json:"tags"`        // comma-separated tag list, "" means no tags
 }
 
-const recordColumns = "uuid, path, name, md5, version, createAt, editAt, deleteAt, fileEditAt, fileVersion, locked, reminder"
+const recordColumns = "uuid, path, name, md5, version, createAt, editAt, deleteAt, fileEditAt, fileVersion, locked, reminder, tags"
 
 func (e *Record) scanTargets() []interface{} {
 	return []interface{}{
 		&e.UUID, &e.Path, &e.Name, &e.MD5, &e.Version,
-		&e.CreateAt, &e.EditAt, &e.DeleteAt, &e.FileEditAt, &e.FileVersion, &e.Locked, &e.Reminder,
+		&e.CreateAt, &e.EditAt, &e.DeleteAt, &e.FileEditAt, &e.FileVersion, &e.Locked, &e.Reminder, &e.Tags,
 	}
 }
 
-func NewRecord(uuid, path, name, md5 string, createAt, editAt, deleteAt, version, fileEditAt, fileVersion, locked int64, reminder string) *Record {
+func NewRecord(uuid, path, name, md5 string, createAt, editAt, deleteAt, version, fileEditAt, fileVersion, locked int64, reminder, tags string) *Record {
 	return &Record{
 		UUID:        uuid,
 		Path:        path,
@@ -56,6 +57,7 @@ func NewRecord(uuid, path, name, md5 string, createAt, editAt, deleteAt, version
 		FileVersion: fileVersion,
 		Locked:      locked,
 		Reminder:    reminder,
+		Tags:        tags,
 	}
 }
 
@@ -73,7 +75,8 @@ func createRecordTableSql(userId int64) string {
 			fileEditAt INTEGER NOT NULL DEFAULT 0,
 			fileVersion INTEGER NOT NULL DEFAULT 0,
 			locked INTEGER NOT NULL DEFAULT 0,
-			reminder TEXT NOT NULL DEFAULT ''
+			reminder TEXT NOT NULL DEFAULT '',
+			tags TEXT NOT NULL DEFAULT ''
 		);
 		CREATE INDEX IF NOT EXISTS idx_record_version_%d ON record_%d (version);`, userId, userId, userId)
 }
@@ -96,6 +99,7 @@ type RecordUpsert struct {
 	FileEditAt  int64
 	Locked      *int64
 	Reminder    *string
+	Tags        *string
 	BaseVersion int64
 }
 
@@ -117,6 +121,10 @@ func (db *DB) UpsertRecord(userId int64, u *RecordUpsert) (*Record, ResultCode) 
 	reminder := ""
 	if u.Reminder != nil {
 		reminder = normalizeReminder(*u.Reminder)
+	}
+	tags := ""
+	if u.Tags != nil {
+		tags = *u.Tags
 	}
 	var resultRecord *Record
 	var conflictRecord *Record
@@ -199,6 +207,9 @@ func (db *DB) UpsertRecord(userId int64, u *RecordUpsert) (*Record, ResultCode) 
 		if u.Reminder != nil {
 			setClauses = append(setClauses, "reminder = excluded.reminder")
 		}
+		if u.Tags != nil {
+			setClauses = append(setClauses, "tags = excluded.tags")
+		}
 		conditionalSet := strings.Join(setClauses, ", ")
 		if conditionalSet != "" {
 			conditionalSet = ", " + conditionalSet
@@ -206,7 +217,7 @@ func (db *DB) UpsertRecord(userId int64, u *RecordUpsert) (*Record, ResultCode) 
 
 		sqlStmt := fmt.Sprintf(`
 			INSERT INTO record_%d (`+recordColumns+`)
-			VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
+			VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
 			ON CONFLICT(uuid) DO UPDATE SET
 				version    = excluded.version,
 				deleteAt   = 0,
@@ -214,7 +225,7 @@ func (db *DB) UpsertRecord(userId int64, u *RecordUpsert) (*Record, ResultCode) 
 				fileVersion = CASE WHEN ? AND excluded.md5 != md5 THEN fileVersion + 1 ELSE fileVersion END`+conditionalSet+`
 		`, userId)
 		args := []interface{}{
-			u.UUID, u.Path, u.Name, u.MD5, version, u.CreateAt, u.EditAt, u.FileEditAt, insertFileVersion, lockedVal, reminder,
+			u.UUID, u.Path, u.Name, u.MD5, version, u.CreateAt, u.EditAt, u.FileEditAt, insertFileVersion, lockedVal, reminder, tags,
 			u.MD5 != "", // for the fileVersion CASE WHEN
 		}
 		_, err = tx.Exec(sqlStmt, args...)

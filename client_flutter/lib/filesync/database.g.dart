@@ -202,6 +202,16 @@ class $LocalRecordsTable extends LocalRecords
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _tagsMeta = const VerificationMeta('tags');
+  @override
+  late final GeneratedColumn<String> tags = GeneratedColumn<String>(
+    'tags',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _pathMeta = const VerificationMeta('path');
   @override
   late final GeneratedColumn<String> path = GeneratedColumn<String>(
@@ -232,6 +242,7 @@ class $LocalRecordsTable extends LocalRecords
     md5,
     locked,
     reminder,
+    tags,
     path,
   ];
   @override
@@ -365,6 +376,12 @@ class $LocalRecordsTable extends LocalRecords
         reminder.isAcceptableOrUnknown(data['reminder']!, _reminderMeta),
       );
     }
+    if (data.containsKey('tags')) {
+      context.handle(
+        _tagsMeta,
+        tags.isAcceptableOrUnknown(data['tags']!, _tagsMeta),
+      );
+    }
     if (data.containsKey('path')) {
       context.handle(
         _pathMeta,
@@ -448,6 +465,10 @@ class $LocalRecordsTable extends LocalRecords
         DriftSqlType.string,
         data['${effectivePrefix}reminder'],
       )!,
+      tags: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tags'],
+      )!,
       path: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}path'],
@@ -508,6 +529,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
   final String md5;
   final int locked;
   final String reminder;
+  final String tags;
 
   /// Local path: COLLATE BINARY ensures LIKE index works, CHECK constraint guarantees format
   final String path;
@@ -529,6 +551,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     required this.md5,
     required this.locked,
     required this.reminder,
+    required this.tags,
     required this.path,
   });
   @override
@@ -551,6 +574,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     map['md5'] = Variable<String>(md5);
     map['locked'] = Variable<int>(locked);
     map['reminder'] = Variable<String>(reminder);
+    map['tags'] = Variable<String>(tags);
     map['path'] = Variable<String>(path);
     return map;
   }
@@ -574,6 +598,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       md5: Value(md5),
       locked: Value(locked),
       reminder: Value(reminder),
+      tags: Value(tags),
       path: Value(path),
     );
   }
@@ -601,6 +626,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       md5: serializer.fromJson<String>(json['md5']),
       locked: serializer.fromJson<int>(json['locked']),
       reminder: serializer.fromJson<String>(json['reminder']),
+      tags: serializer.fromJson<String>(json['tags']),
       path: serializer.fromJson<String>(json['path']),
     );
   }
@@ -625,6 +651,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       'md5': serializer.toJson<String>(md5),
       'locked': serializer.toJson<int>(locked),
       'reminder': serializer.toJson<String>(reminder),
+      'tags': serializer.toJson<String>(tags),
       'path': serializer.toJson<String>(path),
     };
   }
@@ -647,6 +674,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     String? md5,
     int? locked,
     String? reminder,
+    String? tags,
     String? path,
   }) => LocalRecord(
     uuid: uuid ?? this.uuid,
@@ -666,6 +694,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     md5: md5 ?? this.md5,
     locked: locked ?? this.locked,
     reminder: reminder ?? this.reminder,
+    tags: tags ?? this.tags,
     path: path ?? this.path,
   );
   LocalRecord copyWithCompanion(LocalRecordsCompanion data) {
@@ -699,6 +728,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       md5: data.md5.present ? data.md5.value : this.md5,
       locked: data.locked.present ? data.locked.value : this.locked,
       reminder: data.reminder.present ? data.reminder.value : this.reminder,
+      tags: data.tags.present ? data.tags.value : this.tags,
       path: data.path.present ? data.path.value : this.path,
     );
   }
@@ -723,6 +753,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
           ..write('md5: $md5, ')
           ..write('locked: $locked, ')
           ..write('reminder: $reminder, ')
+          ..write('tags: $tags, ')
           ..write('path: $path')
           ..write(')'))
         .toString();
@@ -747,6 +778,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     md5,
     locked,
     reminder,
+    tags,
     path,
   );
   @override
@@ -770,6 +802,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
           other.md5 == this.md5 &&
           other.locked == this.locked &&
           other.reminder == this.reminder &&
+          other.tags == this.tags &&
           other.path == this.path);
 }
 
@@ -791,6 +824,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
   final Value<String> md5;
   final Value<int> locked;
   final Value<String> reminder;
+  final Value<String> tags;
   final Value<String> path;
   final Value<int> rowid;
   const LocalRecordsCompanion({
@@ -811,6 +845,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     this.md5 = const Value.absent(),
     this.locked = const Value.absent(),
     this.reminder = const Value.absent(),
+    this.tags = const Value.absent(),
     this.path = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -832,6 +867,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     this.md5 = const Value.absent(),
     this.locked = const Value.absent(),
     this.reminder = const Value.absent(),
+    this.tags = const Value.absent(),
     this.path = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : uuid = Value(uuid);
@@ -853,6 +889,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     Expression<String>? md5,
     Expression<int>? locked,
     Expression<String>? reminder,
+    Expression<String>? tags,
     Expression<String>? path,
     Expression<int>? rowid,
   }) {
@@ -874,6 +911,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
       if (md5 != null) 'md5': md5,
       if (locked != null) 'locked': locked,
       if (reminder != null) 'reminder': reminder,
+      if (tags != null) 'tags': tags,
       if (path != null) 'path': path,
       if (rowid != null) 'rowid': rowid,
     });
@@ -897,6 +935,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     Value<String>? md5,
     Value<int>? locked,
     Value<String>? reminder,
+    Value<String>? tags,
     Value<String>? path,
     Value<int>? rowid,
   }) {
@@ -918,6 +957,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
       md5: md5 ?? this.md5,
       locked: locked ?? this.locked,
       reminder: reminder ?? this.reminder,
+      tags: tags ?? this.tags,
       path: path ?? this.path,
       rowid: rowid ?? this.rowid,
     );
@@ -977,6 +1017,9 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     if (reminder.present) {
       map['reminder'] = Variable<String>(reminder.value);
     }
+    if (tags.present) {
+      map['tags'] = Variable<String>(tags.value);
+    }
     if (path.present) {
       map['path'] = Variable<String>(path.value);
     }
@@ -1006,6 +1049,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
           ..write('md5: $md5, ')
           ..write('locked: $locked, ')
           ..write('reminder: $reminder, ')
+          ..write('tags: $tags, ')
           ..write('path: $path, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1555,6 +1599,16 @@ class $RecycleRecordsTable extends RecycleRecords
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
+  static const VerificationMeta _tagsMeta = const VerificationMeta('tags');
+  @override
+  late final GeneratedColumn<String> tags = GeneratedColumn<String>(
+    'tags',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _lockedMeta = const VerificationMeta('locked');
   @override
   late final GeneratedColumn<int> locked = GeneratedColumn<int>(
@@ -1582,6 +1636,7 @@ class $RecycleRecordsTable extends RecycleRecords
     path,
     name,
     reminder,
+    tags,
     locked,
     deleteAt,
   ];
@@ -1623,6 +1678,12 @@ class $RecycleRecordsTable extends RecycleRecords
         reminder.isAcceptableOrUnknown(data['reminder']!, _reminderMeta),
       );
     }
+    if (data.containsKey('tags')) {
+      context.handle(
+        _tagsMeta,
+        tags.isAcceptableOrUnknown(data['tags']!, _tagsMeta),
+      );
+    }
     if (data.containsKey('locked')) {
       context.handle(
         _lockedMeta,
@@ -1662,6 +1723,10 @@ class $RecycleRecordsTable extends RecycleRecords
         DriftSqlType.string,
         data['${effectivePrefix}reminder'],
       )!,
+      tags: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}tags'],
+      )!,
       locked: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}locked'],
@@ -1684,6 +1749,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
   final String path;
   final String name;
   final String reminder;
+  final String tags;
   final int locked;
 
   /// Deletion timestamp (ms)
@@ -1693,6 +1759,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
     required this.path,
     required this.name,
     required this.reminder,
+    required this.tags,
     required this.locked,
     required this.deleteAt,
   });
@@ -1703,6 +1770,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
     map['path'] = Variable<String>(path);
     map['name'] = Variable<String>(name);
     map['reminder'] = Variable<String>(reminder);
+    map['tags'] = Variable<String>(tags);
     map['locked'] = Variable<int>(locked);
     map['delete_at'] = Variable<int>(deleteAt);
     return map;
@@ -1714,6 +1782,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
       path: Value(path),
       name: Value(name),
       reminder: Value(reminder),
+      tags: Value(tags),
       locked: Value(locked),
       deleteAt: Value(deleteAt),
     );
@@ -1729,6 +1798,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
       path: serializer.fromJson<String>(json['path']),
       name: serializer.fromJson<String>(json['name']),
       reminder: serializer.fromJson<String>(json['reminder']),
+      tags: serializer.fromJson<String>(json['tags']),
       locked: serializer.fromJson<int>(json['locked']),
       deleteAt: serializer.fromJson<int>(json['deleteAt']),
     );
@@ -1741,6 +1811,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
       'path': serializer.toJson<String>(path),
       'name': serializer.toJson<String>(name),
       'reminder': serializer.toJson<String>(reminder),
+      'tags': serializer.toJson<String>(tags),
       'locked': serializer.toJson<int>(locked),
       'deleteAt': serializer.toJson<int>(deleteAt),
     };
@@ -1751,6 +1822,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
     String? path,
     String? name,
     String? reminder,
+    String? tags,
     int? locked,
     int? deleteAt,
   }) => RecycleRecord(
@@ -1758,6 +1830,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
     path: path ?? this.path,
     name: name ?? this.name,
     reminder: reminder ?? this.reminder,
+    tags: tags ?? this.tags,
     locked: locked ?? this.locked,
     deleteAt: deleteAt ?? this.deleteAt,
   );
@@ -1767,6 +1840,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
       path: data.path.present ? data.path.value : this.path,
       name: data.name.present ? data.name.value : this.name,
       reminder: data.reminder.present ? data.reminder.value : this.reminder,
+      tags: data.tags.present ? data.tags.value : this.tags,
       locked: data.locked.present ? data.locked.value : this.locked,
       deleteAt: data.deleteAt.present ? data.deleteAt.value : this.deleteAt,
     );
@@ -1779,6 +1853,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
           ..write('path: $path, ')
           ..write('name: $name, ')
           ..write('reminder: $reminder, ')
+          ..write('tags: $tags, ')
           ..write('locked: $locked, ')
           ..write('deleteAt: $deleteAt')
           ..write(')'))
@@ -1786,7 +1861,8 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
   }
 
   @override
-  int get hashCode => Object.hash(uuid, path, name, reminder, locked, deleteAt);
+  int get hashCode =>
+      Object.hash(uuid, path, name, reminder, tags, locked, deleteAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1795,6 +1871,7 @@ class RecycleRecord extends DataClass implements Insertable<RecycleRecord> {
           other.path == this.path &&
           other.name == this.name &&
           other.reminder == this.reminder &&
+          other.tags == this.tags &&
           other.locked == this.locked &&
           other.deleteAt == this.deleteAt);
 }
@@ -1804,6 +1881,7 @@ class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
   final Value<String> path;
   final Value<String> name;
   final Value<String> reminder;
+  final Value<String> tags;
   final Value<int> locked;
   final Value<int> deleteAt;
   final Value<int> rowid;
@@ -1812,6 +1890,7 @@ class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
     this.path = const Value.absent(),
     this.name = const Value.absent(),
     this.reminder = const Value.absent(),
+    this.tags = const Value.absent(),
     this.locked = const Value.absent(),
     this.deleteAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1821,6 +1900,7 @@ class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
     this.path = const Value.absent(),
     this.name = const Value.absent(),
     this.reminder = const Value.absent(),
+    this.tags = const Value.absent(),
     this.locked = const Value.absent(),
     required int deleteAt,
     this.rowid = const Value.absent(),
@@ -1831,6 +1911,7 @@ class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
     Expression<String>? path,
     Expression<String>? name,
     Expression<String>? reminder,
+    Expression<String>? tags,
     Expression<int>? locked,
     Expression<int>? deleteAt,
     Expression<int>? rowid,
@@ -1840,6 +1921,7 @@ class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
       if (path != null) 'path': path,
       if (name != null) 'name': name,
       if (reminder != null) 'reminder': reminder,
+      if (tags != null) 'tags': tags,
       if (locked != null) 'locked': locked,
       if (deleteAt != null) 'delete_at': deleteAt,
       if (rowid != null) 'rowid': rowid,
@@ -1851,6 +1933,7 @@ class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
     Value<String>? path,
     Value<String>? name,
     Value<String>? reminder,
+    Value<String>? tags,
     Value<int>? locked,
     Value<int>? deleteAt,
     Value<int>? rowid,
@@ -1860,6 +1943,7 @@ class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
       path: path ?? this.path,
       name: name ?? this.name,
       reminder: reminder ?? this.reminder,
+      tags: tags ?? this.tags,
       locked: locked ?? this.locked,
       deleteAt: deleteAt ?? this.deleteAt,
       rowid: rowid ?? this.rowid,
@@ -1881,6 +1965,9 @@ class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
     if (reminder.present) {
       map['reminder'] = Variable<String>(reminder.value);
     }
+    if (tags.present) {
+      map['tags'] = Variable<String>(tags.value);
+    }
     if (locked.present) {
       map['locked'] = Variable<int>(locked.value);
     }
@@ -1900,6 +1987,7 @@ class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
           ..write('path: $path, ')
           ..write('name: $name, ')
           ..write('reminder: $reminder, ')
+          ..write('tags: $tags, ')
           ..write('locked: $locked, ')
           ..write('deleteAt: $deleteAt, ')
           ..write('rowid: $rowid')
@@ -2073,6 +2161,7 @@ typedef $$LocalRecordsTableCreateCompanionBuilder =
       Value<String> md5,
       Value<int> locked,
       Value<String> reminder,
+      Value<String> tags,
       Value<String> path,
       Value<int> rowid,
     });
@@ -2095,6 +2184,7 @@ typedef $$LocalRecordsTableUpdateCompanionBuilder =
       Value<String> md5,
       Value<int> locked,
       Value<String> reminder,
+      Value<String> tags,
       Value<String> path,
       Value<int> rowid,
     });
@@ -2190,6 +2280,11 @@ class $$LocalRecordsTableFilterComposer
 
   ColumnFilters<String> get reminder => $composableBuilder(
     column: $table.reminder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tags => $composableBuilder(
+    column: $table.tags,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2293,6 +2388,11 @@ class $$LocalRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get tags => $composableBuilder(
+    column: $table.tags,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get path => $composableBuilder(
     column: $table.path,
     builder: (column) => ColumnOrderings(column),
@@ -2371,6 +2471,9 @@ class $$LocalRecordsTableAnnotationComposer
   GeneratedColumn<String> get reminder =>
       $composableBuilder(column: $table.reminder, builder: (column) => column);
 
+  GeneratedColumn<String> get tags =>
+      $composableBuilder(column: $table.tags, builder: (column) => column);
+
   GeneratedColumn<String> get path =>
       $composableBuilder(column: $table.path, builder: (column) => column);
 }
@@ -2423,6 +2526,7 @@ class $$LocalRecordsTableTableManager
                 Value<String> md5 = const Value.absent(),
                 Value<int> locked = const Value.absent(),
                 Value<String> reminder = const Value.absent(),
+                Value<String> tags = const Value.absent(),
                 Value<String> path = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalRecordsCompanion(
@@ -2443,6 +2547,7 @@ class $$LocalRecordsTableTableManager
                 md5: md5,
                 locked: locked,
                 reminder: reminder,
+                tags: tags,
                 path: path,
                 rowid: rowid,
               ),
@@ -2465,6 +2570,7 @@ class $$LocalRecordsTableTableManager
                 Value<String> md5 = const Value.absent(),
                 Value<int> locked = const Value.absent(),
                 Value<String> reminder = const Value.absent(),
+                Value<String> tags = const Value.absent(),
                 Value<String> path = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalRecordsCompanion.insert(
@@ -2485,6 +2591,7 @@ class $$LocalRecordsTableTableManager
                 md5: md5,
                 locked: locked,
                 reminder: reminder,
+                tags: tags,
                 path: path,
                 rowid: rowid,
               ),
@@ -2832,6 +2939,7 @@ typedef $$RecycleRecordsTableCreateCompanionBuilder =
       Value<String> path,
       Value<String> name,
       Value<String> reminder,
+      Value<String> tags,
       Value<int> locked,
       required int deleteAt,
       Value<int> rowid,
@@ -2842,6 +2950,7 @@ typedef $$RecycleRecordsTableUpdateCompanionBuilder =
       Value<String> path,
       Value<String> name,
       Value<String> reminder,
+      Value<String> tags,
       Value<int> locked,
       Value<int> deleteAt,
       Value<int> rowid,
@@ -2873,6 +2982,11 @@ class $$RecycleRecordsTableFilterComposer
 
   ColumnFilters<String> get reminder => $composableBuilder(
     column: $table.reminder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get tags => $composableBuilder(
+    column: $table.tags,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2916,6 +3030,11 @@ class $$RecycleRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get tags => $composableBuilder(
+    column: $table.tags,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get locked => $composableBuilder(
     column: $table.locked,
     builder: (column) => ColumnOrderings(column),
@@ -2947,6 +3066,9 @@ class $$RecycleRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get reminder =>
       $composableBuilder(column: $table.reminder, builder: (column) => column);
+
+  GeneratedColumn<String> get tags =>
+      $composableBuilder(column: $table.tags, builder: (column) => column);
 
   GeneratedColumn<int> get locked =>
       $composableBuilder(column: $table.locked, builder: (column) => column);
@@ -2992,6 +3114,7 @@ class $$RecycleRecordsTableTableManager
                 Value<String> path = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> reminder = const Value.absent(),
+                Value<String> tags = const Value.absent(),
                 Value<int> locked = const Value.absent(),
                 Value<int> deleteAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -3000,6 +3123,7 @@ class $$RecycleRecordsTableTableManager
                 path: path,
                 name: name,
                 reminder: reminder,
+                tags: tags,
                 locked: locked,
                 deleteAt: deleteAt,
                 rowid: rowid,
@@ -3010,6 +3134,7 @@ class $$RecycleRecordsTableTableManager
                 Value<String> path = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> reminder = const Value.absent(),
+                Value<String> tags = const Value.absent(),
                 Value<int> locked = const Value.absent(),
                 required int deleteAt,
                 Value<int> rowid = const Value.absent(),
@@ -3018,6 +3143,7 @@ class $$RecycleRecordsTableTableManager
                 path: path,
                 name: name,
                 reminder: reminder,
+                tags: tags,
                 locked: locked,
                 deleteAt: deleteAt,
                 rowid: rowid,

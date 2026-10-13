@@ -384,7 +384,7 @@ class SyncEngine {
       // fields alone (avoids overwriting another device's edits with stale local values).
       // createAt: only for new records (server fills server time; ignored on update).
       // fileEditAt: only when uploading a file (server skips it otherwise).
-      // path/name/locked/reminder: only when local differs from remote.
+      // path/name/locked/reminder/tags: only when local differs from remote.
       final result = await HttpApi.upsertRecord(
         entry.uuid,
         entry.local.editAt,
@@ -396,6 +396,7 @@ class SyncEngine {
         fileEditAt: fileExist ? entry.local.fileEditAt : null,
         locked: entry.local.locked != entry.remote.locked ? entry.local.locked : null,
         reminder: entry.local.reminder != entry.remote.reminder ? entry.local.reminder : null,
+        tags: entry.local.tags != entry.remote.tags ? entry.local.tags : null,
       );
 
       if (result.isSuccess()) {

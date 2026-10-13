@@ -72,6 +72,7 @@ class LocalRecords extends Table {
   TextColumn get md5 => text().withDefault(const Constant(''))();
   IntColumn get locked => integer().withDefault(const Constant(0))();
   TextColumn get reminder => text().withDefault(const Constant(''))();
+  TextColumn get tags => text().withDefault(const Constant(''))();
 
   /// Local path: COLLATE BINARY ensures LIKE index works, CHECK constraint guarantees format
   TextColumn get path =>
@@ -103,6 +104,7 @@ class RecycleRecords extends Table {
   TextColumn get path => text().withDefault(const Constant(''))();
   TextColumn get name => text().withDefault(const Constant(''))();
   TextColumn get reminder => text().withDefault(const Constant(''))();
+  TextColumn get tags => text().withDefault(const Constant(''))();
   IntColumn get locked => integer().withDefault(const Constant(0))();
 
   /// Deletion timestamp (ms)

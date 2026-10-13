@@ -96,6 +96,7 @@ class AppDatabase extends _$AppDatabase {
     required String path,
     required String name,
     required String reminder,
+    required String tags,
     required int locked,
     required int deleteAt,
   }) async {
@@ -105,6 +106,7 @@ class AppDatabase extends _$AppDatabase {
         path: Value(path),
         name: Value(name),
         reminder: Value(reminder),
+        tags: Value(tags),
         locked: Value(locked),
         deleteAt: deleteAt,
       ),
@@ -149,6 +151,7 @@ class AppDatabase extends _$AppDatabase {
     required int fileEditAt,
     required int createAt,
     String? reminder,
+    String? tags,
   }) async {
     return await into(localRecords).insert(
       LocalRecordsCompanion.insert(
@@ -160,6 +163,7 @@ class AppDatabase extends _$AppDatabase {
         name: Value(name),
         path: Value(path),
         reminder: Value(reminder ?? ''),
+        tags: Value(tags ?? ''),
       ),
     );
   }
@@ -175,6 +179,7 @@ class AppDatabase extends _$AppDatabase {
     required int editAt,
     required int fileEditAt,
     required int createAt,
+    required String tags,
   }) async {
     return await into(localRecords).insert(
       LocalRecordsCompanion.insert(
@@ -186,6 +191,7 @@ class AppDatabase extends _$AppDatabase {
         name: Value(name),
         locked: Value(locked),
         reminder: Value(reminder),
+        tags: Value(tags),
         path: Value(path),
       ),
     );
@@ -217,6 +223,7 @@ class AppDatabase extends _$AppDatabase {
     String? path,
     int? locked,
     String? reminder,
+    String? tags,
   }) async {
     return await (update(localRecords)..where((t) => t.uuid.equals(uuid))).write(
       LocalRecordsCompanion(
@@ -237,6 +244,7 @@ class AppDatabase extends _$AppDatabase {
         path: path != null ? Value(path) : Value.absent(),
         locked: locked != null ? Value(locked) : Value.absent(),
         reminder: reminder != null ? Value(reminder) : Value.absent(),
+        tags: tags != null ? Value(tags) : Value.absent(),
       ),
     );
   }
@@ -297,6 +305,7 @@ class AppDatabase extends _$AppDatabase {
       path: e.remote.path,
       locked: e.remote.locked,
       reminder: e.remote.reminder,
+      tags: e.remote.tags,
     );
   }
 }

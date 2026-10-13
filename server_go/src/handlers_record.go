@@ -146,6 +146,12 @@ func (s *Server) updateRecordHandler(w http.ResponseWriter, r *http.Request, use
 		reminder = &v
 	}
 
+	// tags: provided (even empty string) updates the field; absent leaves it untouched
+	var tags *string
+	if v, ok := getFormString(r, "tags"); ok {
+		tags = &v
+	}
+
 	md5sum := ""
 	var tmpPath string
 	hasTempFile := false
@@ -185,6 +191,7 @@ func (s *Server) updateRecordHandler(w http.ResponseWriter, r *http.Request, use
 		FileEditAt:  fileEditAt,
 		Locked:      locked,
 		Reminder:    reminder,
+		Tags:        tags,
 		BaseVersion: baseVersion,
 	}
 	record, result := s.db.UpsertRecord(user.UserID, upsert)
