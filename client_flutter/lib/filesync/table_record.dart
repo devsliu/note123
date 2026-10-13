@@ -63,6 +63,10 @@ class LocalRecords extends Table {
   /// Local file edit timestamp. 0=no file edit
   IntColumn get fileEditAt => integer().withDefault(const Constant(0))();
 
+  /// Local creation timestamp. Set on local create, synced from server on pull.
+  /// Never modified after creation.
+  IntColumn get createAt => integer().withDefault(const Constant(0))();
+
   /// Field values after local edits. Overwritten with remote_* after successful sync (restored to server values)
   TextColumn get name => text().withDefault(const Constant(''))();
   TextColumn get md5 => text().withDefault(const Constant(''))();

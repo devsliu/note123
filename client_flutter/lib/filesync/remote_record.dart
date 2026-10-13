@@ -57,6 +57,7 @@ class RemoteRecord {
       fileVersion: fileVersion,
       editAt: editAt,
       fileEditAt: fileEditAt,
+      createAt: createAt,
       name: name,
       md5: md5,
       path: formattedPath,

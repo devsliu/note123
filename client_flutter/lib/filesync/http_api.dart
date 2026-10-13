@@ -238,30 +238,32 @@ class HttpApi {
     req.headers['x-token'] = User.instance.token ?? "";
   }
 
+  /// Upsert a record. Fields that are null are omitted from the request so the
+  /// server leaves them unchanged (partial update). editAt/version are always sent.
   static Future<ApiResult<RemoteRecord>> upsertRecord(
     String uuid,
-    String path,
-    String name,
-    int createAt,
     int editAt,
-    int fileEditAt,
-    int locked,
-    String reminder,
-    String filePath,
-    int version,
-  ) async {
-    return _apiWrapper("updateRecord $uuid $path$name $filePath", (client, baseUrl) async {
+    int version, {
+    String? path,
+    String? name,
+    String? filePath,
+    int? createAt,
+    int? fileEditAt,
+    int? locked,
+    String? reminder,
+  }) async {
+    return _apiWrapper("updateRecord $uuid ${path ?? ''}${name ?? ''} ${filePath ?? ''}", (client, baseUrl) async {
       var req = http.MultipartRequest('POST', Uri.parse('$baseUrl/record/update?uuid=$uuid'));
       await setTokenToRequest(req);
-      req.fields['path'] = path;
-      req.fields['name'] = name;
-      req.fields['createAt'] = createAt.toString();
+      if (path != null) req.fields['path'] = path;
+      if (name != null) req.fields['name'] = name;
       req.fields['editAt'] = editAt.toString();
-      req.fields['fileEditAt'] = fileEditAt.toString();
-      req.fields['locked'] = locked.toString();
-      req.fields['reminder'] = reminder;
       req.fields['version'] = version.toString();
-      if (filePath.isNotEmpty) {
+      if (createAt != null) req.fields['createAt'] = createAt.toString();
+      if (fileEditAt != null) req.fields['fileEditAt'] = fileEditAt.toString();
+      if (locked != null) req.fields['locked'] = locked.toString();
+      if (reminder != null) req.fields['reminder'] = reminder;
+      if (filePath != null && filePath.isNotEmpty) {
         // If filePath is not empty, it means file needs to be uploaded
         req.files.add(await http.MultipartFile.fromPath('file', filePath, filename: uuid));
       }

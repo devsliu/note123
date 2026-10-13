@@ -148,6 +148,18 @@ class $LocalRecordsTable extends LocalRecords
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _createAtMeta = const VerificationMeta(
+    'createAt',
+  );
+  @override
+  late final GeneratedColumn<int> createAt = GeneratedColumn<int>(
+    'create_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
@@ -215,6 +227,7 @@ class $LocalRecordsTable extends LocalRecords
     fileVersion,
     editAt,
     fileEditAt,
+    createAt,
     name,
     md5,
     locked,
@@ -322,6 +335,12 @@ class $LocalRecordsTable extends LocalRecords
         ),
       );
     }
+    if (data.containsKey('create_at')) {
+      context.handle(
+        _createAtMeta,
+        createAt.isAcceptableOrUnknown(data['create_at']!, _createAtMeta),
+      );
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -409,6 +428,10 @@ class $LocalRecordsTable extends LocalRecords
         DriftSqlType.int,
         data['${effectivePrefix}file_edit_at'],
       )!,
+      createAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}create_at'],
+      )!,
       name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}name'],
@@ -476,6 +499,10 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
   /// Local file edit timestamp. 0=no file edit
   final int fileEditAt;
 
+  /// Local creation timestamp. Set on local create, synced from server on pull.
+  /// Never modified after creation.
+  final int createAt;
+
   /// Field values after local edits. Overwritten with remote_* after successful sync (restored to server values)
   final String name;
   final String md5;
@@ -497,6 +524,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     required this.fileVersion,
     required this.editAt,
     required this.fileEditAt,
+    required this.createAt,
     required this.name,
     required this.md5,
     required this.locked,
@@ -518,6 +546,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     map['file_version'] = Variable<int>(fileVersion);
     map['edit_at'] = Variable<int>(editAt);
     map['file_edit_at'] = Variable<int>(fileEditAt);
+    map['create_at'] = Variable<int>(createAt);
     map['name'] = Variable<String>(name);
     map['md5'] = Variable<String>(md5);
     map['locked'] = Variable<int>(locked);
@@ -540,6 +569,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       fileVersion: Value(fileVersion),
       editAt: Value(editAt),
       fileEditAt: Value(fileEditAt),
+      createAt: Value(createAt),
       name: Value(name),
       md5: Value(md5),
       locked: Value(locked),
@@ -566,6 +596,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       fileVersion: serializer.fromJson<int>(json['fileVersion']),
       editAt: serializer.fromJson<int>(json['editAt']),
       fileEditAt: serializer.fromJson<int>(json['fileEditAt']),
+      createAt: serializer.fromJson<int>(json['createAt']),
       name: serializer.fromJson<String>(json['name']),
       md5: serializer.fromJson<String>(json['md5']),
       locked: serializer.fromJson<int>(json['locked']),
@@ -589,6 +620,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       'fileVersion': serializer.toJson<int>(fileVersion),
       'editAt': serializer.toJson<int>(editAt),
       'fileEditAt': serializer.toJson<int>(fileEditAt),
+      'createAt': serializer.toJson<int>(createAt),
       'name': serializer.toJson<String>(name),
       'md5': serializer.toJson<String>(md5),
       'locked': serializer.toJson<int>(locked),
@@ -610,6 +642,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     int? fileVersion,
     int? editAt,
     int? fileEditAt,
+    int? createAt,
     String? name,
     String? md5,
     int? locked,
@@ -628,6 +661,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     fileVersion: fileVersion ?? this.fileVersion,
     editAt: editAt ?? this.editAt,
     fileEditAt: fileEditAt ?? this.fileEditAt,
+    createAt: createAt ?? this.createAt,
     name: name ?? this.name,
     md5: md5 ?? this.md5,
     locked: locked ?? this.locked,
@@ -660,6 +694,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       fileEditAt: data.fileEditAt.present
           ? data.fileEditAt.value
           : this.fileEditAt,
+      createAt: data.createAt.present ? data.createAt.value : this.createAt,
       name: data.name.present ? data.name.value : this.name,
       md5: data.md5.present ? data.md5.value : this.md5,
       locked: data.locked.present ? data.locked.value : this.locked,
@@ -683,6 +718,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
           ..write('fileVersion: $fileVersion, ')
           ..write('editAt: $editAt, ')
           ..write('fileEditAt: $fileEditAt, ')
+          ..write('createAt: $createAt, ')
           ..write('name: $name, ')
           ..write('md5: $md5, ')
           ..write('locked: $locked, ')
@@ -706,6 +742,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     fileVersion,
     editAt,
     fileEditAt,
+    createAt,
     name,
     md5,
     locked,
@@ -728,6 +765,7 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
           other.fileVersion == this.fileVersion &&
           other.editAt == this.editAt &&
           other.fileEditAt == this.fileEditAt &&
+          other.createAt == this.createAt &&
           other.name == this.name &&
           other.md5 == this.md5 &&
           other.locked == this.locked &&
@@ -748,6 +786,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
   final Value<int> fileVersion;
   final Value<int> editAt;
   final Value<int> fileEditAt;
+  final Value<int> createAt;
   final Value<String> name;
   final Value<String> md5;
   final Value<int> locked;
@@ -767,6 +806,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     this.fileVersion = const Value.absent(),
     this.editAt = const Value.absent(),
     this.fileEditAt = const Value.absent(),
+    this.createAt = const Value.absent(),
     this.name = const Value.absent(),
     this.md5 = const Value.absent(),
     this.locked = const Value.absent(),
@@ -787,6 +827,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     this.fileVersion = const Value.absent(),
     this.editAt = const Value.absent(),
     this.fileEditAt = const Value.absent(),
+    this.createAt = const Value.absent(),
     this.name = const Value.absent(),
     this.md5 = const Value.absent(),
     this.locked = const Value.absent(),
@@ -807,6 +848,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     Expression<int>? fileVersion,
     Expression<int>? editAt,
     Expression<int>? fileEditAt,
+    Expression<int>? createAt,
     Expression<String>? name,
     Expression<String>? md5,
     Expression<int>? locked,
@@ -827,6 +869,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
       if (fileVersion != null) 'file_version': fileVersion,
       if (editAt != null) 'edit_at': editAt,
       if (fileEditAt != null) 'file_edit_at': fileEditAt,
+      if (createAt != null) 'create_at': createAt,
       if (name != null) 'name': name,
       if (md5 != null) 'md5': md5,
       if (locked != null) 'locked': locked,
@@ -849,6 +892,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     Value<int>? fileVersion,
     Value<int>? editAt,
     Value<int>? fileEditAt,
+    Value<int>? createAt,
     Value<String>? name,
     Value<String>? md5,
     Value<int>? locked,
@@ -869,6 +913,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
       fileVersion: fileVersion ?? this.fileVersion,
       editAt: editAt ?? this.editAt,
       fileEditAt: fileEditAt ?? this.fileEditAt,
+      createAt: createAt ?? this.createAt,
       name: name ?? this.name,
       md5: md5 ?? this.md5,
       locked: locked ?? this.locked,
@@ -917,6 +962,9 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     if (fileEditAt.present) {
       map['file_edit_at'] = Variable<int>(fileEditAt.value);
     }
+    if (createAt.present) {
+      map['create_at'] = Variable<int>(createAt.value);
+    }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
@@ -953,6 +1001,7 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
           ..write('fileVersion: $fileVersion, ')
           ..write('editAt: $editAt, ')
           ..write('fileEditAt: $fileEditAt, ')
+          ..write('createAt: $createAt, ')
           ..write('name: $name, ')
           ..write('md5: $md5, ')
           ..write('locked: $locked, ')
@@ -2019,6 +2068,7 @@ typedef $$LocalRecordsTableCreateCompanionBuilder =
       Value<int> fileVersion,
       Value<int> editAt,
       Value<int> fileEditAt,
+      Value<int> createAt,
       Value<String> name,
       Value<String> md5,
       Value<int> locked,
@@ -2040,6 +2090,7 @@ typedef $$LocalRecordsTableUpdateCompanionBuilder =
       Value<int> fileVersion,
       Value<int> editAt,
       Value<int> fileEditAt,
+      Value<int> createAt,
       Value<String> name,
       Value<String> md5,
       Value<int> locked,
@@ -2114,6 +2165,11 @@ class $$LocalRecordsTableFilterComposer
 
   ColumnFilters<int> get fileEditAt => $composableBuilder(
     column: $table.fileEditAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get createAt => $composableBuilder(
+    column: $table.createAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2212,6 +2268,11 @@ class $$LocalRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get createAt => $composableBuilder(
+    column: $table.createAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
@@ -2295,6 +2356,9 @@ class $$LocalRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get createAt =>
+      $composableBuilder(column: $table.createAt, builder: (column) => column);
+
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
 
@@ -2354,6 +2418,7 @@ class $$LocalRecordsTableTableManager
                 Value<int> fileVersion = const Value.absent(),
                 Value<int> editAt = const Value.absent(),
                 Value<int> fileEditAt = const Value.absent(),
+                Value<int> createAt = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> md5 = const Value.absent(),
                 Value<int> locked = const Value.absent(),
@@ -2373,6 +2438,7 @@ class $$LocalRecordsTableTableManager
                 fileVersion: fileVersion,
                 editAt: editAt,
                 fileEditAt: fileEditAt,
+                createAt: createAt,
                 name: name,
                 md5: md5,
                 locked: locked,
@@ -2394,6 +2460,7 @@ class $$LocalRecordsTableTableManager
                 Value<int> fileVersion = const Value.absent(),
                 Value<int> editAt = const Value.absent(),
                 Value<int> fileEditAt = const Value.absent(),
+                Value<int> createAt = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String> md5 = const Value.absent(),
                 Value<int> locked = const Value.absent(),
@@ -2413,6 +2480,7 @@ class $$LocalRecordsTableTableManager
                 fileVersion: fileVersion,
                 editAt: editAt,
                 fileEditAt: fileEditAt,
+                createAt: createAt,
                 name: name,
                 md5: md5,
                 locked: locked,

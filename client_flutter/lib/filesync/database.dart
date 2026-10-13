@@ -147,6 +147,7 @@ class AppDatabase extends _$AppDatabase {
     required String path,
     required int editAt,
     required int fileEditAt,
+    required int createAt,
     String? reminder,
   }) async {
     return await into(localRecords).insert(
@@ -155,6 +156,7 @@ class AppDatabase extends _$AppDatabase {
         editType: const Value(LocalEditType.edit),
         editAt: Value(editAt),
         fileEditAt: Value(fileEditAt),
+        createAt: Value(createAt),
         name: Value(name),
         path: Value(path),
         reminder: Value(reminder ?? ''),
@@ -172,6 +174,7 @@ class AppDatabase extends _$AppDatabase {
     required String reminder,
     required int editAt,
     required int fileEditAt,
+    required int createAt,
   }) async {
     return await into(localRecords).insert(
       LocalRecordsCompanion.insert(
@@ -179,6 +182,7 @@ class AppDatabase extends _$AppDatabase {
         editType: const Value(LocalEditType.edit),
         editAt: Value(editAt),
         fileEditAt: Value(fileEditAt),
+        createAt: Value(createAt),
         name: Value(name),
         locked: Value(locked),
         reminder: Value(reminder),
@@ -207,6 +211,7 @@ class AppDatabase extends _$AppDatabase {
     int? fileVersion,
     int? editAt,
     int? fileEditAt,
+    int? createAt,
     String? name,
     String? md5,
     String? path,
@@ -226,6 +231,7 @@ class AppDatabase extends _$AppDatabase {
         fileVersion: fileVersion != null ? Value(fileVersion) : Value.absent(),
         editAt: editAt != null ? Value(editAt) : Value.absent(),
         fileEditAt: fileEditAt != null ? Value(fileEditAt) : Value.absent(),
+        createAt: createAt != null ? Value(createAt) : Value.absent(),
         name: name != null ? Value(name) : Value.absent(),
         md5: md5 != null ? Value(md5) : Value.absent(),
         path: path != null ? Value(path) : Value.absent(),
@@ -285,6 +291,7 @@ class AppDatabase extends _$AppDatabase {
       fileVersion: e.remote.fileVersion,
       editAt: e.remote.editAt,
       fileEditAt: e.remote.fileEditAt,
+      createAt: e.remote.createAt,
       name: e.remote.name,
       md5: e.remote.md5,
       path: e.remote.path,

@@ -378,22 +378,24 @@ class SyncEngine {
       final file = File(fileStore.getWorkFile(entry.local.uuid));
       final fileExist = file.existsSync();
 
-      final uploadPath = entry.local.path;
-      final uploadName = entry.local.name;
-      final baseVersion = entry.local.version;
-      final uploadFileEditAt = fileExist ? entry.local.fileEditAt : entry.remote.fileEditAt;
+      final isNewRecord = entry.local.version == 0;
 
+      // Only send fields that actually changed, so the server leaves untouched
+      // fields alone (avoids overwriting another device's edits with stale local values).
+      // createAt: only for new records (server fills server time; ignored on update).
+      // fileEditAt: only when uploading a file (server skips it otherwise).
+      // path/name/locked/reminder: only when local differs from remote.
       final result = await HttpApi.upsertRecord(
-        entry.local.uuid,
-        uploadPath,
-        uploadName,
-        entry.remote.createAt,
+        entry.uuid,
         entry.local.editAt,
-        uploadFileEditAt,
-        entry.local.locked,
-        entry.local.reminder,
-        fileExist ? file.absolute.path : '',
-        baseVersion,
+        entry.local.version,
+        path: entry.local.path != entry.remote.path ? entry.local.path : null,
+        name: entry.local.name != entry.remote.name ? entry.local.name : null,
+        filePath: fileExist ? file.absolute.path : null,
+        createAt: isNewRecord ? entry.local.createAt : null,
+        fileEditAt: fileExist ? entry.local.fileEditAt : null,
+        locked: entry.local.locked != entry.remote.locked ? entry.local.locked : null,
+        reminder: entry.local.reminder != entry.remote.reminder ? entry.local.reminder : null,
       );
 
       if (result.isSuccess()) {

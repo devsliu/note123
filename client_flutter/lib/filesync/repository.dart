@@ -87,7 +87,7 @@ class Repository {
     recordTree.build([]);
     if (userId != 0) {
       _fileStore = FileStore(join(appRootDir, userId.toString()));
-      _db = createRecordsDatabase(File(join(_fileStore!.rootDir, "records_v4.db")));
+      _db = createRecordsDatabase(File(join(_fileStore!.rootDir, "records_v6.db")));
       _fileStore!.db = _db!;
       _syncEngine = SyncEngine(
         db: _db!,
@@ -127,6 +127,7 @@ class Repository {
       path: path,
       fileEditAt: fileEditAt,
       editAt: time,
+      createAt: time,
       reminder: reminder,
     );
     final record = (await _db!.getRecord(uuid))!;
@@ -399,6 +400,7 @@ class Repository {
         reminder: entry.reminder,
         fileEditAt: _fileStore!.isWorkFileExist(uuid) ? time : 0,
         editAt: time,
+        createAt: time,
       );
     }
     await db.deleteRecycleRecord(uuid);
