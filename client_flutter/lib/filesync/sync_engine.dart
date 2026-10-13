@@ -381,9 +381,7 @@ class SyncEngine {
       final uploadPath = localRecord.localPath;
       final uploadName = localRecord.localName;
       final baseVersion = localRecord.localVersion;
-      final uploadFileEditAt = fileExist && localRecord.localFileEditAt > 0
-          ? localRecord.localFileEditAt
-          : localRecord.remoteFileEditAt;
+      final uploadFileEditAt = fileExist ? localRecord.localFileEditAt : localRecord.remoteFileEditAt;
 
       final result = await HttpApi.upsertRecord(
         localRecord.uuid,

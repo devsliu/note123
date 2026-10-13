@@ -189,7 +189,7 @@ class FileWidget extends _BaseItemWidget {
         ),
       ),
       if (file.locked != 0) ...[const SizedBox(width: 2.0), Icon(Icons.lock, size: 12, color: Colors.amber)],
-      if ((file.record.localReminder.isNotEmpty || file.record.remoteReminder.isNotEmpty)) ...[
+      if (file.record.localReminder.isNotEmpty) ...[
         const SizedBox(width: 2.0),
         Icon(Icons.notifications, size: 12, color: Colors.blueAccent),
       ],

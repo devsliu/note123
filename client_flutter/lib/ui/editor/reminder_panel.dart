@@ -42,9 +42,7 @@ class ReminderPanelState extends State<ReminderPanel> {
     final record = await Repository.get().db?.getRecord(widget.uuid);
     if (record == null) return;
     setState(() {
-      _tasks = ReminderTask.fromJsonString(
-        record.localReminder.isNotEmpty ? record.localReminder : record.remoteReminder,
-      );
+      _tasks = ReminderTask.fromJsonString(record.localReminder);
     });
   }
 
