@@ -82,11 +82,42 @@ func dropRecordTableSql(userId int64) string {
 	return fmt.Sprintf("DROP TABLE IF EXISTS record_%d;", userId)
 }
 
+// RecordUpsert carries the fields for an upsert operation.
+// Numeric fields use 0 as the "not provided" sentinel (skip update on conflict).
+// Locked and Reminder use pointers because 0 / "" are meaningful values for them.
+// Path and Name are required (non-empty); MD5 is "" when no file was uploaded.
+type RecordUpsert struct {
+	UUID        string
+	Path        string
+	Name        string
+	MD5         string
+	CreateAt    int64
+	EditAt      int64
+	FileEditAt  int64
+	Locked      *int64
+	Reminder    *string
+	BaseVersion int64
+}
+
 // UpsertRecord inserts or updates a record.
 // baseVersion is the server-side version known locally by the client (pass 0 for a new record).
 // If the current server version > baseVersion, another device has already pushed; return ResultErrorRecordConflict.
-func (db *DB) UpsertRecord(userId int64, uuid, path, name, md5, reminder string, createAt, editAt, fileEditAt, locked, baseVersion int64) (*Record, ResultCode) {
-	reminder = normalizeReminder(reminder)
+//
+// Field update rules on conflict (update):
+//   - path/name:    only update when non-empty; on create, empty path/name is rejected
+//   - createAt:     never modified on update; on insert, 0 falls back to server time
+//   - editAt:       always updated
+//   - md5:          updated only when non-empty (file uploaded)
+//   - fileEditAt:   only update when non-zero
+//   - fileVersion:  auto-incremented when md5 changes
+//   - locked:       only update when provided (pointer)
+//   - reminder:     update when provided (empty string clears it)
+func (db *DB) UpsertRecord(userId int64, u *RecordUpsert) (*Record, ResultCode) {
+	tableName := fmt.Sprintf("record_%d", userId)
+	reminder := ""
+	if u.Reminder != nil {
+		reminder = normalizeReminder(*u.Reminder)
+	}
 	var resultRecord *Record
 	var conflictRecord *Record
 	var bizResult ResultCode = ResultSuccess
@@ -96,46 +127,102 @@ func (db *DB) UpsertRecord(userId int64, uuid, path, name, md5, reminder string,
 		// so revive it directly instead of returning a conflict (the client no longer knows
 		// the tombstone version after restore).
 		exist := &Record{}
-		querySql := fmt.Sprintf("SELECT "+recordColumns+" FROM record_%d WHERE uuid=?", userId)
-		if qErr := tx.QueryRow(querySql, uuid).Scan(exist.scanTargets()...); qErr == nil {
-			if exist.DeleteAt == 0 && exist.Version > baseVersion {
-				conflictRecord = exist
-				bizResult = ResultErrorRecordConflict
-				return nil
-			}
+		querySql := "SELECT " + recordColumns + " FROM " + tableName + " WHERE uuid=?"
+		qErr := tx.QueryRow(querySql, u.UUID).Scan(exist.scanTargets()...)
+		isNew := errors.Is(qErr, sql.ErrNoRows)
+		if !isNew && qErr != nil {
+			return qErr
 		}
+		if !isNew && exist.DeleteAt == 0 && exist.Version > u.BaseVersion {
+			conflictRecord = exist
+			bizResult = ResultErrorRecordConflict
+			return nil
+		}
+
+		// New row with file content starts at fileVersion 1, otherwise 0
+		insertFileVersion := int64(0)
+		if u.MD5 != "" {
+			insertFileVersion = 1
+		}
+		// Capture server time once to keep createAt/editAt consistent within the same request
+		nowMs := time.Now().UnixMilli()
+
+		// --- Resolve INSERT values (used when the row does not exist) ---
+		// New records require non-empty path and name (DB columns are NOT NULL with no default)
+		if isNew && (u.Path == "" || u.Name == "") {
+			bizResult = ResultErrorParams.with("path and name are required for new records")
+			return nil
+		}
+		// On create, a zero createAt falls back to server time
+		if isNew && u.CreateAt == 0 {
+			u.CreateAt = nowMs
+		}
+		// editAt is required; if the client sends 0, fall back to server time
+		if u.EditAt == 0 {
+			u.EditAt = nowMs
+		}
+		// If a file was uploaded, fileEditAt must be non-zero; fall back to server time
+		if u.MD5 != "" && u.FileEditAt == 0 {
+			u.FileEditAt = nowMs
+		}
+		lockedVal := int64(0)
+		if u.Locked != nil {
+			lockedVal = *u.Locked
+		}
+
 		// Version increment and row update must happen in the same transaction and same connection
 		version, err := db.IncrementUserVersion(tx, userId)
 		if err != nil {
 			return err
 		}
-		// New row with file content starts at fileVersion 1, otherwise 0
-		insertFileVersion := int64(0)
-		if md5 != "" {
-			insertFileVersion = 1
+
+		// --- Build conditional SET clauses (columns only updated when provided) ---
+		var setClauses []string
+		if u.Path != "" {
+			setClauses = append(setClauses, "path = excluded.path")
 		}
+		if u.Name != "" {
+			setClauses = append(setClauses, "name = excluded.name")
+		}
+		if u.MD5 != "" {
+			setClauses = append(setClauses, "md5 = excluded.md5")
+		}
+		if isNew {
+			setClauses = append(setClauses, "createAt = excluded.createAt")
+		} // never modify createAt on update
+		if u.FileEditAt != 0 {
+			setClauses = append(setClauses, "fileEditAt = excluded.fileEditAt")
+		}
+		if u.Locked != nil {
+			setClauses = append(setClauses, "locked = excluded.locked")
+		}
+		if u.Reminder != nil {
+			setClauses = append(setClauses, "reminder = excluded.reminder")
+		}
+		conditionalSet := strings.Join(setClauses, ", ")
+		if conditionalSet != "" {
+			conditionalSet = ", " + conditionalSet
+		}
+
 		sqlStmt := fmt.Sprintf(`
 			INSERT INTO record_%d (`+recordColumns+`)
 			VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?)
 			ON CONFLICT(uuid) DO UPDATE SET
-				path=excluded.path,
-				name=excluded.name,
-				md5=CASE WHEN excluded.md5 != '' THEN excluded.md5 ELSE record_%d.md5 END,
-				editAt=excluded.editAt,
-				version=excluded.version,
-				deleteAt=0,
-				createAt=CASE WHEN excluded.createAt > 0 THEN excluded.createAt ELSE record_%d.createAt END,
-				fileEditAt=CASE WHEN excluded.fileEditAt > 0 THEN excluded.fileEditAt ELSE record_%d.fileEditAt END,
-				fileVersion=CASE WHEN excluded.md5 != '' AND excluded.md5 != record_%d.md5 THEN record_%d.fileVersion + 1 ELSE record_%d.fileVersion END,
-				locked=excluded.locked,
-				reminder=excluded.reminder
-		`, userId, userId, userId, userId, userId, userId, userId)
-		_, err = tx.Exec(sqlStmt, uuid, path, name, md5, version, createAt, editAt, fileEditAt, insertFileVersion, locked, reminder)
+				version    = excluded.version,
+				deleteAt   = 0,
+				editAt     = excluded.editAt,
+				fileVersion = CASE WHEN ? AND excluded.md5 != md5 THEN fileVersion + 1 ELSE fileVersion END`+conditionalSet+`
+		`, userId)
+		args := []interface{}{
+			u.UUID, u.Path, u.Name, u.MD5, version, u.CreateAt, u.EditAt, u.FileEditAt, insertFileVersion, lockedVal, reminder,
+			u.MD5 != "", // for the fileVersion CASE WHEN
+		}
+		_, err = tx.Exec(sqlStmt, args...)
 		if err != nil {
 			return err
 		}
 		resultRecord = &Record{}
-		return tx.QueryRow(fmt.Sprintf("SELECT "+recordColumns+" FROM record_%d WHERE uuid=?", userId), uuid).Scan(resultRecord.scanTargets()...)
+		return tx.QueryRow("SELECT "+recordColumns+" FROM "+tableName+" WHERE uuid=?", u.UUID).Scan(resultRecord.scanTargets()...)
 	})
 	if err != nil {
 		return nil, ResultCodeError(nil, ResultErrorDatabase, err)

@@ -87,43 +87,69 @@ func (s *Server) updateRecordHandler(w http.ResponseWriter, r *http.Request, use
 	}
 	// Limit upload size; FormFile returns an error on oversized requests to avoid filling the disk
 	r.Body = http.MaxBytesReader(w, r.Body, s.maxFileSize)
-	createAt, err := getFormInt64(r, "createAt")
-	if err != nil {
+
+	// Parse the multipart form first (FormFile triggers ParseMultipartForm).
+	// Multipart parse failures (including size limit) must report an error; otherwise they would
+	// silently be treated as a "metadata-only update" and return success.
+	file, fileHeader, formFileErr := r.FormFile("file")
+	if formFileErr != nil && formFileErr != http.ErrMissingFile {
+		http.Error(w, "multipart parse failed or file exceeds "+strconv.FormatInt(s.maxFileSize>>20, 10)+"MB limit", ResultErrorParams.Value)
+		return
+	}
+	hasFile := file != nil
+
+	// ---- Form fields (0 = not provided = skip on update, except editAt which is required) ----
+	var createAt, editAt, fileEditAt int64
+	var locked *int64
+
+	if v, ok, err := getFormInt64Opt(r, "createAt"); err != nil {
 		http.Error(w, "invalid createAt", ResultErrorParams.Value)
 		return
+	} else if ok {
+		createAt = v
 	}
-	editAt, err := getFormInt64(r, "editAt")
-	if err != nil {
+
+	if v, err := getFormInt64(r, "editAt"); err != nil {
 		http.Error(w, "invalid editAt", ResultErrorParams.Value)
 		return
+	} else {
+		editAt = v
 	}
-	fileEditAt, err := getFormInt64(r, "fileEditAt")
-	if err != nil {
+
+	if v, ok, err := getFormInt64Opt(r, "fileEditAt"); err != nil {
 		http.Error(w, "invalid fileEditAt", ResultErrorParams.Value)
 		return
+	} else if ok {
+		fileEditAt = v
 	}
-	locked, err := getFormInt64(r, "locked")
-	if err != nil {
-		locked = 0
+
+	if v, ok, err := getFormInt64Opt(r, "locked"); err != nil {
+		http.Error(w, "invalid locked", ResultErrorParams.Value)
+		return
+	} else if ok {
+		locked = &v
 	}
+
 	// baseVersion: the server-side version known locally by the client, used for conflict detection (pass 0 for new records)
 	baseVersion, _ := getFormInt64(r, "version")
 	if baseVersion < 0 {
 		baseVersion = 0
 	}
-	md5sum := ""
-	path := r.FormValue("path")
-	name := r.FormValue("name")
-	reminder := r.FormValue("reminder")
-	file, fileHeader, formFileErr := r.FormFile("file")
-	// Multipart parse failures (including size limit) must report an error; otherwise they would silently be treated as a "metadata-only update" and return success
-	if formFileErr != nil && formFileErr != http.ErrMissingFile {
-		http.Error(w, "multipart parse failed or file exceeds "+strconv.FormatInt(s.maxFileSize>>20, 10)+"MB limit", ResultErrorParams.Value)
-		return
+
+	// path/name: empty string means "not provided", skip on update; required (non-empty) on create
+	path, _ := getFormString(r, "path")
+	name, _ := getFormString(r, "name")
+
+	// reminder: provided (even empty string) updates the field; absent leaves it untouched
+	var reminder *string
+	if v, ok := getFormString(r, "reminder"); ok {
+		reminder = &v
 	}
+
+	md5sum := ""
 	var tmpPath string
 	hasTempFile := false
-	if file != nil {
+	if hasFile {
 		defer file.Close()
 		if fileHeader.Size > s.maxFileSize {
 			http.Error(w, "file exceeds "+strconv.FormatInt(s.maxFileSize>>20, 10)+"MB limit", ResultErrorParams.Value)
@@ -149,7 +175,19 @@ func (s *Server) updateRecordHandler(w http.ResponseWriter, r *http.Request, use
 	// The DB transaction MUST complete BEFORE the file commit. Otherwise, on a concurrent conflict the disk file would be overwritten
 	// but the DB md5 would point to a different request's content, causing md5 mismatch during download (disk content ≠ DB md5).
 	// UpsertRecord already includes full conflict detection (atomicity is guaranteed by the transaction).
-	record, result := s.db.UpsertRecord(user.UserID, uuid, path, name, md5sum, reminder, createAt, editAt, fileEditAt, locked, baseVersion)
+	upsert := &RecordUpsert{
+		UUID:        uuid,
+		Path:        path,
+		Name:        name,
+		MD5:         md5sum,
+		CreateAt:    createAt,
+		EditAt:      editAt,
+		FileEditAt:  fileEditAt,
+		Locked:      locked,
+		Reminder:    reminder,
+		BaseVersion: baseVersion,
+	}
+	record, result := s.db.UpsertRecord(user.UserID, upsert)
 	if result != ResultSuccess {
 		if hasTempFile {
 			os.Remove(tmpPath)

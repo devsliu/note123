@@ -186,6 +186,33 @@ func getFormInt64(r *http.Request, key string) (int64, error) {
 	return strconv.ParseInt(valStr, 10, 64)
 }
 
+// getFormString returns the form value for key and whether the key was present.
+// Unlike r.FormValue, it distinguishes "field absent" from "field present but empty".
+func getFormString(r *http.Request, key string) (string, bool) {
+	if r.MultipartForm == nil {
+		_ = r.ParseMultipartForm(0)
+	}
+	vals, ok := r.Form[key]
+	if !ok || len(vals) == 0 {
+		return "", false
+	}
+	return vals[0], true
+}
+
+// getFormInt64Opt parses an optional int64 form field.
+// Returns (value, present, error); present=false means the field was not sent.
+func getFormInt64Opt(r *http.Request, key string) (int64, bool, error) {
+	s, ok := getFormString(r, key)
+	if !ok {
+		return 0, false, nil
+	}
+	v, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return 0, true, err
+	}
+	return v, true, nil
+}
+
 // authAndStatWrapper unifies method validation, login validation, API statistics, and passes userId/token
 func (s *Server) authAndStatWrapper(apiName string, method string, handler func(http.ResponseWriter, *http.Request, *CacheUser, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
