@@ -77,6 +77,10 @@ abstract class _BaseItemWidget extends StatelessWidget {
 class FolderWidget extends _BaseItemWidget {
   final TreeViewNode<TreeContent> node;
 
+  /// Override the folder icon with a fixed widget. When null, uses the
+  /// default folder_open/folder_outlined pair that reacts to expand state.
+  final Widget? folderIcon;
+
   FolderWidget({
     super.key,
     required super.isSelected,
@@ -85,6 +89,7 @@ class FolderWidget extends _BaseItemWidget {
     required super.leftPadding,
     required super.rightPadding,
     required super.verticalPadding,
+    this.folderIcon,
   }) : super(content: node.content);
 
   @override
@@ -94,7 +99,7 @@ class FolderWidget extends _BaseItemWidget {
 
   List<Widget> buildFolderWidgets(TreeViewNode<TreeContent> node) {
     return [
-      Icon(node.isExpanded ? Icons.folder_open_outlined : Icons.folder_outlined, size: iconSize),
+      folderIcon ?? Icon(node.isExpanded ? Icons.folder_open_outlined : Icons.folder_outlined, size: iconSize),
       const SizedBox(width: 3.0),
       Expanded(
         child: Text(
@@ -123,6 +128,7 @@ class TreeFolderWidget extends FolderWidget {
     required super.leftPadding,
     required super.rightPadding,
     required super.verticalPadding,
+    super.folderIcon,
   });
 
   @override
