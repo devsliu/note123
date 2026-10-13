@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/tag_tree.dart';
+import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/ui/files/record_item_widget.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
@@ -16,6 +17,25 @@ class TagFilesControl extends StatefulWidget {
 
   @override
   State<TagFilesControl> createState() => _TagFilesControlState();
+}
+
+/// Tag folder row — same as TreeFolderWidget but suppresses right-click and
+/// long-press context menus, since tags are virtual grouping nodes.
+class _TagFolderWidget extends TreeFolderWidget {
+  _TagFolderWidget({
+    required super.node,
+    required super.leftPadding,
+    required super.rightPadding,
+    required super.verticalPadding,
+    required super.isSelected,
+    required super.onContentPressed,
+    super.folderIcon,
+  });
+
+  @override
+  void onLongPressFile(BuildContext context, TreeContent file, Offset position) {
+    // Tag folders don't have context menus.
+  }
 }
 
 class _TagFilesControlState extends State<TagFilesControl> {
@@ -36,11 +56,13 @@ class _TagFilesControlState extends State<TagFilesControl> {
     super.initState();
     _buildInitialTree();
     recordTree.refreshNotifier.addListener(_onRefresh);
+    RecordOpenedState.get().openedFileNotifier.addListener(_onFileChanged);
   }
 
   @override
   void dispose() {
     recordTree.refreshNotifier.removeListener(_onRefresh);
+    RecordOpenedState.get().openedFileNotifier.removeListener(_onFileChanged);
     super.dispose();
   }
 
@@ -49,12 +71,17 @@ class _TagFilesControlState extends State<TagFilesControl> {
     if (mounted) setState(() {});
   }
 
-  /// Build the tag tree once. All tags start expanded.
+  void _onFileChanged() {
+    if (mounted) setState(() {});
+  }
+
+  /// Build the tag tree once. Each tag starts at the expanded state stored on
+  /// the Tag object, so state survives State recreation (tab switches etc.).
   void _buildInitialTree() {
     final tags = recordTree.tagTree.tags;
     final nodes = <TreeViewNode<TreeContent>>[];
     for (final tag in tags) {
-      final node = _buildTagNode(tag, expanded: true);
+      final node = _buildTagNode(tag, expanded: tag.expanded);
       _nodeByName[tag.name] = node;
       nodes.add(node);
     }
@@ -86,13 +113,16 @@ class _TagFilesControlState extends State<TagFilesControl> {
       newNames.add(tag.name);
       final existing = _nodeByName[tag.name];
       if (existing != null) {
-        // Update children in place; preserve expanded state.
+        // Update children in place; pull expanded state from the live TreeView
+        // node so in-flight toggle animations aren't clobbered, and sync it
+        // back to Tag for consistency.
         final expanded = existing.isExpanded;
+        recordTree.tagTree.setExpanded(tag.name, expanded);
         existing.children
           ..clear()
           ..addAll(_buildTagNode(tag, expanded: expanded).children);
       } else {
-        final node = _buildTagNode(tag, expanded: true);
+        final node = _buildTagNode(tag, expanded: tag.expanded);
         _nodeByName[tag.name] = node;
         _tagNodes.add(node);
       }
@@ -113,11 +143,11 @@ class _TagFilesControlState extends State<TagFilesControl> {
       return;
     }
     // Tag folder: resolve the actual TreeViewNode from the controller.
-    // RecordFilesTreeControl uses the same pattern — the InkWell wraps
-    // around a TreeContent, not the TreeViewNode, so we must look it up.
     final node = _treeController.getNodeFor(content);
     if (node != null) {
       _treeController.toggleNode(node);
+      // Persist expanded state back to TagTree so it survives tab switches.
+      recordTree.tagTree.setExpanded(content.name, node.isExpanded);
     }
   }
 
@@ -135,19 +165,20 @@ class _TagFilesControlState extends State<TagFilesControl> {
           treeNodeBuilder: (context, node, animationStyle) {
             final content = node.content;
             final isFile = content is TreeContentFile;
+            final isSelected = RecordOpenedState.get().openedFile?.key == content.key;
             Widget child;
             if (isFile) {
               child = TreeFileWidget(
                 node: node,
-                showIcon: false,
+                showIcon: true,
                 leftPadding: 8.0,
                 rightPadding: 12.0,
                 verticalPadding: verticalPadding,
-                isSelected: false,
+                isSelected: isSelected,
                 onContentPressed: _onContentPressed,
               );
             } else {
-              child = TreeFolderWidget(
+              child = _TagFolderWidget(
                 node: node,
                 leftPadding: 12.0,
                 rightPadding: 12.0,

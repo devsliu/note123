@@ -176,7 +176,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
       appBar: AppBar(
         leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.arrow_back)),
         titleSpacing: 0,
-        title: Text(l10n.calendarTasks),
+        title: Text(l10n.calendar),
         actions: [
           segmented,
           SizedBox(width: AppConfig.pageHorizontalPadding),

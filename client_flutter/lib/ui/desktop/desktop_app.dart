@@ -42,7 +42,7 @@ class CalendarTab extends DesktopTab {
   CalendarTab({required this.openRecordCallback}) : super(id: '__calendar__');
 
   @override
-  String get title => l10n.calendarTasks;
+  String get title => l10n.calendar;
 
   @override
   void select() {}

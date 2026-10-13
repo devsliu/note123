@@ -18,6 +18,7 @@ export 'path_utils.dart';
 class RecordEntry {
   final LocalRecord local;
   late final RemoteRecord remote = _decodeRemote();
+  late final List<String> tags = local.tags.isEmpty ? [] : TagFormat.parse(local.tags);
   RecordEntry(this.local);
 
   String get uuid => local.uuid;
@@ -64,4 +65,19 @@ extension LocalRecordExt on LocalRecord {
 
   /// Whether synced (no pending upload changes)
   bool get isSynced => editType == LocalEditType.none;
+}
+
+class TagFormat {
+  /// Parse a stored tag string into a list of tag names.
+  static List<String> parse(String raw) {
+    if (raw.isEmpty) return [];
+    return raw.split('|').map((t) => t.trim()).where((t) => t.isNotEmpty).toList();
+  }
+
+  /// Serialize a list of tag names into the stored format `|a|b|`.
+  static String serialize(List<String> tags) {
+    final cleaned = tags.map((t) => t.trim()).where((t) => t.isNotEmpty).toSet().toList();
+    if (cleaned.isEmpty) return '';
+    return '|${cleaned.join('|')}|';
+  }
 }

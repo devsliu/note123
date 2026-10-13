@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/filesync/table_record.dart';
+import 'package:note123/filesync/tag_tree.dart';
 import 'package:note123/utils/app_logger.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
@@ -134,10 +135,15 @@ class RecordTree extends TreeNode {
   final RecordList _sortedFiles = RecordList();
 
   final ValueNotifier<List<RecordEvent>> refreshNotifier = ValueNotifier<List<RecordEvent>>([]);
+  final ValueNotifier<int> countNotifier = ValueNotifier<int>(0);
 
   /// Reminder tree, kept in sync with record changes. Non-null and always
   /// available; callers read reminders from here instead of scanning the DB.
   final ReminderTree reminderTree = ReminderTree();
+
+  /// Tag tree, kept in sync with record changes. Non-null and always
+  /// available; callers read tags from here instead of scanning the DB.
+  final TagTree tagTree = TagTree();
 
   RecordTree() : super(TreeContentFolder("/", ""));
 
@@ -159,11 +165,11 @@ class RecordTree extends TreeNode {
       }
     }
     _sortedFiles.sort();
+    tagTree.rebuild(allRecords);
     _notifyEvents(eventList);
     reminderTree.rebuild(allRecords);
   }
 
-  int get recordsCount => _filesMap.length;
   List<TreeContentFile> get sortedFiles => _sortedFiles.files;
 
   void setSortListType(int type) {
@@ -325,9 +331,23 @@ class RecordTree extends TreeNode {
     if (eventList.isEmpty) return;
     for (final event in eventList) {
       AppLogger.i("_notifyEvent ${event.type}");
+      final uuid = event.value2;
+      if (uuid == null) continue;
+      switch (event.type) {
+        case RecordEvent.typeUpsertRecord:
+          final node = _filesMap[uuid];
+          if (node != null) {
+            tagTree.upsert((node.content as TreeContentFile).record);
+          }
+          break;
+        case RecordEvent.typeDeleteRecord:
+          tagTree.remove(uuid);
+          break;
+      }
     }
     // Directly use event list as value, listeners can filter by uuid accordingly
     refreshNotifier.value = List.unmodifiable(eventList);
+    countNotifier.value = _filesMap.length;
   }
 
   void insertRecord(RecordEntry newRecord) {

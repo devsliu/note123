@@ -806,6 +806,60 @@ abstract class AppLocalizations {
   /// **'按时间排序'**
   String get sortTypeTime;
 
+  /// No description provided for @allNotes.
+  ///
+  /// In zh, this message translates to:
+  /// **'笔记'**
+  String get allNotes;
+
+  /// No description provided for @tags.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签'**
+  String get tags;
+
+  /// No description provided for @tagTree.
+  ///
+  /// In zh, this message translates to:
+  /// **'树形标签'**
+  String get tagTree;
+
+  /// No description provided for @tagFlat.
+  ///
+  /// In zh, this message translates to:
+  /// **'平铺标签'**
+  String get tagFlat;
+
+  /// No description provided for @editTags.
+  ///
+  /// In zh, this message translates to:
+  /// **'编辑标签'**
+  String get editTags;
+
+  /// No description provided for @addTag.
+  ///
+  /// In zh, this message translates to:
+  /// **'添加标签'**
+  String get addTag;
+
+  /// No description provided for @tagName.
+  ///
+  /// In zh, this message translates to:
+  /// **'标签名称'**
+  String get tagName;
+
+  /// No description provided for @done.
+  ///
+  /// In zh, this message translates to:
+  /// **'完成'**
+  String get done;
+
+  /// No description provided for @layoutMode.
+  ///
+  /// In zh, this message translates to:
+  /// **'布局模式'**
+  String get layoutMode;
+
   /// No description provided for @copy.
   ///
   /// In zh, this message translates to:
@@ -1088,11 +1142,11 @@ abstract class AppLocalizations {
   /// **'周一|周二|周三|周四|周五|周六|周日'**
   String get weekdays;
 
-  /// No description provided for @calendarTasks.
+  /// No description provided for @calendar.
   ///
   /// In zh, this message translates to:
-  /// **'日历任务'**
-  String get calendarTasks;
+  /// **'日历'**
+  String get calendar;
 
   /// No description provided for @noRemindersToday.
   ///

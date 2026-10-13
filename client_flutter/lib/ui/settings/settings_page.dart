@@ -18,6 +18,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'login_dialog.dart';
 import 'upgrade_manager.dart';
 import '../../config/language_manager.dart';
+import '../../config/layout_mode.dart';
+import '../../utils/utils.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -181,6 +183,12 @@ class _SettingsPageState extends State<SettingsPage> {
     return LanguageManager.getLanguageDisplayName(currentLanguage, l10n.followSystem, l10n.chinese, l10n.english);
   }
 
+  void _onLayoutModeTap() async {
+    final current = LayoutMode.resolve();
+    final target = current == LayoutMode.pad ? LayoutMode.phone : LayoutMode.pad;
+    await LayoutMode.setMode(target);
+  }
+
   @override
   Widget build(BuildContext context) {
     final subtitle = _buildVersionSubtitle();
@@ -205,6 +213,14 @@ class _SettingsPageState extends State<SettingsPage> {
           AppConfig.listViewDivider(context),
           ListTile(onTap: _onLanguageTap, title: Text(l10n.language), subtitle: Text(_getLanguageDisplayName(context))),
           AppConfig.listViewDivider(context),
+          if (!Utils.isDesktop())
+            ListTile(
+              onTap: _onLayoutModeTap,
+              title: Text(l10n.layoutMode),
+              subtitle: Text(LayoutMode.resolve() == LayoutMode.pad ? l10n.switchToPhone : l10n.switchToPad),
+              trailing: Icon(LayoutMode.resolve() == LayoutMode.pad ? Icons.phone_iphone : Icons.tablet),
+            ),
+          if (!Utils.isDesktop()) AppConfig.listViewDivider(context),
           ListTile(
             onTap: _onVersionTap,
             title: _buildVersionTitle(),

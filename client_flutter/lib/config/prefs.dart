@@ -7,6 +7,8 @@ class PrefKeys {
   static const languageCode = 'language_code';
   static const listType = 'list_type';
   static const layoutMode = 'layout_mode';
+  static const listActiveTab = 'list_active_tab';
+  static const tagViewType = 'tag_view_type';
 }
 
 class Prefs {

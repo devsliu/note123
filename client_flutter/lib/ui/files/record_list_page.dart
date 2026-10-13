@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/model/record_opened_state.dart';
-import 'package:note123/ui/calendar/calendar_bar.dart';
 import 'package:note123/ui/common/platform_app_bar.dart';
 import 'package:note123/ui/files/record_files_flat_control.dart';
 import 'package:note123/ui/files/record_files_list_control.dart';
 import 'package:note123/ui/files/record_files_tree_control.dart';
+import 'package:note123/ui/files/tag_files_control.dart';
 import 'package:note123/ui/files/search_page.dart';
 import 'package:note123/ui/files/record_list_actions.dart';
 import 'package:note123/ui/settings/settings_button.dart';
@@ -64,6 +64,24 @@ class _RecordListPageState extends State<RecordListPage> {
     );
   }
 
+  Widget _buildTabBar(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.appBarBackgroundColor,
+      child: Row(
+        children: [
+          SizedBox(width: 12),
+          Expanded(child: RecordListActions.allNotesButton(context)),
+          const SizedBox(width: 6),
+          Expanded(child: RecordListActions.tagsButton(context)),
+          const SizedBox(width: 6),
+          Expanded(child: RecordListActions.calendarButton(context, widget.onOpenCalendar)),
+          SizedBox(width: 12),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBottomBar(BuildContext context) {
     final theme = Theme.of(context);
     final bool desktop = Utils.isDesktop();
@@ -75,10 +93,10 @@ class _RecordListPageState extends State<RecordListPage> {
         child: Row(
           spacing: 4,
           children: [
-            RecordListActions.recordsCountIndicator(context),
-            RecordListActions.sortTypeButton(context),
+            RecordListActions.themeButton(context),
             RecordListActions.importExportButton(context, _getFolder),
             RecordListActions.recyclerButton(context, widget.onOpenRecycler),
+            RecordListActions.viewToggleButton(context),
             Spacer(),
             RecordListActions.newRecordButton(
               context,
@@ -95,19 +113,27 @@ class _RecordListPageState extends State<RecordListPage> {
   Widget _buildContent(BuildContext context) {
     final bool desktop = Utils.isDesktop();
     return ValueListenableBuilder<int>(
-      valueListenable: RecordListWidgetType.notifier,
-      builder: (context, type, _) {
-        if (type == RecordListWidgetType.sTreeFolder) {
-          return RecordFilesTreeControl(openRecordCallback: widget.openRecordCallback, shrink: desktop);
-        } else if (type == RecordListWidgetType.sFlatFolder) {
-          return RecordFilesFlatControl(openRecordCallback: widget.openRecordCallback, shrink: desktop);
-        } else {
-          return RecordFilesListControl(
-            openRecordCallback: widget.openRecordCallback,
-            showDivider: true,
-            shrink: desktop,
-          );
+      valueListenable: ListActiveTab.notifier,
+      builder: (context, tab, _) {
+        if (tab == ListActiveTab.tags) {
+          return TagFilesControl(shrink: desktop, openRecordCallback: widget.openRecordCallback);
         }
+        return ValueListenableBuilder<int>(
+          valueListenable: RecordListWidgetType.notifier,
+          builder: (context, type, _) {
+            if (type == RecordListWidgetType.sTreeFolder) {
+              return RecordFilesTreeControl(openRecordCallback: widget.openRecordCallback, shrink: desktop);
+            } else if (type == RecordListWidgetType.sFlatFolder) {
+              return RecordFilesFlatControl(openRecordCallback: widget.openRecordCallback, shrink: desktop);
+            } else {
+              return RecordFilesListControl(
+                openRecordCallback: widget.openRecordCallback,
+                showDivider: true,
+                shrink: desktop,
+              );
+            }
+          },
+        );
       },
     );
   }
@@ -143,8 +169,9 @@ class _RecordListPageState extends State<RecordListPage> {
               appBar: _buildTitleBar(context),
               body: Column(
                 children: [
-                  CalendarBar(onTap: widget.onOpenCalendar, shrink: Utils.isDesktop()),
-                  AppConfig.listViewDivider(context),
+                  SizedBox(height: 4),
+                  _buildTabBar(context),
+                  SizedBox(height: 8),
                   Expanded(child: _buildContent(context)),
                   const SyncStateWidget(),
                 ],

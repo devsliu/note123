@@ -12,6 +12,14 @@ class RecordListWidgetType {
   static final int sOrderByByTime = RecordList.sSortTypeByTime;
 }
 
+/// Which panel is active on the list page: notes or tags.
+class ListActiveTab {
+  static final ValueNotifier<int> notifier = ValueNotifier<int>(notes);
+
+  static const int notes = 0;
+  static const int tags = 1;
+}
+
 /// 非桌面设备的布局模式
 class LayoutMode {
   static const String pad = 'pad'; // 左右布局（平板模式）

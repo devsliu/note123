@@ -31,76 +31,124 @@ import 'package:note123/ui/editor/flow_editor/custom_code_block_parser.dart';
 /// Actions are distributed between the top app bar (title, new note/folder,
 /// parent, collapse) and the left side rail (sort, import/export).
 class RecordListActions {
-  static Widget sortTypeButton(BuildContext context) {
-    int type = RecordListWidgetType.notifier.value;
-    ThemeData theme = Theme.of(context);
-    final isPad = LayoutMode.resolve() == LayoutMode.pad;
-    return PopupMenuButton<dynamic>(
-      iconColor: theme.appBarIconColor,
-      icon: Icon(
-        type == RecordListWidgetType.sFlatFolder
-            ? Icons.folder_outlined
-            : type == RecordListWidgetType.sOrderByName
-            ? Icons.sort_by_alpha_outlined
-            : type == RecordListWidgetType.sOrderByByTime
-            ? Icons.timer_outlined
-            : Icons.account_tree_outlined,
+  static List<PopupMenuEntry<int>> _noteListMenuItems() => [
+    PopupMenuItem(
+      value: RecordListWidgetType.sFlatFolder,
+      child: ListTile(
+        leading: const Icon(Icons.folder_outlined),
+        title: Text(l10n.sortTypeFlatFolder),
+        contentPadding: EdgeInsets.zero,
       ),
-      tooltip: l10n.sortType,
-      onSelected: (value) async {
-        if (value == LayoutMode.pad || value == LayoutMode.phone) {
-          await LayoutMode.setMode(value);
-          return;
-        }
-        Repository.get().recordTree.setSortListType(value);
-        if (value != 0) RecordOpenedState.get().setOpenedFolder("/");
-        RecordListWidgetType.notifier.value = value;
-        await Prefs.instance.setInt(PrefKeys.listType, value);
+    ),
+    PopupMenuItem(
+      value: RecordListWidgetType.sTreeFolder,
+      child: ListTile(
+        leading: const Icon(Icons.account_tree_outlined),
+        title: Text(l10n.sortTypeTreeFolder),
+        contentPadding: EdgeInsets.zero,
+      ),
+    ),
+    PopupMenuItem(
+      value: RecordList.sSortTypeName,
+      child: ListTile(
+        leading: const Icon(Icons.sort_by_alpha_outlined),
+        title: Text(l10n.sortTypeName),
+        contentPadding: EdgeInsets.zero,
+      ),
+    ),
+    PopupMenuItem(
+      value: RecordList.sSortTypeByTime,
+      child: ListTile(
+        leading: const Icon(Icons.timer_outlined),
+        title: Text(l10n.sortTypeTime),
+        contentPadding: EdgeInsets.zero,
+      ),
+    ),
+  ];
+
+  /// Calendar button: opens the calendar page, shows today's reminder count.
+  static Widget calendarButton(BuildContext context, ValueCallback<BuildContext> onTap) {
+    return ValueListenableBuilder<int>(
+      valueListenable: Repository.get().reminderTree.countNotifier,
+      builder: (context, count, _) {
+        return _TabButton(label: l10n.calendar, count: count, onTap: () => onTap(context));
       },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: RecordListWidgetType.sFlatFolder,
-          child: ListTile(
-            leading: const Icon(Icons.folder_outlined),
-            title: Text(l10n.sortTypeFlatFolder),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        PopupMenuItem(
-          value: RecordListWidgetType.sTreeFolder,
-          child: ListTile(
-            leading: const Icon(Icons.account_tree_outlined),
-            title: Text(l10n.sortTypeTreeFolder),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        PopupMenuItem(
-          value: RecordList.sSortTypeName,
-          child: ListTile(
-            leading: const Icon(Icons.sort_by_alpha_outlined),
-            title: Text(l10n.sortTypeName),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        PopupMenuItem(
-          value: RecordList.sSortTypeByTime,
-          child: ListTile(
-            leading: const Icon(Icons.timer_outlined),
-            title: Text(l10n.sortTypeTime),
-            contentPadding: EdgeInsets.zero,
-          ),
-        ),
-        if (!Utils.isDesktop())
-          PopupMenuItem(
-            value: isPad ? LayoutMode.phone : LayoutMode.pad,
-            child: ListTile(
-              leading: Icon(isPad ? Icons.phone_iphone : Icons.tablet),
-              title: Text(isPad ? l10n.switchToPhone : l10n.switchToPad),
-              contentPadding: EdgeInsets.zero,
-            ),
-          ),
-      ],
     );
+  }
+
+  /// AllNotes tab button: click to switch to the notes panel. Shows the total
+  /// note count.
+  static Widget allNotesButton(BuildContext context) {
+    final recordTree = Repository.get().recordTree;
+    return ListenableBuilder(
+      listenable: Listenable.merge([recordTree.countNotifier, ListActiveTab.notifier]),
+      builder: (context, _) {
+        return _TabButton(
+          label: l10n.allNotes,
+          active: ListActiveTab.notifier.value == ListActiveTab.notes,
+          count: recordTree.countNotifier.value,
+          onTap: () {
+            ListActiveTab.notifier.value = ListActiveTab.notes;
+            Prefs.instance.setInt(PrefKeys.listActiveTab, ListActiveTab.notes);
+          },
+        );
+      },
+    );
+  }
+
+  /// Tags tab button: click to switch to the tags panel. Shows the total tag
+  /// count.
+  static Widget tagsButton(BuildContext context) {
+    final recordTree = Repository.get().recordTree;
+    return ListenableBuilder(
+      listenable: Listenable.merge([recordTree.tagTree.tagCountNotifier, ListActiveTab.notifier]),
+      builder: (context, _) {
+        return _TabButton(
+          label: l10n.tags,
+          active: ListActiveTab.notifier.value == ListActiveTab.tags,
+          count: recordTree.tagTree.tagCountNotifier.value,
+          onTap: () {
+            ListActiveTab.notifier.value = ListActiveTab.tags;
+            Prefs.instance.setInt(PrefKeys.listActiveTab, ListActiveTab.tags);
+          },
+        );
+      },
+    );
+  }
+
+  /// View toggle button on the bottom bar. Shows the notes list view/sort
+  /// options when the AllNotes tab is active, or the tags tree/flat toggle
+  /// when the Tags tab is active.
+  static Widget viewToggleButton(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: ListActiveTab.notifier,
+      builder: (context, tab, _) {
+        if (tab == ListActiveTab.tags) return SizedBox.shrink();
+        return ValueListenableBuilder<int>(
+          valueListenable: RecordListWidgetType.notifier,
+          builder: (context, type, _) {
+            return PopupMenuButton<int>(
+              icon: Icon(_listTypeIcon(type)),
+              tooltip: l10n.sortType,
+              onSelected: (value) async {
+                Repository.get().recordTree.setSortListType(value);
+                if (value != 0) RecordOpenedState.get().setOpenedFolder("/");
+                RecordListWidgetType.notifier.value = value;
+                await Prefs.instance.setInt(PrefKeys.listType, value);
+              },
+              itemBuilder: (context) => _noteListMenuItems(),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  static IconData _listTypeIcon(int type) {
+    if (type == RecordListWidgetType.sFlatFolder) return Icons.folder_outlined;
+    if (type == RecordListWidgetType.sOrderByName) return Icons.sort_by_alpha_outlined;
+    if (type == RecordListWidgetType.sOrderByByTime) return Icons.timer_outlined;
+    return Icons.account_tree_outlined;
   }
 
   static Widget importExportButton(BuildContext context, ReturnCallback<String> getFolder) {
@@ -325,10 +373,9 @@ class RecordListActions {
 
   static Widget recordsCountIndicator(BuildContext context) {
     final recordTree = Repository.get().recordTree;
-    return ValueListenableBuilder<List<RecordEvent>>(
-      valueListenable: recordTree.refreshNotifier,
-      builder: (context, _, _) {
-        final count = recordTree.recordsCount;
+    return ValueListenableBuilder<int>(
+      valueListenable: recordTree.countNotifier,
+      builder: (context, count, _) {
         return Tooltip(
           message: "$count ${l10n.files}",
           child: IconButton(
@@ -337,6 +384,39 @@ class RecordListActions {
           ),
         );
       },
+    );
+  }
+}
+
+/// Simple tab button for the calendar / AllNotes / Tags row. Tapping triggers
+/// [onTap]; the active state is highlighted with the primary color. An
+/// optional [count] is shown on the right (as a badge when > 0).
+class _TabButton extends StatelessWidget {
+  final String label;
+  final bool active;
+  final int count;
+  final VoidCallback onTap;
+
+  const _TabButton({required this.label, this.active = false, this.count = 0, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = active ? theme.colorScheme.primary : theme.colorScheme.onSurface;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      hoverColor: theme.colorScheme.primary.withAlpha(20),
+      child: Container(
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          border: Border.all(color: active ? theme.colorScheme.primary : theme.colorScheme.outline.withAlpha(150)),
+          borderRadius: BorderRadius.circular(4),
+          color: active ? theme.colorScheme.primary.withAlpha(15) : null,
+        ),
+        child: Text('$label${count > 0 ? ' ($count)' : ''}', style: TextStyle(fontSize: 14, color: color)),
+      ),
     );
   }
 }

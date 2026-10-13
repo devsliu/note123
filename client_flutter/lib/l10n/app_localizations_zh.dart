@@ -380,6 +380,33 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sortTypeTime => '按时间排序';
 
   @override
+  String get allNotes => '笔记';
+
+  @override
+  String get tags => '标签';
+
+  @override
+  String get tagTree => '树形标签';
+
+  @override
+  String get tagFlat => '平铺标签';
+
+  @override
+  String get editTags => '编辑标签';
+
+  @override
+  String get addTag => '添加标签';
+
+  @override
+  String get tagName => '标签名称';
+
+  @override
+  String get done => '完成';
+
+  @override
+  String get layoutMode => '布局模式';
+
+  @override
   String get copy => '复制';
 
   @override
@@ -532,7 +559,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get weekdays => '周一|周二|周三|周四|周五|周六|周日';
 
   @override
-  String get calendarTasks => '日历任务';
+  String get calendar => '日历';
 
   @override
   String get noRemindersToday => '当天无提醒';

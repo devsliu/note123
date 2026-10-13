@@ -26,6 +26,8 @@ Future<void> main() async {
   Repository.get().recordTree.setSortListType(listType);
   if (listType != 0) RecordOpenedState.get().setOpenedFolder("/");
 
+  ListActiveTab.notifier.value = Prefs.instance.getInt(PrefKeys.listActiveTab) ?? ListActiveTab.notes;
+
   if (Utils.isDesktop()) {
     await _initWindows();
   }

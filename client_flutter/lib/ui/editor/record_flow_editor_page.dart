@@ -18,6 +18,8 @@ import 'package:note123/ui/editor/flow_editor/code_block_component.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_toolbar_item.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_newline.dart';
 import 'package:note123/ui/editor/reminder_panel.dart';
+import 'package:note123/ui/editor/tag_editor.dart';
+import 'package:note123/ui/editor/tag_panel.dart';
 
 /// Shared text style configuration (edit page + diff page).
 TextStyleConfiguration buildEditorTextStyle(ThemeData theme) {
@@ -141,8 +143,30 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
     // copyToolbarItem,
     // cutToolbarItem,
     // pasteToolbarItem,
+    _buildTagToolbarItem(),
     createInfoToolbarItem(widget.record.uuid),
   ];
+
+  ToolbarItem _buildTagToolbarItem() {
+    return ToolbarItem(
+      id: 'editor.tags',
+      group: 0,
+      isActive: (_) => true,
+      builder: (context, editorState, highlightColor, iconColor, tooltipBuilder) {
+        final child = SVGIconItemWidget(
+          iconBuilder: (_) => Icon(Icons.label_outline, color: iconColor, size: 18),
+          isHighlight: false,
+          highlightColor: highlightColor,
+          iconColor: iconColor,
+          onPressed: () => showTagEditor(context, uuid: widget.record.uuid),
+        );
+        if (tooltipBuilder != null) {
+          return tooltipBuilder(context, 'editor.tags', l10n.editTags, child);
+        }
+        return child;
+      },
+    );
+  }
 
   ToolbarItem _buildReminderToolbarItem() {
     return ToolbarItem(
@@ -320,6 +344,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
         ),
         Divider(height: 1, color: theme.colorScheme.outline.withAlpha(50)),
         Expanded(child: _buildEditorWidget(theme, _blockComponentBuilders, _textStyleConfiguration)),
+        TagPanel(uuid: widget.record.uuid),
         ReminderPanel(key: _reminderPanelKey, uuid: widget.record.uuid, maxLines: 3),
         _LastModifyTimeWidget(uuid: widget.record.uuid),
       ],

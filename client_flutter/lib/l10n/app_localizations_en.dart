@@ -383,6 +383,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sortTypeTime => 'Sort by Modified';
 
   @override
+  String get allNotes => 'Notes';
+
+  @override
+  String get tags => 'Tags';
+
+  @override
+  String get tagTree => 'Tree Tags';
+
+  @override
+  String get tagFlat => 'Flat Tags';
+
+  @override
+  String get editTags => 'Edit Tags';
+
+  @override
+  String get addTag => 'Add Tag';
+
+  @override
+  String get tagName => 'Tag Name';
+
+  @override
+  String get done => 'Done';
+
+  @override
+  String get layoutMode => 'Layout Mode';
+
+  @override
   String get copy => 'Copy';
 
   @override
@@ -535,7 +562,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekdays => 'Mon|Tue|Wed|Thu|Fri|Sat|Sun';
 
   @override
-  String get calendarTasks => 'Calendar';
+  String get calendar => '日历';
 
   @override
   String get noRemindersToday => 'No reminders today';
