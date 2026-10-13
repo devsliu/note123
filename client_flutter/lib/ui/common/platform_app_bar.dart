@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:note123/config/app_config.dart';
+import 'package:note123/config/theme.dart';
 import 'package:note123/ui/desktop/desktop_title_bar.dart';
 
 import '../../utils/utils.dart';
@@ -77,7 +78,11 @@ PreferredSizeWidget createPlatformAppBar({
               ),
 
               // Right-side actions
-              ...?actions,
+              if (actions != null && actions.isNotEmpty)
+                IconButtonTheme(
+                  data: theme.appBarIconButtonTheme,
+                  child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+                ),
 
               // Window control buttons (minimize / maximize / close)
               if (showWindowButtons) const WindowManagerButtons(),

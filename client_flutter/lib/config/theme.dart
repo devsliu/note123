@@ -60,14 +60,15 @@ final appThemes = [
         secondary: Color(0xFFE7E7E7),
         surface: Color(0xFFFFFFFF),
         surfaceContainer: Color(0xFFE7E7E7),
-        surfaceContainerHigh: Color(0xFFE7E7E7),
+        surfaceContainerHigh: Color(0xFFE0E0E0),
+        surfaceContainerHighest: Color(0xFFD5D5D5),
         surfaceContainerLowest: Color(0xFFF3F3F3),
         primaryContainer: Color(0xFFE7E7E7),
         secondaryContainer: Color(0xFFc7c7c7),
         onPrimary: Color(0xFFFFFFFF),
         onSecondary: Color(0xFF333333),
         onSurface: Color(0xFF333333),
-        onSurfaceVariant: Color(0xFF999999),
+        onSurfaceVariant: Color(0xFF555555),
         outline: Color(0xFFD1D1D1),
       ),
       iconTheme: IconThemeData(color: Color(0xFF222222)), // Use dark icons
@@ -233,7 +234,7 @@ final appThemes = [
         secondaryContainer: Color(0xFF2AA198), // cyan
         onPrimary: Color(0xFFFDF6E3), // base3
         onSecondary: Color(0xFFFDF6E3), // base3
-        onSurface: Color(0xFF839496), // base0 (Solarized body text)
+        onSurface: Color(0xFF657B83), // base00 (Solarized body text, darker)
         onSurfaceVariant: Color(0xFF93A1A1), // base1 (secondary)
         outline: Color(0xFF93A1A1), // base1
       ),
@@ -253,8 +254,8 @@ final appThemes = [
         floatingLabelStyle: TextStyle(color: Color(0xFF268BD2)), // blue
       ),
       textTheme: TextTheme(
-        bodyLarge: TextStyle(color: Color(0xFF839496)), // base0
-        bodyMedium: TextStyle(color: Color(0xFF839496)), // base0
+        bodyLarge: TextStyle(color: Color(0xFF657B83)), // base00
+        bodyMedium: TextStyle(color: Color(0xFF657B83)), // base00
       ),
       listTileTheme: ListTileThemeData(
         textColor: Color(0xFF657B83),
@@ -265,7 +266,7 @@ final appThemes = [
       dialogTheme: DialogThemeData(
         backgroundColor: Color(0xFFFDF6E3), // base3
         titleTextStyle: TextStyle(color: Color(0xFF586E75)), // base01 (darkest)
-        contentTextStyle: TextStyle(color: Color(0xFF839496)), // base0
+        contentTextStyle: TextStyle(color: Color(0xFF657B83)), // base00
       ),
       popupMenuTheme: PopupMenuThemeData(
         color: Color(0xFFFDF6E3), // base3
@@ -287,14 +288,15 @@ final appThemes = [
         secondary: Color(0xFFE1BEE7),
         surface: Colors.white,
         surfaceContainer: Color(0xFFF3E5F5),
-        surfaceContainerHigh: Color(0xFFE1BEE7),
+        surfaceContainerHigh: Color(0xFFF0DAF5),
+        surfaceContainerHighest: Color(0xFFE6C9F0),
         surfaceContainerLowest: Color(0xFFF8F4FF),
         primaryContainer: Color(0xFF6A1B9A),
         secondaryContainer: Color(0xFFF3E5F5),
         onPrimary: Color(0xFFFFFFFF),
         onSecondary: Color(0xFF4A148C),
         onSurface: Color(0xFF4A148C),
-        onSurfaceVariant: Color(0xFF999999),
+        onSurfaceVariant: Color(0xFF6A1B9A),
         outline: Color(0xFFBA68C8),
       ),
       iconTheme: IconThemeData(color: Color(0xFF4A148C)),
@@ -344,14 +346,15 @@ final appThemes = [
         secondary: Color(0xFFD2B48C),
         surface: Color(0xFFFFF8DC),
         surfaceContainer: Color(0xFFDEB887),
-        surfaceContainerHigh: Color(0xFFD2B48C),
+        surfaceContainerHigh: Color(0xFFF0DFC0),
+        surfaceContainerHighest: Color(0xFFE5CEA5),
         surfaceContainerLowest: Color(0xFFFAF8F3),
         primaryContainer: Color(0xFFD2B48C),
         secondaryContainer: Color(0xFFF5DEB3),
         onPrimary: Color(0xFFFFFFFF),
         onSecondary: Color(0xFF654321),
         onSurface: Color(0xFF3C2414),
-        onSurfaceVariant: Color(0xFF999999),
+        onSurfaceVariant: Color(0xFF6B4423),
         outline: Color(0xFFaB6563),
       ),
       iconTheme: IconThemeData(

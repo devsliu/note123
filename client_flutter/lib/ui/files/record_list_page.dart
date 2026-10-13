@@ -66,18 +66,19 @@ class _RecordListPageState extends State<RecordListPage> {
 
   Widget _buildTabBar(BuildContext context) {
     final theme = Theme.of(context);
-    return Material(
-      color: theme.appBarBackgroundColor,
-      child: Row(
-        children: [
-          SizedBox(width: 12),
-          Expanded(child: RecordListActions.allNotesButton(context)),
-          const SizedBox(width: 6),
-          Expanded(child: RecordListActions.tagsButton(context)),
-          const SizedBox(width: 6),
-          Expanded(child: RecordListActions.calendarButton(context, widget.onOpenCalendar)),
-          SizedBox(width: 12),
-        ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: Material(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(8),
+        clipBehavior: Clip.antiAlias,
+        child: Row(
+          children: [
+            Expanded(child: RecordListActions.allNotesButton(context)),
+            Expanded(child: RecordListActions.tagsButton(context)),
+            Expanded(child: RecordListActions.calendarButton(context, widget.onOpenCalendar)),
+          ],
+        ),
       ),
     );
   }
@@ -169,9 +170,7 @@ class _RecordListPageState extends State<RecordListPage> {
               appBar: _buildTitleBar(context),
               body: Column(
                 children: [
-                  SizedBox(height: 4),
                   _buildTabBar(context),
-                  SizedBox(height: 8),
                   Expanded(child: _buildContent(context)),
                   const SyncStateWidget(),
                 ],

@@ -6,7 +6,7 @@ import 'package:note123/ui/files/record_item_widget.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/config/app_config.dart';
-import 'package:note123/filesync/record_ext.dart';
+import 'package:note123/ui/common/breadcrumb_bar.dart';
 
 class RecordFilesFlatControl extends StatefulWidget {
   final bool shrink;
@@ -58,13 +58,15 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
     final node = recordTree.findFolder(folder.path);
     final children = node?.children ?? [];
     final count = children.length;
-    final isRoot = folder.path == "/";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!isRoot) _buildPathRow(context, folder.path),
-        if (!isRoot) AppConfig.listViewDivider(context),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          child: BreadcrumbBar(path: folder.path, onNavigate: RecordOpenedState.get().setOpenedFolder),
+        ),
+        AppConfig.listViewDivider(context),
         Expanded(
           child: ListView.separated(
             itemCount: count,
@@ -78,22 +80,6 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildPathRow(BuildContext context, String path) {
-    return InkWell(
-      onTap: () => RecordOpenedState.get().setOpenedFolder(dirname(path)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        child: Row(
-          children: [
-            Icon(Icons.arrow_upward, size: 16),
-            SizedBox(width: 6),
-            Expanded(child: Text(path, overflow: TextOverflow.fade, maxLines: 1)),
-          ],
-        ),
-      ),
     );
   }
 

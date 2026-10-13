@@ -129,6 +129,7 @@ class RecordListActions {
           builder: (context, type, _) {
             return PopupMenuButton<int>(
               icon: Icon(_listTypeIcon(type)),
+              iconColor: Theme.of(context).appBarIconColor,
               tooltip: l10n.sortType,
               onSelected: (value) async {
                 Repository.get().recordTree.setSortListType(value);
@@ -335,6 +336,7 @@ class RecordListActions {
   static Widget languageButton(BuildContext context) {
     return PopupMenuButton<LanguageOption>(
       icon: const Icon(Icons.language_outlined),
+      iconColor: Theme.of(context).appBarIconColor,
       tooltip: l10n.language,
       onSelected: (option) async {
         if (option != LanguageManager.getCurrentLanguage()) {
@@ -388,9 +390,9 @@ class RecordListActions {
   }
 }
 
-/// Simple tab button for the calendar / AllNotes / Tags row. Tapping triggers
-/// [onTap]; the active state is highlighted with the primary color. An
-/// optional [count] is shown on the right (as a badge when > 0).
+/// Tab segment used inside the combined capsule tab bar. Tapping triggers
+/// [onTap]; the active segment is highlighted in the primary color and bold.
+/// An optional [count] is appended to the label when > 0.
 class _TabButton extends StatelessWidget {
   final String label;
   final bool active;
@@ -403,19 +405,18 @@ class _TabButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = active ? theme.colorScheme.primary : theme.colorScheme.onSurface;
+    final bgColor = active ? theme.colorScheme.primary.withAlpha(70) : null;
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(4),
-      hoverColor: theme.colorScheme.primary.withAlpha(20),
+      hoverColor: theme.colorScheme.primary.withAlpha(25),
       child: Container(
         alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          border: Border.all(color: active ? theme.colorScheme.primary : theme.colorScheme.outline.withAlpha(150)),
-          borderRadius: BorderRadius.circular(4),
-          color: active ? theme.colorScheme.primary.withAlpha(15) : null,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(color: bgColor),
+        child: Text(
+          '$label${count > 0 ? ' ($count)' : ''}',
+          style: TextStyle(fontSize: 14, color: color, fontWeight: active ? FontWeight.w600 : FontWeight.normal),
         ),
-        child: Text('$label${count > 0 ? ' ($count)' : ''}', style: TextStyle(fontSize: 14, color: color)),
       ),
     );
   }

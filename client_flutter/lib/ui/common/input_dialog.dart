@@ -12,9 +12,8 @@ Future<String?> showInputDialog(BuildContext context, String title, String text,
           controller: controller,
           autofocus: true,
           obscureText: pass,
-          onSubmitted: (String value) {
-            return Navigator.pop(context, controller.text.trim());
-          },
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => Navigator.pop(context, controller.text.trim()),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
