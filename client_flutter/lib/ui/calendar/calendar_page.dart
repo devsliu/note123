@@ -80,7 +80,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     final repo = Repository.get();
     final record = await repo.db?.getRecord(entry.recordUuid);
     if (record == null) return;
-    final tasks = ReminderTask.fromJsonString(record.localReminder);
+    final tasks = ReminderTask.fromJsonString(record.local.reminder);
     update(tasks);
     final json = ReminderTask.toJsonString(tasks);
     await repo.editRecord(entry.recordUuid, false, DateTime.now().millisecondsSinceEpoch, reminder: json);
@@ -117,7 +117,9 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     final tasks = repo.reminderTree.tasksForRecord(entry.recordUuid);
     final isOnlyTask = tasks.length == 1 && tasks.first.id == entry.task.id;
     final record = isOnlyTask ? await repo.db?.getRecord(entry.recordUuid) : null;
-    if (record != null && record.remoteMd5.isEmpty && !(repo.fileStore?.isWorkFileExist(entry.recordUuid) ?? false)) {
+    if (record != null &&
+        record.local.remoteMd5.isEmpty &&
+        !(repo.fileStore?.isWorkFileExist(entry.recordUuid) ?? false)) {
       await repo.deleteRecord(entry.recordUuid);
       return;
     }

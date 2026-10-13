@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
-import 'package:note123/filesync/database.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/utils/lunar.dart';
 
@@ -348,7 +348,7 @@ class ReminderTree {
   List<ReminderEntry> get entries => List.unmodifiable(_entries);
 
   /// Rebuild from a full record list (used on initial load).
-  void rebuild(List<LocalRecord> records) {
+  void rebuild(List<RecordEntry> records) {
     _entries.clear();
     _byRecord.clear();
     for (final record in records) {
@@ -359,7 +359,7 @@ class ReminderTree {
   }
 
   /// Insert or update a single record's reminders.
-  void upsertRecord(LocalRecord record) {
+  void upsertRecord(RecordEntry record) {
     final old = _byRecord.remove(record.uuid);
     if (old != null) old.forEach(_entries.remove);
 
@@ -401,16 +401,21 @@ class ReminderTree {
   }
 
   /// Adds a record's reminders. Returns true if any entries were added.
-  bool _addRecord(LocalRecord record) {
-    if (record.localEditType == LocalEditType.delete) return false;
-    final json = record.localReminder;
+  bool _addRecord(RecordEntry record) {
+    if (record.local.editType == LocalEditType.delete) return false;
+    final json = record.local.reminder;
     if (json.isEmpty) return false;
     final tasks = ReminderTask.fromJsonString(json);
     if (tasks.isEmpty) return false;
     final list = <ReminderEntry>[];
     for (final task in tasks) {
       list.add(
-        ReminderEntry(recordUuid: record.uuid, recordName: record.localName, recordPath: record.localPath, task: task),
+        ReminderEntry(
+          recordUuid: record.uuid,
+          recordName: record.local.name,
+          recordPath: record.local.path,
+          task: task,
+        ),
       );
     }
     _byRecord[record.uuid] = list;

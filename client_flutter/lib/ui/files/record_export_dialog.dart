@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/file_store.dart';
+import 'package:note123/filesync/path_utils.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:open_filex/open_filex.dart';
@@ -21,7 +22,7 @@ import '../../utils/utils.dart';
 class RecordExport {
   /// Start export: pick destination folder, then show the progress dialog.
   static Future<void> start(BuildContext context, String folderPath) async {
-    final root = folderPath.endsWith('/') ? folderPath : '$folderPath/';
+    final root = normalizePath(folderPath);
     final files = Repository.get().recordTree.sortedFiles.where((f) => f.path.startsWith(root)).toList();
     if (files.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.exportNoRecords)));

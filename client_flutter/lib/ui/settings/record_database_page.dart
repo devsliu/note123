@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/file_store.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/ui/common/platform_app_bar.dart';
@@ -19,7 +19,7 @@ class RecordDatabasePage extends StatefulWidget {
 }
 
 class _RecordDatabasePageState extends State<RecordDatabasePage> {
-  List<LocalRecord> _items = [];
+  List<RecordEntry> _items = [];
   bool _loading = true;
 
   @override
@@ -32,7 +32,7 @@ class _RecordDatabasePageState extends State<RecordDatabasePage> {
     setState(() => _loading = true);
 
     try {
-      _items = await Repository.get().db?.getAllLocalRecords() ?? [];
+      _items = await Repository.get().db?.getAllRecords() ?? [];
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('${l10n.loadFailed}: $e')));
@@ -47,13 +47,13 @@ class _RecordDatabasePageState extends State<RecordDatabasePage> {
   }
 
   // Return color based on type/status
-  Color _getItemColor(LocalRecord item) {
-    if (item.localEditType == LocalEditType.delete) return Colors.red;
-    if (item.localLocked != 0) return Colors.orange;
+  Color _getItemColor(RecordEntry item) {
+    if (item.local.editType == LocalEditType.delete) return Colors.red;
+    if (item.local.locked != 0) return Colors.orange;
     return Theme.of(context).textTheme.bodyMedium?.color ?? Colors.black87;
   }
 
-  Widget _buildRecordTile(LocalRecord record, int index) {
+  Widget _buildRecordTile(RecordEntry record, int index) {
     // Check if file exists and its size
     String fileInfo = l10n.notExists;
     FileStore? fileStore = Repository.get().fileStore;
@@ -73,7 +73,7 @@ class _RecordDatabasePageState extends State<RecordDatabasePage> {
     }
 
     // After building complete file path
-    String fullPath = '${record.localPath}${record.localName} $fileInfo';
+    String fullPath = '${record.local.path}${record.local.name} $fileInfo';
     Color textColor = _getItemColor(record);
 
     return ListTile(
@@ -81,7 +81,7 @@ class _RecordDatabasePageState extends State<RecordDatabasePage> {
       visualDensity: VisualDensity(horizontal: 0, vertical: -4),
       contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 0),
       title: Text(
-        "UUID: ${record.uuid}  ${record.localEditType == LocalEditType.delete ? l10n.isDeleted : fullPath}",
+        "UUID: ${record.uuid}  ${record.local.editType == LocalEditType.delete ? l10n.isDeleted : fullPath}",
         style: TextStyle(fontSize: 12, color: textColor),
       ),
       subtitle: Column(
@@ -91,21 +91,21 @@ class _RecordDatabasePageState extends State<RecordDatabasePage> {
           Row(
             children: [
               // Time info
-              if (record.remoteCreateAt > 0)
+              if (record.remote.createAt > 0)
                 Text(
-                  '${l10n.created}:${Utils.formatTime(record.remoteCreateAt)}    ',
+                  '${l10n.created}:${Utils.formatTime(record.remote.createAt)}    ',
                   style: TextStyle(fontSize: 10),
                   overflow: TextOverflow.ellipsis,
                 ),
-              if (record.localEditType == LocalEditType.edit)
+              if (record.local.editType == LocalEditType.edit)
                 Text(
-                  '${l10n.modified}:${Utils.formatTime(record.localEditAt)}    ',
+                  '${l10n.modified}:${Utils.formatTime(record.local.editAt)}    ',
                   style: TextStyle(fontSize: 10),
                   overflow: TextOverflow.ellipsis,
                 ),
-              if (record.localEditType == LocalEditType.delete)
+              if (record.local.editType == LocalEditType.delete)
                 Text(
-                  '${l10n.deleted}:${Utils.formatTime(record.localEditAt)}    ',
+                  '${l10n.deleted}:${Utils.formatTime(record.local.editAt)}    ',
                   style: TextStyle(fontSize: 10),
                   overflow: TextOverflow.ellipsis,
                 ),

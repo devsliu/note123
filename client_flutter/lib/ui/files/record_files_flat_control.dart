@@ -6,7 +6,7 @@ import 'package:note123/ui/files/record_item_widget.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:note123/config/app_config.dart';
-import 'package:note123/filesync/record_utils.dart';
+import 'package:note123/filesync/record_ext.dart';
 
 class RecordFilesFlatControl extends StatefulWidget {
   final bool shrink;

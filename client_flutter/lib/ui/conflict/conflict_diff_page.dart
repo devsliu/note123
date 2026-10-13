@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/file_store.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/ui/common/platform_app_bar.dart';
 import 'package:note123/ui/editor/base_record_edit_page.dart';
@@ -273,15 +273,15 @@ class _DiffEditorPanelState extends State<DiffEditorPanel> {
 // Common: top simplified name/path meta bar + keep buttons
 // =========================================================================
 
-bool isFileConflict(LocalRecord record) {
+bool isFileConflict(RecordEntry record) {
   final fs = Repository.get().fileStore;
   if (fs == null) return false;
   final workFile = File(fs.getWorkFile(record.uuid));
-  return record.remoteFileVersion > record.localFileVersion && workFile.existsSync();
+  return record.local.remoteFileVersion > record.local.fileVersion && workFile.existsSync();
 }
 
 class ConflictDiffPage extends StatefulWidget {
-  final LocalRecord record;
+  final RecordEntry record;
   const ConflictDiffPage({super.key, required this.record});
 
   @override
@@ -346,7 +346,7 @@ class _ConflictDiffPageState extends State<ConflictDiffPage> {
   }
 
   /// File non-conflict mode, same layout as _buildEditors: two title bars + center notice
-  Widget _buildMetaOnly(LocalRecord record, ThemeData theme) {
+  Widget _buildMetaOnly(RecordEntry record, ThemeData theme) {
     final content = Container(
       padding: const EdgeInsets.all(16),
       color: Colors.orange.withAlpha(15),
@@ -382,20 +382,20 @@ class _ConflictDiffPageState extends State<ConflictDiffPage> {
     final remoteBar = _ConflictTitleBar(
       title: l10n.conflictRemoteVersion,
       color: Colors.green,
-      version: record.remoteVersion,
-      name: record.remoteName,
-      path: record.remotePath,
-      editTime: record.remoteEditAt,
+      version: record.local.remoteVersion,
+      name: record.remote.name,
+      path: record.remote.path,
+      editTime: record.remote.editAt,
       uuid: record.uuid,
       editable: false,
     );
     final localBar = _ConflictTitleBar(
       title: l10n.conflictLocalModified,
       color: Colors.blue,
-      version: record.localVersion,
-      name: record.localName,
-      path: record.localPath,
-      editTime: record.localEditAt,
+      version: record.local.version,
+      name: record.local.name,
+      path: record.local.path,
+      editTime: record.local.editAt,
       uuid: record.uuid,
       editable: true,
     );
@@ -426,8 +426,8 @@ class _ConflictDiffPageState extends State<ConflictDiffPage> {
     );
   }
 
-  Widget _buildEditors(LocalRecord record) {
-    final isLocked = record.localLocked != 0;
+  Widget _buildEditors(RecordEntry record) {
+    final isLocked = record.local.locked != 0;
     FileStore? fileStore = Repository.get().fileStore;
     if (fileStore == null) return Container();
 
@@ -436,15 +436,15 @@ class _ConflictDiffPageState extends State<ConflictDiffPage> {
       filePath: fileStore.getBaseFile(record.uuid),
       editable: false,
       isLocked: isLocked,
-      name: record.remoteName,
-      path: record.remotePath,
+      name: record.remote.name,
+      path: record.remote.path,
       titleBar: _ConflictTitleBar(
         title: l10n.conflictRemoteVersion,
         color: Colors.green,
-        version: record.remoteVersion,
-        name: record.remoteName,
-        path: record.remotePath,
-        editTime: record.remoteEditAt,
+        version: record.local.remoteVersion,
+        name: record.remote.name,
+        path: record.remote.path,
+        editTime: record.remote.editAt,
         uuid: record.uuid,
         editable: false,
       ),
@@ -455,15 +455,15 @@ class _ConflictDiffPageState extends State<ConflictDiffPage> {
       filePath: fileStore.getWorkFile(record.uuid),
       editable: true,
       isLocked: isLocked,
-      name: record.localName,
-      path: record.localPath,
+      name: record.local.name,
+      path: record.local.path,
       titleBar: _ConflictTitleBar(
         title: l10n.conflictLocalModified,
         color: Colors.blue,
-        version: record.localVersion,
-        name: record.localName,
-        path: record.localPath,
-        editTime: record.localEditAt,
+        version: record.local.version,
+        name: record.local.name,
+        path: record.local.path,
+        editTime: record.local.editAt,
         uuid: record.uuid,
         editable: true,
       ),

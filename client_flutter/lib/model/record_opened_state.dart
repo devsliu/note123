@@ -1,6 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:note123/filesync/record_tree.dart';
-import 'package:note123/filesync/record_utils.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/repository.dart';
 
 /// Tracks which folder and record are currently open in the UI.

@@ -42,108 +42,12 @@ class $LocalRecordsTable extends LocalRecords
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _remoteCreateAtMeta = const VerificationMeta(
-    'remoteCreateAt',
-  );
-  @override
-  late final GeneratedColumn<int> remoteCreateAt = GeneratedColumn<int>(
-    'remote_create_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _remoteEditAtMeta = const VerificationMeta(
-    'remoteEditAt',
-  );
-  @override
-  late final GeneratedColumn<int> remoteEditAt = GeneratedColumn<int>(
-    'remote_edit_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _remoteFileEditAtMeta = const VerificationMeta(
-    'remoteFileEditAt',
-  );
-  @override
-  late final GeneratedColumn<int> remoteFileEditAt = GeneratedColumn<int>(
-    'remote_file_edit_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _remoteDeleteAtMeta = const VerificationMeta(
-    'remoteDeleteAt',
-  );
-  @override
-  late final GeneratedColumn<int> remoteDeleteAt = GeneratedColumn<int>(
-    'remote_delete_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
-  static const VerificationMeta _remoteLockedMeta = const VerificationMeta(
-    'remoteLocked',
-  );
-  @override
-  late final GeneratedColumn<int> remoteLocked = GeneratedColumn<int>(
-    'remote_locked',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(0),
-  );
   static const VerificationMeta _remoteMd5Meta = const VerificationMeta(
     'remoteMd5',
   );
   @override
   late final GeneratedColumn<String> remoteMd5 = GeneratedColumn<String>(
     'remote_md5',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _remoteNameMeta = const VerificationMeta(
-    'remoteName',
-  );
-  @override
-  late final GeneratedColumn<String> remoteName = GeneratedColumn<String>(
-    'remote_name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _remotePathMeta = const VerificationMeta(
-    'remotePath',
-  );
-  @override
-  late final GeneratedColumn<String> remotePath = GeneratedColumn<String>(
-    'remote_path',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant(''),
-  );
-  static const VerificationMeta _remoteReminderMeta = const VerificationMeta(
-    'remoteReminder',
-  );
-  @override
-  late final GeneratedColumn<String> remoteReminder = GeneratedColumn<String>(
-    'remote_reminder',
     aliasedName,
     false,
     type: DriftSqlType.string,
@@ -162,6 +66,18 @@ class $LocalRecordsTable extends LocalRecords
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _remoteJsonMeta = const VerificationMeta(
+    'remoteJson',
+  );
+  @override
+  late final GeneratedColumn<String> remoteJson = GeneratedColumn<String>(
+    'remote_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
   static const VerificationMeta _baseFileVersionMeta = const VerificationMeta(
     'baseFileVersion',
   );
@@ -174,157 +90,136 @@ class $LocalRecordsTable extends LocalRecords
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _localEditTypeMeta = const VerificationMeta(
-    'localEditType',
+  static const VerificationMeta _editTypeMeta = const VerificationMeta(
+    'editType',
   );
   @override
-  late final GeneratedColumn<int> localEditType = GeneratedColumn<int>(
-    'local_edit_type',
+  late final GeneratedColumn<int> editType = GeneratedColumn<int>(
+    'edit_type',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _localVersionMeta = const VerificationMeta(
-    'localVersion',
+  static const VerificationMeta _versionMeta = const VerificationMeta(
+    'version',
   );
   @override
-  late final GeneratedColumn<int> localVersion = GeneratedColumn<int>(
-    'local_version',
+  late final GeneratedColumn<int> version = GeneratedColumn<int>(
+    'version',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _localFileVersionMeta = const VerificationMeta(
-    'localFileVersion',
+  static const VerificationMeta _fileVersionMeta = const VerificationMeta(
+    'fileVersion',
   );
   @override
-  late final GeneratedColumn<int> localFileVersion = GeneratedColumn<int>(
-    'local_file_version',
+  late final GeneratedColumn<int> fileVersion = GeneratedColumn<int>(
+    'file_version',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _localEditAtMeta = const VerificationMeta(
-    'localEditAt',
-  );
+  static const VerificationMeta _editAtMeta = const VerificationMeta('editAt');
   @override
-  late final GeneratedColumn<int> localEditAt = GeneratedColumn<int>(
-    'local_edit_at',
+  late final GeneratedColumn<int> editAt = GeneratedColumn<int>(
+    'edit_at',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _localFileEditAtMeta = const VerificationMeta(
-    'localFileEditAt',
+  static const VerificationMeta _fileEditAtMeta = const VerificationMeta(
+    'fileEditAt',
   );
   @override
-  late final GeneratedColumn<int> localFileEditAt = GeneratedColumn<int>(
-    'local_file_edit_at',
+  late final GeneratedColumn<int> fileEditAt = GeneratedColumn<int>(
+    'file_edit_at',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _localNameMeta = const VerificationMeta(
-    'localName',
-  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
   @override
-  late final GeneratedColumn<String> localName = GeneratedColumn<String>(
-    'local_name',
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
-  static const VerificationMeta _localMd5Meta = const VerificationMeta(
-    'localMd5',
-  );
+  static const VerificationMeta _md5Meta = const VerificationMeta('md5');
   @override
-  late final GeneratedColumn<String> localMd5 = GeneratedColumn<String>(
-    'local_md5',
+  late final GeneratedColumn<String> md5 = GeneratedColumn<String>(
+    'md5',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
-  static const VerificationMeta _localLockedMeta = const VerificationMeta(
-    'localLocked',
-  );
+  static const VerificationMeta _lockedMeta = const VerificationMeta('locked');
   @override
-  late final GeneratedColumn<int> localLocked = GeneratedColumn<int>(
-    'local_locked',
+  late final GeneratedColumn<int> locked = GeneratedColumn<int>(
+    'locked',
     aliasedName,
     false,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _localReminderMeta = const VerificationMeta(
-    'localReminder',
+  static const VerificationMeta _reminderMeta = const VerificationMeta(
+    'reminder',
   );
   @override
-  late final GeneratedColumn<String> localReminder = GeneratedColumn<String>(
-    'local_reminder',
+  late final GeneratedColumn<String> reminder = GeneratedColumn<String>(
+    'reminder',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
     defaultValue: const Constant(''),
   );
-  static const VerificationMeta _localPathMeta = const VerificationMeta(
-    'localPath',
-  );
+  static const VerificationMeta _pathMeta = const VerificationMeta('path');
   @override
-  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
-    'local_path',
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+    'path',
     aliasedName,
     false,
-    additionalChecks: GeneratedColumn.checkTextLength(
-      minTextLength: 1,
-      maxTextLength: 1024,
-    ),
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints:
-        'NOT NULL COLLATE BINARY CHECK (local_path LIKE \'%/\')',
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL COLLATE BINARY CHECK (path LIKE \'%/\')',
+    defaultValue: const Constant('/'),
   );
   @override
   List<GeneratedColumn> get $columns => [
     uuid,
     batchNo,
     remoteVersion,
-    remoteCreateAt,
-    remoteEditAt,
-    remoteFileEditAt,
-    remoteDeleteAt,
-    remoteLocked,
     remoteMd5,
-    remoteName,
-    remotePath,
-    remoteReminder,
     remoteFileVersion,
+    remoteJson,
     baseFileVersion,
-    localEditType,
-    localVersion,
-    localFileVersion,
-    localEditAt,
-    localFileEditAt,
-    localName,
-    localMd5,
-    localLocked,
-    localReminder,
-    localPath,
+    editType,
+    version,
+    fileVersion,
+    editAt,
+    fileEditAt,
+    name,
+    md5,
+    locked,
+    reminder,
+    path,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -361,76 +256,10 @@ class $LocalRecordsTable extends LocalRecords
         ),
       );
     }
-    if (data.containsKey('remote_create_at')) {
-      context.handle(
-        _remoteCreateAtMeta,
-        remoteCreateAt.isAcceptableOrUnknown(
-          data['remote_create_at']!,
-          _remoteCreateAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('remote_edit_at')) {
-      context.handle(
-        _remoteEditAtMeta,
-        remoteEditAt.isAcceptableOrUnknown(
-          data['remote_edit_at']!,
-          _remoteEditAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('remote_file_edit_at')) {
-      context.handle(
-        _remoteFileEditAtMeta,
-        remoteFileEditAt.isAcceptableOrUnknown(
-          data['remote_file_edit_at']!,
-          _remoteFileEditAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('remote_delete_at')) {
-      context.handle(
-        _remoteDeleteAtMeta,
-        remoteDeleteAt.isAcceptableOrUnknown(
-          data['remote_delete_at']!,
-          _remoteDeleteAtMeta,
-        ),
-      );
-    }
-    if (data.containsKey('remote_locked')) {
-      context.handle(
-        _remoteLockedMeta,
-        remoteLocked.isAcceptableOrUnknown(
-          data['remote_locked']!,
-          _remoteLockedMeta,
-        ),
-      );
-    }
     if (data.containsKey('remote_md5')) {
       context.handle(
         _remoteMd5Meta,
         remoteMd5.isAcceptableOrUnknown(data['remote_md5']!, _remoteMd5Meta),
-      );
-    }
-    if (data.containsKey('remote_name')) {
-      context.handle(
-        _remoteNameMeta,
-        remoteName.isAcceptableOrUnknown(data['remote_name']!, _remoteNameMeta),
-      );
-    }
-    if (data.containsKey('remote_path')) {
-      context.handle(
-        _remotePathMeta,
-        remotePath.isAcceptableOrUnknown(data['remote_path']!, _remotePathMeta),
-      );
-    }
-    if (data.containsKey('remote_reminder')) {
-      context.handle(
-        _remoteReminderMeta,
-        remoteReminder.isAcceptableOrUnknown(
-          data['remote_reminder']!,
-          _remoteReminderMeta,
-        ),
       );
     }
     if (data.containsKey('remote_file_version')) {
@@ -442,6 +271,12 @@ class $LocalRecordsTable extends LocalRecords
         ),
       );
     }
+    if (data.containsKey('remote_json')) {
+      context.handle(
+        _remoteJsonMeta,
+        remoteJson.isAcceptableOrUnknown(data['remote_json']!, _remoteJsonMeta),
+      );
+    }
     if (data.containsKey('base_file_version')) {
       context.handle(
         _baseFileVersionMeta,
@@ -451,88 +286,71 @@ class $LocalRecordsTable extends LocalRecords
         ),
       );
     }
-    if (data.containsKey('local_edit_type')) {
+    if (data.containsKey('edit_type')) {
       context.handle(
-        _localEditTypeMeta,
-        localEditType.isAcceptableOrUnknown(
-          data['local_edit_type']!,
-          _localEditTypeMeta,
+        _editTypeMeta,
+        editType.isAcceptableOrUnknown(data['edit_type']!, _editTypeMeta),
+      );
+    }
+    if (data.containsKey('version')) {
+      context.handle(
+        _versionMeta,
+        version.isAcceptableOrUnknown(data['version']!, _versionMeta),
+      );
+    }
+    if (data.containsKey('file_version')) {
+      context.handle(
+        _fileVersionMeta,
+        fileVersion.isAcceptableOrUnknown(
+          data['file_version']!,
+          _fileVersionMeta,
         ),
       );
     }
-    if (data.containsKey('local_version')) {
+    if (data.containsKey('edit_at')) {
       context.handle(
-        _localVersionMeta,
-        localVersion.isAcceptableOrUnknown(
-          data['local_version']!,
-          _localVersionMeta,
+        _editAtMeta,
+        editAt.isAcceptableOrUnknown(data['edit_at']!, _editAtMeta),
+      );
+    }
+    if (data.containsKey('file_edit_at')) {
+      context.handle(
+        _fileEditAtMeta,
+        fileEditAt.isAcceptableOrUnknown(
+          data['file_edit_at']!,
+          _fileEditAtMeta,
         ),
       );
     }
-    if (data.containsKey('local_file_version')) {
+    if (data.containsKey('name')) {
       context.handle(
-        _localFileVersionMeta,
-        localFileVersion.isAcceptableOrUnknown(
-          data['local_file_version']!,
-          _localFileVersionMeta,
-        ),
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
       );
     }
-    if (data.containsKey('local_edit_at')) {
+    if (data.containsKey('md5')) {
       context.handle(
-        _localEditAtMeta,
-        localEditAt.isAcceptableOrUnknown(
-          data['local_edit_at']!,
-          _localEditAtMeta,
-        ),
+        _md5Meta,
+        md5.isAcceptableOrUnknown(data['md5']!, _md5Meta),
       );
     }
-    if (data.containsKey('local_file_edit_at')) {
+    if (data.containsKey('locked')) {
       context.handle(
-        _localFileEditAtMeta,
-        localFileEditAt.isAcceptableOrUnknown(
-          data['local_file_edit_at']!,
-          _localFileEditAtMeta,
-        ),
+        _lockedMeta,
+        locked.isAcceptableOrUnknown(data['locked']!, _lockedMeta),
       );
     }
-    if (data.containsKey('local_name')) {
+    if (data.containsKey('reminder')) {
       context.handle(
-        _localNameMeta,
-        localName.isAcceptableOrUnknown(data['local_name']!, _localNameMeta),
+        _reminderMeta,
+        reminder.isAcceptableOrUnknown(data['reminder']!, _reminderMeta),
       );
     }
-    if (data.containsKey('local_md5')) {
+    if (data.containsKey('path')) {
       context.handle(
-        _localMd5Meta,
-        localMd5.isAcceptableOrUnknown(data['local_md5']!, _localMd5Meta),
+        _pathMeta,
+        path.isAcceptableOrUnknown(data['path']!, _pathMeta),
       );
-    }
-    if (data.containsKey('local_locked')) {
-      context.handle(
-        _localLockedMeta,
-        localLocked.isAcceptableOrUnknown(
-          data['local_locked']!,
-          _localLockedMeta,
-        ),
-      );
-    }
-    if (data.containsKey('local_reminder')) {
-      context.handle(
-        _localReminderMeta,
-        localReminder.isAcceptableOrUnknown(
-          data['local_reminder']!,
-          _localReminderMeta,
-        ),
-      );
-    }
-    if (data.containsKey('local_path')) {
-      context.handle(
-        _localPathMeta,
-        localPath.isAcceptableOrUnknown(data['local_path']!, _localPathMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_localPathMeta);
     }
     return context;
   }
@@ -555,89 +373,61 @@ class $LocalRecordsTable extends LocalRecords
         DriftSqlType.int,
         data['${effectivePrefix}remote_version'],
       )!,
-      remoteCreateAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}remote_create_at'],
-      )!,
-      remoteEditAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}remote_edit_at'],
-      )!,
-      remoteFileEditAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}remote_file_edit_at'],
-      )!,
-      remoteDeleteAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}remote_delete_at'],
-      )!,
-      remoteLocked: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}remote_locked'],
-      )!,
       remoteMd5: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}remote_md5'],
-      )!,
-      remoteName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}remote_name'],
-      )!,
-      remotePath: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}remote_path'],
-      )!,
-      remoteReminder: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}remote_reminder'],
       )!,
       remoteFileVersion: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}remote_file_version'],
       )!,
+      remoteJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_json'],
+      )!,
       baseFileVersion: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}base_file_version'],
       )!,
-      localEditType: attachedDatabase.typeMapping.read(
+      editType: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}local_edit_type'],
+        data['${effectivePrefix}edit_type'],
       )!,
-      localVersion: attachedDatabase.typeMapping.read(
+      version: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}local_version'],
+        data['${effectivePrefix}version'],
       )!,
-      localFileVersion: attachedDatabase.typeMapping.read(
+      fileVersion: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}local_file_version'],
+        data['${effectivePrefix}file_version'],
       )!,
-      localEditAt: attachedDatabase.typeMapping.read(
+      editAt: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}local_edit_at'],
+        data['${effectivePrefix}edit_at'],
       )!,
-      localFileEditAt: attachedDatabase.typeMapping.read(
+      fileEditAt: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}local_file_edit_at'],
+        data['${effectivePrefix}file_edit_at'],
       )!,
-      localName: attachedDatabase.typeMapping.read(
+      name: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}local_name'],
+        data['${effectivePrefix}name'],
       )!,
-      localMd5: attachedDatabase.typeMapping.read(
+      md5: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}local_md5'],
+        data['${effectivePrefix}md5'],
       )!,
-      localLocked: attachedDatabase.typeMapping.read(
+      locked: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
-        data['${effectivePrefix}local_locked'],
+        data['${effectivePrefix}locked'],
       )!,
-      localReminder: attachedDatabase.typeMapping.read(
+      reminder: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}local_reminder'],
+        data['${effectivePrefix}reminder'],
       )!,
-      localPath: attachedDatabase.typeMapping.read(
+      path: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}local_path'],
+        data['${effectivePrefix}path'],
       )!,
     );
   }
@@ -651,19 +441,20 @@ class $LocalRecordsTable extends LocalRecords
 class LocalRecord extends DataClass implements Insertable<LocalRecord> {
   final String uuid;
   final int batchNo;
-  final int remoteVersion;
-  final int remoteCreateAt;
-  final int remoteEditAt;
-  final int remoteFileEditAt;
-  final int remoteDeleteAt;
-  final int remoteLocked;
-  final String remoteMd5;
-  final String remoteName;
-  final String remotePath;
-  final String remoteReminder;
 
-  /// Server-side file version number (incremented independently per record, only +1 when file content changes, defaults to 0)
+  /// Conflict detection + sort, participates in SQL WHERE/ORDER BY
+  final int remoteVersion;
+
+  /// Empty-record detection (server never had a file)
+  final String remoteMd5;
+
+  /// Download detection + file conflict, participates in SQL logic
   final int remoteFileVersion;
+
+  /// Full server snapshot as JSON (all RemoteRecord fields).
+  /// The 3 columns above are redundant indexed copies kept only for SQL WHERE/ORDER BY.
+  /// Decoded lazily into RemoteRecord via RecordEntry.remote.
+  final String remoteJson;
 
   /// The server-side fileVersion of the locally downloaded base file.
   /// Written only after downloadBaseFile succeeds, never cleared.
@@ -671,53 +462,46 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
   final int baseFileVersion;
 
   /// Local edit type: 0=synced, 1=edited, 2=deleted
-  final int localEditType;
+  final int editType;
 
-  /// Local globally-modified version number. Conflict detection: localEditType>0 && localVersion != remoteVersion
-  final int localVersion;
+  /// Local globally-modified version number. Conflict detection: editType>0 && version != remoteVersion
+  final int version;
 
-  /// Local file edit based on the remote fileVersion. File conflict detection: localFileEdited==1 && localFileVersion != remoteFileVersion
-  final int localFileVersion;
+  /// Local file edit based on the remote fileVersion. File conflict detection: localFileEdited==1 && fileVersion != remoteFileVersion
+  final int fileVersion;
 
   /// Local edit timestamp (optimistic concurrency + server editAt). 0=no edit
-  final int localEditAt;
+  final int editAt;
 
   /// Local file edit timestamp. 0=no file edit
-  final int localFileEditAt;
+  final int fileEditAt;
 
   /// Field values after local edits. Overwritten with remote_* after successful sync (restored to server values)
-  final String localName;
-  final String localMd5;
-  final int localLocked;
-  final String localReminder;
+  final String name;
+  final String md5;
+  final int locked;
+  final String reminder;
 
   /// Local path: COLLATE BINARY ensures LIKE index works, CHECK constraint guarantees format
-  final String localPath;
+  final String path;
   const LocalRecord({
     required this.uuid,
     required this.batchNo,
     required this.remoteVersion,
-    required this.remoteCreateAt,
-    required this.remoteEditAt,
-    required this.remoteFileEditAt,
-    required this.remoteDeleteAt,
-    required this.remoteLocked,
     required this.remoteMd5,
-    required this.remoteName,
-    required this.remotePath,
-    required this.remoteReminder,
     required this.remoteFileVersion,
+    required this.remoteJson,
     required this.baseFileVersion,
-    required this.localEditType,
-    required this.localVersion,
-    required this.localFileVersion,
-    required this.localEditAt,
-    required this.localFileEditAt,
-    required this.localName,
-    required this.localMd5,
-    required this.localLocked,
-    required this.localReminder,
-    required this.localPath,
+    required this.editType,
+    required this.version,
+    required this.fileVersion,
+    required this.editAt,
+    required this.fileEditAt,
+    required this.name,
+    required this.md5,
+    required this.locked,
+    required this.reminder,
+    required this.path,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -725,27 +509,20 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     map['uuid'] = Variable<String>(uuid);
     map['batch_no'] = Variable<int>(batchNo);
     map['remote_version'] = Variable<int>(remoteVersion);
-    map['remote_create_at'] = Variable<int>(remoteCreateAt);
-    map['remote_edit_at'] = Variable<int>(remoteEditAt);
-    map['remote_file_edit_at'] = Variable<int>(remoteFileEditAt);
-    map['remote_delete_at'] = Variable<int>(remoteDeleteAt);
-    map['remote_locked'] = Variable<int>(remoteLocked);
     map['remote_md5'] = Variable<String>(remoteMd5);
-    map['remote_name'] = Variable<String>(remoteName);
-    map['remote_path'] = Variable<String>(remotePath);
-    map['remote_reminder'] = Variable<String>(remoteReminder);
     map['remote_file_version'] = Variable<int>(remoteFileVersion);
+    map['remote_json'] = Variable<String>(remoteJson);
     map['base_file_version'] = Variable<int>(baseFileVersion);
-    map['local_edit_type'] = Variable<int>(localEditType);
-    map['local_version'] = Variable<int>(localVersion);
-    map['local_file_version'] = Variable<int>(localFileVersion);
-    map['local_edit_at'] = Variable<int>(localEditAt);
-    map['local_file_edit_at'] = Variable<int>(localFileEditAt);
-    map['local_name'] = Variable<String>(localName);
-    map['local_md5'] = Variable<String>(localMd5);
-    map['local_locked'] = Variable<int>(localLocked);
-    map['local_reminder'] = Variable<String>(localReminder);
-    map['local_path'] = Variable<String>(localPath);
+    map['edit_type'] = Variable<int>(editType);
+    map['version'] = Variable<int>(version);
+    map['file_version'] = Variable<int>(fileVersion);
+    map['edit_at'] = Variable<int>(editAt);
+    map['file_edit_at'] = Variable<int>(fileEditAt);
+    map['name'] = Variable<String>(name);
+    map['md5'] = Variable<String>(md5);
+    map['locked'] = Variable<int>(locked);
+    map['reminder'] = Variable<String>(reminder);
+    map['path'] = Variable<String>(path);
     return map;
   }
 
@@ -754,27 +531,20 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       uuid: Value(uuid),
       batchNo: Value(batchNo),
       remoteVersion: Value(remoteVersion),
-      remoteCreateAt: Value(remoteCreateAt),
-      remoteEditAt: Value(remoteEditAt),
-      remoteFileEditAt: Value(remoteFileEditAt),
-      remoteDeleteAt: Value(remoteDeleteAt),
-      remoteLocked: Value(remoteLocked),
       remoteMd5: Value(remoteMd5),
-      remoteName: Value(remoteName),
-      remotePath: Value(remotePath),
-      remoteReminder: Value(remoteReminder),
       remoteFileVersion: Value(remoteFileVersion),
+      remoteJson: Value(remoteJson),
       baseFileVersion: Value(baseFileVersion),
-      localEditType: Value(localEditType),
-      localVersion: Value(localVersion),
-      localFileVersion: Value(localFileVersion),
-      localEditAt: Value(localEditAt),
-      localFileEditAt: Value(localFileEditAt),
-      localName: Value(localName),
-      localMd5: Value(localMd5),
-      localLocked: Value(localLocked),
-      localReminder: Value(localReminder),
-      localPath: Value(localPath),
+      editType: Value(editType),
+      version: Value(version),
+      fileVersion: Value(fileVersion),
+      editAt: Value(editAt),
+      fileEditAt: Value(fileEditAt),
+      name: Value(name),
+      md5: Value(md5),
+      locked: Value(locked),
+      reminder: Value(reminder),
+      path: Value(path),
     );
   }
 
@@ -787,27 +557,20 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       uuid: serializer.fromJson<String>(json['uuid']),
       batchNo: serializer.fromJson<int>(json['batchNo']),
       remoteVersion: serializer.fromJson<int>(json['remoteVersion']),
-      remoteCreateAt: serializer.fromJson<int>(json['remoteCreateAt']),
-      remoteEditAt: serializer.fromJson<int>(json['remoteEditAt']),
-      remoteFileEditAt: serializer.fromJson<int>(json['remoteFileEditAt']),
-      remoteDeleteAt: serializer.fromJson<int>(json['remoteDeleteAt']),
-      remoteLocked: serializer.fromJson<int>(json['remoteLocked']),
       remoteMd5: serializer.fromJson<String>(json['remoteMd5']),
-      remoteName: serializer.fromJson<String>(json['remoteName']),
-      remotePath: serializer.fromJson<String>(json['remotePath']),
-      remoteReminder: serializer.fromJson<String>(json['remoteReminder']),
       remoteFileVersion: serializer.fromJson<int>(json['remoteFileVersion']),
+      remoteJson: serializer.fromJson<String>(json['remoteJson']),
       baseFileVersion: serializer.fromJson<int>(json['baseFileVersion']),
-      localEditType: serializer.fromJson<int>(json['localEditType']),
-      localVersion: serializer.fromJson<int>(json['localVersion']),
-      localFileVersion: serializer.fromJson<int>(json['localFileVersion']),
-      localEditAt: serializer.fromJson<int>(json['localEditAt']),
-      localFileEditAt: serializer.fromJson<int>(json['localFileEditAt']),
-      localName: serializer.fromJson<String>(json['localName']),
-      localMd5: serializer.fromJson<String>(json['localMd5']),
-      localLocked: serializer.fromJson<int>(json['localLocked']),
-      localReminder: serializer.fromJson<String>(json['localReminder']),
-      localPath: serializer.fromJson<String>(json['localPath']),
+      editType: serializer.fromJson<int>(json['editType']),
+      version: serializer.fromJson<int>(json['version']),
+      fileVersion: serializer.fromJson<int>(json['fileVersion']),
+      editAt: serializer.fromJson<int>(json['editAt']),
+      fileEditAt: serializer.fromJson<int>(json['fileEditAt']),
+      name: serializer.fromJson<String>(json['name']),
+      md5: serializer.fromJson<String>(json['md5']),
+      locked: serializer.fromJson<int>(json['locked']),
+      reminder: serializer.fromJson<String>(json['reminder']),
+      path: serializer.fromJson<String>(json['path']),
     );
   }
   @override
@@ -817,27 +580,20 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       'uuid': serializer.toJson<String>(uuid),
       'batchNo': serializer.toJson<int>(batchNo),
       'remoteVersion': serializer.toJson<int>(remoteVersion),
-      'remoteCreateAt': serializer.toJson<int>(remoteCreateAt),
-      'remoteEditAt': serializer.toJson<int>(remoteEditAt),
-      'remoteFileEditAt': serializer.toJson<int>(remoteFileEditAt),
-      'remoteDeleteAt': serializer.toJson<int>(remoteDeleteAt),
-      'remoteLocked': serializer.toJson<int>(remoteLocked),
       'remoteMd5': serializer.toJson<String>(remoteMd5),
-      'remoteName': serializer.toJson<String>(remoteName),
-      'remotePath': serializer.toJson<String>(remotePath),
-      'remoteReminder': serializer.toJson<String>(remoteReminder),
       'remoteFileVersion': serializer.toJson<int>(remoteFileVersion),
+      'remoteJson': serializer.toJson<String>(remoteJson),
       'baseFileVersion': serializer.toJson<int>(baseFileVersion),
-      'localEditType': serializer.toJson<int>(localEditType),
-      'localVersion': serializer.toJson<int>(localVersion),
-      'localFileVersion': serializer.toJson<int>(localFileVersion),
-      'localEditAt': serializer.toJson<int>(localEditAt),
-      'localFileEditAt': serializer.toJson<int>(localFileEditAt),
-      'localName': serializer.toJson<String>(localName),
-      'localMd5': serializer.toJson<String>(localMd5),
-      'localLocked': serializer.toJson<int>(localLocked),
-      'localReminder': serializer.toJson<String>(localReminder),
-      'localPath': serializer.toJson<String>(localPath),
+      'editType': serializer.toJson<int>(editType),
+      'version': serializer.toJson<int>(version),
+      'fileVersion': serializer.toJson<int>(fileVersion),
+      'editAt': serializer.toJson<int>(editAt),
+      'fileEditAt': serializer.toJson<int>(fileEditAt),
+      'name': serializer.toJson<String>(name),
+      'md5': serializer.toJson<String>(md5),
+      'locked': serializer.toJson<int>(locked),
+      'reminder': serializer.toJson<String>(reminder),
+      'path': serializer.toJson<String>(path),
     };
   }
 
@@ -845,52 +601,38 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
     String? uuid,
     int? batchNo,
     int? remoteVersion,
-    int? remoteCreateAt,
-    int? remoteEditAt,
-    int? remoteFileEditAt,
-    int? remoteDeleteAt,
-    int? remoteLocked,
     String? remoteMd5,
-    String? remoteName,
-    String? remotePath,
-    String? remoteReminder,
     int? remoteFileVersion,
+    String? remoteJson,
     int? baseFileVersion,
-    int? localEditType,
-    int? localVersion,
-    int? localFileVersion,
-    int? localEditAt,
-    int? localFileEditAt,
-    String? localName,
-    String? localMd5,
-    int? localLocked,
-    String? localReminder,
-    String? localPath,
+    int? editType,
+    int? version,
+    int? fileVersion,
+    int? editAt,
+    int? fileEditAt,
+    String? name,
+    String? md5,
+    int? locked,
+    String? reminder,
+    String? path,
   }) => LocalRecord(
     uuid: uuid ?? this.uuid,
     batchNo: batchNo ?? this.batchNo,
     remoteVersion: remoteVersion ?? this.remoteVersion,
-    remoteCreateAt: remoteCreateAt ?? this.remoteCreateAt,
-    remoteEditAt: remoteEditAt ?? this.remoteEditAt,
-    remoteFileEditAt: remoteFileEditAt ?? this.remoteFileEditAt,
-    remoteDeleteAt: remoteDeleteAt ?? this.remoteDeleteAt,
-    remoteLocked: remoteLocked ?? this.remoteLocked,
     remoteMd5: remoteMd5 ?? this.remoteMd5,
-    remoteName: remoteName ?? this.remoteName,
-    remotePath: remotePath ?? this.remotePath,
-    remoteReminder: remoteReminder ?? this.remoteReminder,
     remoteFileVersion: remoteFileVersion ?? this.remoteFileVersion,
+    remoteJson: remoteJson ?? this.remoteJson,
     baseFileVersion: baseFileVersion ?? this.baseFileVersion,
-    localEditType: localEditType ?? this.localEditType,
-    localVersion: localVersion ?? this.localVersion,
-    localFileVersion: localFileVersion ?? this.localFileVersion,
-    localEditAt: localEditAt ?? this.localEditAt,
-    localFileEditAt: localFileEditAt ?? this.localFileEditAt,
-    localName: localName ?? this.localName,
-    localMd5: localMd5 ?? this.localMd5,
-    localLocked: localLocked ?? this.localLocked,
-    localReminder: localReminder ?? this.localReminder,
-    localPath: localPath ?? this.localPath,
+    editType: editType ?? this.editType,
+    version: version ?? this.version,
+    fileVersion: fileVersion ?? this.fileVersion,
+    editAt: editAt ?? this.editAt,
+    fileEditAt: fileEditAt ?? this.fileEditAt,
+    name: name ?? this.name,
+    md5: md5 ?? this.md5,
+    locked: locked ?? this.locked,
+    reminder: reminder ?? this.reminder,
+    path: path ?? this.path,
   );
   LocalRecord copyWithCompanion(LocalRecordsCompanion data) {
     return LocalRecord(
@@ -899,61 +641,30 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
       remoteVersion: data.remoteVersion.present
           ? data.remoteVersion.value
           : this.remoteVersion,
-      remoteCreateAt: data.remoteCreateAt.present
-          ? data.remoteCreateAt.value
-          : this.remoteCreateAt,
-      remoteEditAt: data.remoteEditAt.present
-          ? data.remoteEditAt.value
-          : this.remoteEditAt,
-      remoteFileEditAt: data.remoteFileEditAt.present
-          ? data.remoteFileEditAt.value
-          : this.remoteFileEditAt,
-      remoteDeleteAt: data.remoteDeleteAt.present
-          ? data.remoteDeleteAt.value
-          : this.remoteDeleteAt,
-      remoteLocked: data.remoteLocked.present
-          ? data.remoteLocked.value
-          : this.remoteLocked,
       remoteMd5: data.remoteMd5.present ? data.remoteMd5.value : this.remoteMd5,
-      remoteName: data.remoteName.present
-          ? data.remoteName.value
-          : this.remoteName,
-      remotePath: data.remotePath.present
-          ? data.remotePath.value
-          : this.remotePath,
-      remoteReminder: data.remoteReminder.present
-          ? data.remoteReminder.value
-          : this.remoteReminder,
       remoteFileVersion: data.remoteFileVersion.present
           ? data.remoteFileVersion.value
           : this.remoteFileVersion,
+      remoteJson: data.remoteJson.present
+          ? data.remoteJson.value
+          : this.remoteJson,
       baseFileVersion: data.baseFileVersion.present
           ? data.baseFileVersion.value
           : this.baseFileVersion,
-      localEditType: data.localEditType.present
-          ? data.localEditType.value
-          : this.localEditType,
-      localVersion: data.localVersion.present
-          ? data.localVersion.value
-          : this.localVersion,
-      localFileVersion: data.localFileVersion.present
-          ? data.localFileVersion.value
-          : this.localFileVersion,
-      localEditAt: data.localEditAt.present
-          ? data.localEditAt.value
-          : this.localEditAt,
-      localFileEditAt: data.localFileEditAt.present
-          ? data.localFileEditAt.value
-          : this.localFileEditAt,
-      localName: data.localName.present ? data.localName.value : this.localName,
-      localMd5: data.localMd5.present ? data.localMd5.value : this.localMd5,
-      localLocked: data.localLocked.present
-          ? data.localLocked.value
-          : this.localLocked,
-      localReminder: data.localReminder.present
-          ? data.localReminder.value
-          : this.localReminder,
-      localPath: data.localPath.present ? data.localPath.value : this.localPath,
+      editType: data.editType.present ? data.editType.value : this.editType,
+      version: data.version.present ? data.version.value : this.version,
+      fileVersion: data.fileVersion.present
+          ? data.fileVersion.value
+          : this.fileVersion,
+      editAt: data.editAt.present ? data.editAt.value : this.editAt,
+      fileEditAt: data.fileEditAt.present
+          ? data.fileEditAt.value
+          : this.fileEditAt,
+      name: data.name.present ? data.name.value : this.name,
+      md5: data.md5.present ? data.md5.value : this.md5,
+      locked: data.locked.present ? data.locked.value : this.locked,
+      reminder: data.reminder.present ? data.reminder.value : this.reminder,
+      path: data.path.present ? data.path.value : this.path,
     );
   }
 
@@ -963,58 +674,44 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
           ..write('uuid: $uuid, ')
           ..write('batchNo: $batchNo, ')
           ..write('remoteVersion: $remoteVersion, ')
-          ..write('remoteCreateAt: $remoteCreateAt, ')
-          ..write('remoteEditAt: $remoteEditAt, ')
-          ..write('remoteFileEditAt: $remoteFileEditAt, ')
-          ..write('remoteDeleteAt: $remoteDeleteAt, ')
-          ..write('remoteLocked: $remoteLocked, ')
           ..write('remoteMd5: $remoteMd5, ')
-          ..write('remoteName: $remoteName, ')
-          ..write('remotePath: $remotePath, ')
-          ..write('remoteReminder: $remoteReminder, ')
           ..write('remoteFileVersion: $remoteFileVersion, ')
+          ..write('remoteJson: $remoteJson, ')
           ..write('baseFileVersion: $baseFileVersion, ')
-          ..write('localEditType: $localEditType, ')
-          ..write('localVersion: $localVersion, ')
-          ..write('localFileVersion: $localFileVersion, ')
-          ..write('localEditAt: $localEditAt, ')
-          ..write('localFileEditAt: $localFileEditAt, ')
-          ..write('localName: $localName, ')
-          ..write('localMd5: $localMd5, ')
-          ..write('localLocked: $localLocked, ')
-          ..write('localReminder: $localReminder, ')
-          ..write('localPath: $localPath')
+          ..write('editType: $editType, ')
+          ..write('version: $version, ')
+          ..write('fileVersion: $fileVersion, ')
+          ..write('editAt: $editAt, ')
+          ..write('fileEditAt: $fileEditAt, ')
+          ..write('name: $name, ')
+          ..write('md5: $md5, ')
+          ..write('locked: $locked, ')
+          ..write('reminder: $reminder, ')
+          ..write('path: $path')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hashAll([
+  int get hashCode => Object.hash(
     uuid,
     batchNo,
     remoteVersion,
-    remoteCreateAt,
-    remoteEditAt,
-    remoteFileEditAt,
-    remoteDeleteAt,
-    remoteLocked,
     remoteMd5,
-    remoteName,
-    remotePath,
-    remoteReminder,
     remoteFileVersion,
+    remoteJson,
     baseFileVersion,
-    localEditType,
-    localVersion,
-    localFileVersion,
-    localEditAt,
-    localFileEditAt,
-    localName,
-    localMd5,
-    localLocked,
-    localReminder,
-    localPath,
-  ]);
+    editType,
+    version,
+    fileVersion,
+    editAt,
+    fileEditAt,
+    name,
+    md5,
+    locked,
+    reminder,
+    path,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1022,162 +719,119 @@ class LocalRecord extends DataClass implements Insertable<LocalRecord> {
           other.uuid == this.uuid &&
           other.batchNo == this.batchNo &&
           other.remoteVersion == this.remoteVersion &&
-          other.remoteCreateAt == this.remoteCreateAt &&
-          other.remoteEditAt == this.remoteEditAt &&
-          other.remoteFileEditAt == this.remoteFileEditAt &&
-          other.remoteDeleteAt == this.remoteDeleteAt &&
-          other.remoteLocked == this.remoteLocked &&
           other.remoteMd5 == this.remoteMd5 &&
-          other.remoteName == this.remoteName &&
-          other.remotePath == this.remotePath &&
-          other.remoteReminder == this.remoteReminder &&
           other.remoteFileVersion == this.remoteFileVersion &&
+          other.remoteJson == this.remoteJson &&
           other.baseFileVersion == this.baseFileVersion &&
-          other.localEditType == this.localEditType &&
-          other.localVersion == this.localVersion &&
-          other.localFileVersion == this.localFileVersion &&
-          other.localEditAt == this.localEditAt &&
-          other.localFileEditAt == this.localFileEditAt &&
-          other.localName == this.localName &&
-          other.localMd5 == this.localMd5 &&
-          other.localLocked == this.localLocked &&
-          other.localReminder == this.localReminder &&
-          other.localPath == this.localPath);
+          other.editType == this.editType &&
+          other.version == this.version &&
+          other.fileVersion == this.fileVersion &&
+          other.editAt == this.editAt &&
+          other.fileEditAt == this.fileEditAt &&
+          other.name == this.name &&
+          other.md5 == this.md5 &&
+          other.locked == this.locked &&
+          other.reminder == this.reminder &&
+          other.path == this.path);
 }
 
 class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
   final Value<String> uuid;
   final Value<int> batchNo;
   final Value<int> remoteVersion;
-  final Value<int> remoteCreateAt;
-  final Value<int> remoteEditAt;
-  final Value<int> remoteFileEditAt;
-  final Value<int> remoteDeleteAt;
-  final Value<int> remoteLocked;
   final Value<String> remoteMd5;
-  final Value<String> remoteName;
-  final Value<String> remotePath;
-  final Value<String> remoteReminder;
   final Value<int> remoteFileVersion;
+  final Value<String> remoteJson;
   final Value<int> baseFileVersion;
-  final Value<int> localEditType;
-  final Value<int> localVersion;
-  final Value<int> localFileVersion;
-  final Value<int> localEditAt;
-  final Value<int> localFileEditAt;
-  final Value<String> localName;
-  final Value<String> localMd5;
-  final Value<int> localLocked;
-  final Value<String> localReminder;
-  final Value<String> localPath;
+  final Value<int> editType;
+  final Value<int> version;
+  final Value<int> fileVersion;
+  final Value<int> editAt;
+  final Value<int> fileEditAt;
+  final Value<String> name;
+  final Value<String> md5;
+  final Value<int> locked;
+  final Value<String> reminder;
+  final Value<String> path;
   final Value<int> rowid;
   const LocalRecordsCompanion({
     this.uuid = const Value.absent(),
     this.batchNo = const Value.absent(),
     this.remoteVersion = const Value.absent(),
-    this.remoteCreateAt = const Value.absent(),
-    this.remoteEditAt = const Value.absent(),
-    this.remoteFileEditAt = const Value.absent(),
-    this.remoteDeleteAt = const Value.absent(),
-    this.remoteLocked = const Value.absent(),
     this.remoteMd5 = const Value.absent(),
-    this.remoteName = const Value.absent(),
-    this.remotePath = const Value.absent(),
-    this.remoteReminder = const Value.absent(),
     this.remoteFileVersion = const Value.absent(),
+    this.remoteJson = const Value.absent(),
     this.baseFileVersion = const Value.absent(),
-    this.localEditType = const Value.absent(),
-    this.localVersion = const Value.absent(),
-    this.localFileVersion = const Value.absent(),
-    this.localEditAt = const Value.absent(),
-    this.localFileEditAt = const Value.absent(),
-    this.localName = const Value.absent(),
-    this.localMd5 = const Value.absent(),
-    this.localLocked = const Value.absent(),
-    this.localReminder = const Value.absent(),
-    this.localPath = const Value.absent(),
+    this.editType = const Value.absent(),
+    this.version = const Value.absent(),
+    this.fileVersion = const Value.absent(),
+    this.editAt = const Value.absent(),
+    this.fileEditAt = const Value.absent(),
+    this.name = const Value.absent(),
+    this.md5 = const Value.absent(),
+    this.locked = const Value.absent(),
+    this.reminder = const Value.absent(),
+    this.path = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   LocalRecordsCompanion.insert({
     required String uuid,
     this.batchNo = const Value.absent(),
     this.remoteVersion = const Value.absent(),
-    this.remoteCreateAt = const Value.absent(),
-    this.remoteEditAt = const Value.absent(),
-    this.remoteFileEditAt = const Value.absent(),
-    this.remoteDeleteAt = const Value.absent(),
-    this.remoteLocked = const Value.absent(),
     this.remoteMd5 = const Value.absent(),
-    this.remoteName = const Value.absent(),
-    this.remotePath = const Value.absent(),
-    this.remoteReminder = const Value.absent(),
     this.remoteFileVersion = const Value.absent(),
+    this.remoteJson = const Value.absent(),
     this.baseFileVersion = const Value.absent(),
-    this.localEditType = const Value.absent(),
-    this.localVersion = const Value.absent(),
-    this.localFileVersion = const Value.absent(),
-    this.localEditAt = const Value.absent(),
-    this.localFileEditAt = const Value.absent(),
-    this.localName = const Value.absent(),
-    this.localMd5 = const Value.absent(),
-    this.localLocked = const Value.absent(),
-    this.localReminder = const Value.absent(),
-    required String localPath,
+    this.editType = const Value.absent(),
+    this.version = const Value.absent(),
+    this.fileVersion = const Value.absent(),
+    this.editAt = const Value.absent(),
+    this.fileEditAt = const Value.absent(),
+    this.name = const Value.absent(),
+    this.md5 = const Value.absent(),
+    this.locked = const Value.absent(),
+    this.reminder = const Value.absent(),
+    this.path = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : uuid = Value(uuid),
-       localPath = Value(localPath);
+  }) : uuid = Value(uuid);
   static Insertable<LocalRecord> custom({
     Expression<String>? uuid,
     Expression<int>? batchNo,
     Expression<int>? remoteVersion,
-    Expression<int>? remoteCreateAt,
-    Expression<int>? remoteEditAt,
-    Expression<int>? remoteFileEditAt,
-    Expression<int>? remoteDeleteAt,
-    Expression<int>? remoteLocked,
     Expression<String>? remoteMd5,
-    Expression<String>? remoteName,
-    Expression<String>? remotePath,
-    Expression<String>? remoteReminder,
     Expression<int>? remoteFileVersion,
+    Expression<String>? remoteJson,
     Expression<int>? baseFileVersion,
-    Expression<int>? localEditType,
-    Expression<int>? localVersion,
-    Expression<int>? localFileVersion,
-    Expression<int>? localEditAt,
-    Expression<int>? localFileEditAt,
-    Expression<String>? localName,
-    Expression<String>? localMd5,
-    Expression<int>? localLocked,
-    Expression<String>? localReminder,
-    Expression<String>? localPath,
+    Expression<int>? editType,
+    Expression<int>? version,
+    Expression<int>? fileVersion,
+    Expression<int>? editAt,
+    Expression<int>? fileEditAt,
+    Expression<String>? name,
+    Expression<String>? md5,
+    Expression<int>? locked,
+    Expression<String>? reminder,
+    Expression<String>? path,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (uuid != null) 'uuid': uuid,
       if (batchNo != null) 'batch_no': batchNo,
       if (remoteVersion != null) 'remote_version': remoteVersion,
-      if (remoteCreateAt != null) 'remote_create_at': remoteCreateAt,
-      if (remoteEditAt != null) 'remote_edit_at': remoteEditAt,
-      if (remoteFileEditAt != null) 'remote_file_edit_at': remoteFileEditAt,
-      if (remoteDeleteAt != null) 'remote_delete_at': remoteDeleteAt,
-      if (remoteLocked != null) 'remote_locked': remoteLocked,
       if (remoteMd5 != null) 'remote_md5': remoteMd5,
-      if (remoteName != null) 'remote_name': remoteName,
-      if (remotePath != null) 'remote_path': remotePath,
-      if (remoteReminder != null) 'remote_reminder': remoteReminder,
       if (remoteFileVersion != null) 'remote_file_version': remoteFileVersion,
+      if (remoteJson != null) 'remote_json': remoteJson,
       if (baseFileVersion != null) 'base_file_version': baseFileVersion,
-      if (localEditType != null) 'local_edit_type': localEditType,
-      if (localVersion != null) 'local_version': localVersion,
-      if (localFileVersion != null) 'local_file_version': localFileVersion,
-      if (localEditAt != null) 'local_edit_at': localEditAt,
-      if (localFileEditAt != null) 'local_file_edit_at': localFileEditAt,
-      if (localName != null) 'local_name': localName,
-      if (localMd5 != null) 'local_md5': localMd5,
-      if (localLocked != null) 'local_locked': localLocked,
-      if (localReminder != null) 'local_reminder': localReminder,
-      if (localPath != null) 'local_path': localPath,
+      if (editType != null) 'edit_type': editType,
+      if (version != null) 'version': version,
+      if (fileVersion != null) 'file_version': fileVersion,
+      if (editAt != null) 'edit_at': editAt,
+      if (fileEditAt != null) 'file_edit_at': fileEditAt,
+      if (name != null) 'name': name,
+      if (md5 != null) 'md5': md5,
+      if (locked != null) 'locked': locked,
+      if (reminder != null) 'reminder': reminder,
+      if (path != null) 'path': path,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1186,54 +840,40 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     Value<String>? uuid,
     Value<int>? batchNo,
     Value<int>? remoteVersion,
-    Value<int>? remoteCreateAt,
-    Value<int>? remoteEditAt,
-    Value<int>? remoteFileEditAt,
-    Value<int>? remoteDeleteAt,
-    Value<int>? remoteLocked,
     Value<String>? remoteMd5,
-    Value<String>? remoteName,
-    Value<String>? remotePath,
-    Value<String>? remoteReminder,
     Value<int>? remoteFileVersion,
+    Value<String>? remoteJson,
     Value<int>? baseFileVersion,
-    Value<int>? localEditType,
-    Value<int>? localVersion,
-    Value<int>? localFileVersion,
-    Value<int>? localEditAt,
-    Value<int>? localFileEditAt,
-    Value<String>? localName,
-    Value<String>? localMd5,
-    Value<int>? localLocked,
-    Value<String>? localReminder,
-    Value<String>? localPath,
+    Value<int>? editType,
+    Value<int>? version,
+    Value<int>? fileVersion,
+    Value<int>? editAt,
+    Value<int>? fileEditAt,
+    Value<String>? name,
+    Value<String>? md5,
+    Value<int>? locked,
+    Value<String>? reminder,
+    Value<String>? path,
     Value<int>? rowid,
   }) {
     return LocalRecordsCompanion(
       uuid: uuid ?? this.uuid,
       batchNo: batchNo ?? this.batchNo,
       remoteVersion: remoteVersion ?? this.remoteVersion,
-      remoteCreateAt: remoteCreateAt ?? this.remoteCreateAt,
-      remoteEditAt: remoteEditAt ?? this.remoteEditAt,
-      remoteFileEditAt: remoteFileEditAt ?? this.remoteFileEditAt,
-      remoteDeleteAt: remoteDeleteAt ?? this.remoteDeleteAt,
-      remoteLocked: remoteLocked ?? this.remoteLocked,
       remoteMd5: remoteMd5 ?? this.remoteMd5,
-      remoteName: remoteName ?? this.remoteName,
-      remotePath: remotePath ?? this.remotePath,
-      remoteReminder: remoteReminder ?? this.remoteReminder,
       remoteFileVersion: remoteFileVersion ?? this.remoteFileVersion,
+      remoteJson: remoteJson ?? this.remoteJson,
       baseFileVersion: baseFileVersion ?? this.baseFileVersion,
-      localEditType: localEditType ?? this.localEditType,
-      localVersion: localVersion ?? this.localVersion,
-      localFileVersion: localFileVersion ?? this.localFileVersion,
-      localEditAt: localEditAt ?? this.localEditAt,
-      localFileEditAt: localFileEditAt ?? this.localFileEditAt,
-      localName: localName ?? this.localName,
-      localMd5: localMd5 ?? this.localMd5,
-      localLocked: localLocked ?? this.localLocked,
-      localReminder: localReminder ?? this.localReminder,
-      localPath: localPath ?? this.localPath,
+      editType: editType ?? this.editType,
+      version: version ?? this.version,
+      fileVersion: fileVersion ?? this.fileVersion,
+      editAt: editAt ?? this.editAt,
+      fileEditAt: fileEditAt ?? this.fileEditAt,
+      name: name ?? this.name,
+      md5: md5 ?? this.md5,
+      locked: locked ?? this.locked,
+      reminder: reminder ?? this.reminder,
+      path: path ?? this.path,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1250,68 +890,47 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
     if (remoteVersion.present) {
       map['remote_version'] = Variable<int>(remoteVersion.value);
     }
-    if (remoteCreateAt.present) {
-      map['remote_create_at'] = Variable<int>(remoteCreateAt.value);
-    }
-    if (remoteEditAt.present) {
-      map['remote_edit_at'] = Variable<int>(remoteEditAt.value);
-    }
-    if (remoteFileEditAt.present) {
-      map['remote_file_edit_at'] = Variable<int>(remoteFileEditAt.value);
-    }
-    if (remoteDeleteAt.present) {
-      map['remote_delete_at'] = Variable<int>(remoteDeleteAt.value);
-    }
-    if (remoteLocked.present) {
-      map['remote_locked'] = Variable<int>(remoteLocked.value);
-    }
     if (remoteMd5.present) {
       map['remote_md5'] = Variable<String>(remoteMd5.value);
-    }
-    if (remoteName.present) {
-      map['remote_name'] = Variable<String>(remoteName.value);
-    }
-    if (remotePath.present) {
-      map['remote_path'] = Variable<String>(remotePath.value);
-    }
-    if (remoteReminder.present) {
-      map['remote_reminder'] = Variable<String>(remoteReminder.value);
     }
     if (remoteFileVersion.present) {
       map['remote_file_version'] = Variable<int>(remoteFileVersion.value);
     }
+    if (remoteJson.present) {
+      map['remote_json'] = Variable<String>(remoteJson.value);
+    }
     if (baseFileVersion.present) {
       map['base_file_version'] = Variable<int>(baseFileVersion.value);
     }
-    if (localEditType.present) {
-      map['local_edit_type'] = Variable<int>(localEditType.value);
+    if (editType.present) {
+      map['edit_type'] = Variable<int>(editType.value);
     }
-    if (localVersion.present) {
-      map['local_version'] = Variable<int>(localVersion.value);
+    if (version.present) {
+      map['version'] = Variable<int>(version.value);
     }
-    if (localFileVersion.present) {
-      map['local_file_version'] = Variable<int>(localFileVersion.value);
+    if (fileVersion.present) {
+      map['file_version'] = Variable<int>(fileVersion.value);
     }
-    if (localEditAt.present) {
-      map['local_edit_at'] = Variable<int>(localEditAt.value);
+    if (editAt.present) {
+      map['edit_at'] = Variable<int>(editAt.value);
     }
-    if (localFileEditAt.present) {
-      map['local_file_edit_at'] = Variable<int>(localFileEditAt.value);
+    if (fileEditAt.present) {
+      map['file_edit_at'] = Variable<int>(fileEditAt.value);
     }
-    if (localName.present) {
-      map['local_name'] = Variable<String>(localName.value);
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
     }
-    if (localMd5.present) {
-      map['local_md5'] = Variable<String>(localMd5.value);
+    if (md5.present) {
+      map['md5'] = Variable<String>(md5.value);
     }
-    if (localLocked.present) {
-      map['local_locked'] = Variable<int>(localLocked.value);
+    if (locked.present) {
+      map['locked'] = Variable<int>(locked.value);
     }
-    if (localReminder.present) {
-      map['local_reminder'] = Variable<String>(localReminder.value);
+    if (reminder.present) {
+      map['reminder'] = Variable<String>(reminder.value);
     }
-    if (localPath.present) {
-      map['local_path'] = Variable<String>(localPath.value);
+    if (path.present) {
+      map['path'] = Variable<String>(path.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -1325,27 +944,20 @@ class LocalRecordsCompanion extends UpdateCompanion<LocalRecord> {
           ..write('uuid: $uuid, ')
           ..write('batchNo: $batchNo, ')
           ..write('remoteVersion: $remoteVersion, ')
-          ..write('remoteCreateAt: $remoteCreateAt, ')
-          ..write('remoteEditAt: $remoteEditAt, ')
-          ..write('remoteFileEditAt: $remoteFileEditAt, ')
-          ..write('remoteDeleteAt: $remoteDeleteAt, ')
-          ..write('remoteLocked: $remoteLocked, ')
           ..write('remoteMd5: $remoteMd5, ')
-          ..write('remoteName: $remoteName, ')
-          ..write('remotePath: $remotePath, ')
-          ..write('remoteReminder: $remoteReminder, ')
           ..write('remoteFileVersion: $remoteFileVersion, ')
+          ..write('remoteJson: $remoteJson, ')
           ..write('baseFileVersion: $baseFileVersion, ')
-          ..write('localEditType: $localEditType, ')
-          ..write('localVersion: $localVersion, ')
-          ..write('localFileVersion: $localFileVersion, ')
-          ..write('localEditAt: $localEditAt, ')
-          ..write('localFileEditAt: $localFileEditAt, ')
-          ..write('localName: $localName, ')
-          ..write('localMd5: $localMd5, ')
-          ..write('localLocked: $localLocked, ')
-          ..write('localReminder: $localReminder, ')
-          ..write('localPath: $localPath, ')
+          ..write('editType: $editType, ')
+          ..write('version: $version, ')
+          ..write('fileVersion: $fileVersion, ')
+          ..write('editAt: $editAt, ')
+          ..write('fileEditAt: $fileEditAt, ')
+          ..write('name: $name, ')
+          ..write('md5: $md5, ')
+          ..write('locked: $locked, ')
+          ..write('reminder: $reminder, ')
+          ..write('path: $path, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2248,16 +1860,16 @@ class RecycleRecordsCompanion extends UpdateCompanion<RecycleRecord> {
 }
 
 class PathRecordCount extends DataClass {
-  final String localPath;
+  final String path;
   final int? recordCount;
-  const PathRecordCount({required this.localPath, this.recordCount});
+  const PathRecordCount({required this.path, this.recordCount});
   factory PathRecordCount.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return PathRecordCount(
-      localPath: serializer.fromJson<String>(json['localPath']),
+      path: serializer.fromJson<String>(json['path']),
       recordCount: serializer.fromJson<int?>(json['recordCount']),
     );
   }
@@ -2265,34 +1877,34 @@ class PathRecordCount extends DataClass {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
-      'localPath': serializer.toJson<String>(localPath),
+      'path': serializer.toJson<String>(path),
       'recordCount': serializer.toJson<int?>(recordCount),
     };
   }
 
   PathRecordCount copyWith({
-    String? localPath,
+    String? path,
     Value<int?> recordCount = const Value.absent(),
   }) => PathRecordCount(
-    localPath: localPath ?? this.localPath,
+    path: path ?? this.path,
     recordCount: recordCount.present ? recordCount.value : this.recordCount,
   );
   @override
   String toString() {
     return (StringBuffer('PathRecordCount(')
-          ..write('localPath: $localPath, ')
+          ..write('path: $path, ')
           ..write('recordCount: $recordCount')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(localPath, recordCount);
+  int get hashCode => Object.hash(path, recordCount);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is PathRecordCount &&
-          other.localPath == this.localPath &&
+          other.path == this.path &&
           other.recordCount == this.recordCount);
 }
 
@@ -2306,7 +1918,7 @@ class $PathRecordCountsView
   $LocalRecordsTable get records =>
       attachedDatabase.localRecords.createAlias('t0');
   @override
-  List<GeneratedColumn> get $columns => [localPath, recordCount];
+  List<GeneratedColumn> get $columns => [path, recordCount];
   @override
   String get aliasedName => _alias ?? entityName;
   @override
@@ -2319,9 +1931,9 @@ class $PathRecordCountsView
   PathRecordCount map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return PathRecordCount(
-      localPath: attachedDatabase.typeMapping.read(
+      path: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}local_path'],
+        data['${effectivePrefix}path'],
       )!,
       recordCount: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
@@ -2330,11 +1942,11 @@ class $PathRecordCountsView
     );
   }
 
-  late final GeneratedColumn<String> localPath = GeneratedColumn<String>(
-    'local_path',
+  late final GeneratedColumn<String> path = GeneratedColumn<String>(
+    'path',
     aliasedName,
     false,
-    generatedAs: GeneratedAs(records.localPath, false),
+    generatedAs: GeneratedAs(records.path, false),
     type: DriftSqlType.string,
   );
   late final GeneratedColumn<int> recordCount = GeneratedColumn<int>(
@@ -2352,7 +1964,7 @@ class $PathRecordCountsView
   @override
   Query? get query =>
       (attachedDatabase.selectOnly(records)..addColumns($columns))
-        ..groupBy([records.localPath]);
+        ..groupBy([records.path]);
   @override
   Set<String> get readTables => const {'local_records'};
 }
@@ -2369,7 +1981,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final Index recordsPathIdx = Index(
     'records_path_idx',
-    'CREATE INDEX records_path_idx ON local_records (local_path)',
+    'CREATE INDEX records_path_idx ON local_records (path)',
   );
   late final Index recordsVersionIdx = Index(
     'records_version_idx',
@@ -2398,27 +2010,20 @@ typedef $$LocalRecordsTableCreateCompanionBuilder =
       required String uuid,
       Value<int> batchNo,
       Value<int> remoteVersion,
-      Value<int> remoteCreateAt,
-      Value<int> remoteEditAt,
-      Value<int> remoteFileEditAt,
-      Value<int> remoteDeleteAt,
-      Value<int> remoteLocked,
       Value<String> remoteMd5,
-      Value<String> remoteName,
-      Value<String> remotePath,
-      Value<String> remoteReminder,
       Value<int> remoteFileVersion,
+      Value<String> remoteJson,
       Value<int> baseFileVersion,
-      Value<int> localEditType,
-      Value<int> localVersion,
-      Value<int> localFileVersion,
-      Value<int> localEditAt,
-      Value<int> localFileEditAt,
-      Value<String> localName,
-      Value<String> localMd5,
-      Value<int> localLocked,
-      Value<String> localReminder,
-      required String localPath,
+      Value<int> editType,
+      Value<int> version,
+      Value<int> fileVersion,
+      Value<int> editAt,
+      Value<int> fileEditAt,
+      Value<String> name,
+      Value<String> md5,
+      Value<int> locked,
+      Value<String> reminder,
+      Value<String> path,
       Value<int> rowid,
     });
 typedef $$LocalRecordsTableUpdateCompanionBuilder =
@@ -2426,27 +2031,20 @@ typedef $$LocalRecordsTableUpdateCompanionBuilder =
       Value<String> uuid,
       Value<int> batchNo,
       Value<int> remoteVersion,
-      Value<int> remoteCreateAt,
-      Value<int> remoteEditAt,
-      Value<int> remoteFileEditAt,
-      Value<int> remoteDeleteAt,
-      Value<int> remoteLocked,
       Value<String> remoteMd5,
-      Value<String> remoteName,
-      Value<String> remotePath,
-      Value<String> remoteReminder,
       Value<int> remoteFileVersion,
+      Value<String> remoteJson,
       Value<int> baseFileVersion,
-      Value<int> localEditType,
-      Value<int> localVersion,
-      Value<int> localFileVersion,
-      Value<int> localEditAt,
-      Value<int> localFileEditAt,
-      Value<String> localName,
-      Value<String> localMd5,
-      Value<int> localLocked,
-      Value<String> localReminder,
-      Value<String> localPath,
+      Value<int> editType,
+      Value<int> version,
+      Value<int> fileVersion,
+      Value<int> editAt,
+      Value<int> fileEditAt,
+      Value<String> name,
+      Value<String> md5,
+      Value<int> locked,
+      Value<String> reminder,
+      Value<String> path,
       Value<int> rowid,
     });
 
@@ -2474,48 +2072,8 @@ class $$LocalRecordsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get remoteCreateAt => $composableBuilder(
-    column: $table.remoteCreateAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get remoteEditAt => $composableBuilder(
-    column: $table.remoteEditAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get remoteFileEditAt => $composableBuilder(
-    column: $table.remoteFileEditAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get remoteDeleteAt => $composableBuilder(
-    column: $table.remoteDeleteAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get remoteLocked => $composableBuilder(
-    column: $table.remoteLocked,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<String> get remoteMd5 => $composableBuilder(
     column: $table.remoteMd5,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get remoteName => $composableBuilder(
-    column: $table.remoteName,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get remotePath => $composableBuilder(
-    column: $table.remotePath,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get remoteReminder => $composableBuilder(
-    column: $table.remoteReminder,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2524,58 +2082,63 @@ class $$LocalRecordsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get remoteJson => $composableBuilder(
+    column: $table.remoteJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<int> get baseFileVersion => $composableBuilder(
     column: $table.baseFileVersion,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get localEditType => $composableBuilder(
-    column: $table.localEditType,
+  ColumnFilters<int> get editType => $composableBuilder(
+    column: $table.editType,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get localVersion => $composableBuilder(
-    column: $table.localVersion,
+  ColumnFilters<int> get version => $composableBuilder(
+    column: $table.version,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get localFileVersion => $composableBuilder(
-    column: $table.localFileVersion,
+  ColumnFilters<int> get fileVersion => $composableBuilder(
+    column: $table.fileVersion,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get localEditAt => $composableBuilder(
-    column: $table.localEditAt,
+  ColumnFilters<int> get editAt => $composableBuilder(
+    column: $table.editAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get localFileEditAt => $composableBuilder(
-    column: $table.localFileEditAt,
+  ColumnFilters<int> get fileEditAt => $composableBuilder(
+    column: $table.fileEditAt,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get localName => $composableBuilder(
-    column: $table.localName,
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get localMd5 => $composableBuilder(
-    column: $table.localMd5,
+  ColumnFilters<String> get md5 => $composableBuilder(
+    column: $table.md5,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get localLocked => $composableBuilder(
-    column: $table.localLocked,
+  ColumnFilters<int> get locked => $composableBuilder(
+    column: $table.locked,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get localReminder => $composableBuilder(
-    column: $table.localReminder,
+  ColumnFilters<String> get reminder => $composableBuilder(
+    column: $table.reminder,
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get localPath => $composableBuilder(
-    column: $table.localPath,
+  ColumnFilters<String> get path => $composableBuilder(
+    column: $table.path,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -2604,48 +2167,8 @@ class $$LocalRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get remoteCreateAt => $composableBuilder(
-    column: $table.remoteCreateAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get remoteEditAt => $composableBuilder(
-    column: $table.remoteEditAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get remoteFileEditAt => $composableBuilder(
-    column: $table.remoteFileEditAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get remoteDeleteAt => $composableBuilder(
-    column: $table.remoteDeleteAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get remoteLocked => $composableBuilder(
-    column: $table.remoteLocked,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get remoteMd5 => $composableBuilder(
     column: $table.remoteMd5,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get remoteName => $composableBuilder(
-    column: $table.remoteName,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get remotePath => $composableBuilder(
-    column: $table.remotePath,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get remoteReminder => $composableBuilder(
-    column: $table.remoteReminder,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -2654,58 +2177,63 @@ class $$LocalRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remoteJson => $composableBuilder(
+    column: $table.remoteJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get baseFileVersion => $composableBuilder(
     column: $table.baseFileVersion,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get localEditType => $composableBuilder(
-    column: $table.localEditType,
+  ColumnOrderings<int> get editType => $composableBuilder(
+    column: $table.editType,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get localVersion => $composableBuilder(
-    column: $table.localVersion,
+  ColumnOrderings<int> get version => $composableBuilder(
+    column: $table.version,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get localFileVersion => $composableBuilder(
-    column: $table.localFileVersion,
+  ColumnOrderings<int> get fileVersion => $composableBuilder(
+    column: $table.fileVersion,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get localEditAt => $composableBuilder(
-    column: $table.localEditAt,
+  ColumnOrderings<int> get editAt => $composableBuilder(
+    column: $table.editAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get localFileEditAt => $composableBuilder(
-    column: $table.localFileEditAt,
+  ColumnOrderings<int> get fileEditAt => $composableBuilder(
+    column: $table.fileEditAt,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get localName => $composableBuilder(
-    column: $table.localName,
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get localMd5 => $composableBuilder(
-    column: $table.localMd5,
+  ColumnOrderings<String> get md5 => $composableBuilder(
+    column: $table.md5,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get localLocked => $composableBuilder(
-    column: $table.localLocked,
+  ColumnOrderings<int> get locked => $composableBuilder(
+    column: $table.locked,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get localReminder => $composableBuilder(
-    column: $table.localReminder,
+  ColumnOrderings<String> get reminder => $composableBuilder(
+    column: $table.reminder,
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get localPath => $composableBuilder(
-    column: $table.localPath,
+  ColumnOrderings<String> get path => $composableBuilder(
+    column: $table.path,
     builder: (column) => ColumnOrderings(column),
   );
 }
@@ -2730,51 +2258,16 @@ class $$LocalRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get remoteCreateAt => $composableBuilder(
-    column: $table.remoteCreateAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get remoteEditAt => $composableBuilder(
-    column: $table.remoteEditAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get remoteFileEditAt => $composableBuilder(
-    column: $table.remoteFileEditAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get remoteDeleteAt => $composableBuilder(
-    column: $table.remoteDeleteAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<int> get remoteLocked => $composableBuilder(
-    column: $table.remoteLocked,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<String> get remoteMd5 =>
       $composableBuilder(column: $table.remoteMd5, builder: (column) => column);
 
-  GeneratedColumn<String> get remoteName => $composableBuilder(
-    column: $table.remoteName,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get remotePath => $composableBuilder(
-    column: $table.remotePath,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get remoteReminder => $composableBuilder(
-    column: $table.remoteReminder,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<int> get remoteFileVersion => $composableBuilder(
     column: $table.remoteFileVersion,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get remoteJson => $composableBuilder(
+    column: $table.remoteJson,
     builder: (column) => column,
   );
 
@@ -2783,49 +2276,39 @@ class $$LocalRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get localEditType => $composableBuilder(
-    column: $table.localEditType,
+  GeneratedColumn<int> get editType =>
+      $composableBuilder(column: $table.editType, builder: (column) => column);
+
+  GeneratedColumn<int> get version =>
+      $composableBuilder(column: $table.version, builder: (column) => column);
+
+  GeneratedColumn<int> get fileVersion => $composableBuilder(
+    column: $table.fileVersion,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get localVersion => $composableBuilder(
-    column: $table.localVersion,
+  GeneratedColumn<int> get editAt =>
+      $composableBuilder(column: $table.editAt, builder: (column) => column);
+
+  GeneratedColumn<int> get fileEditAt => $composableBuilder(
+    column: $table.fileEditAt,
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get localFileVersion => $composableBuilder(
-    column: $table.localFileVersion,
-    builder: (column) => column,
-  );
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
 
-  GeneratedColumn<int> get localEditAt => $composableBuilder(
-    column: $table.localEditAt,
-    builder: (column) => column,
-  );
+  GeneratedColumn<String> get md5 =>
+      $composableBuilder(column: $table.md5, builder: (column) => column);
 
-  GeneratedColumn<int> get localFileEditAt => $composableBuilder(
-    column: $table.localFileEditAt,
-    builder: (column) => column,
-  );
+  GeneratedColumn<int> get locked =>
+      $composableBuilder(column: $table.locked, builder: (column) => column);
 
-  GeneratedColumn<String> get localName =>
-      $composableBuilder(column: $table.localName, builder: (column) => column);
+  GeneratedColumn<String> get reminder =>
+      $composableBuilder(column: $table.reminder, builder: (column) => column);
 
-  GeneratedColumn<String> get localMd5 =>
-      $composableBuilder(column: $table.localMd5, builder: (column) => column);
-
-  GeneratedColumn<int> get localLocked => $composableBuilder(
-    column: $table.localLocked,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get localReminder => $composableBuilder(
-    column: $table.localReminder,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get localPath =>
-      $composableBuilder(column: $table.localPath, builder: (column) => column);
+  GeneratedColumn<String> get path =>
+      $composableBuilder(column: $table.path, builder: (column) => column);
 }
 
 class $$LocalRecordsTableTableManager
@@ -2862,53 +2345,39 @@ class $$LocalRecordsTableTableManager
                 Value<String> uuid = const Value.absent(),
                 Value<int> batchNo = const Value.absent(),
                 Value<int> remoteVersion = const Value.absent(),
-                Value<int> remoteCreateAt = const Value.absent(),
-                Value<int> remoteEditAt = const Value.absent(),
-                Value<int> remoteFileEditAt = const Value.absent(),
-                Value<int> remoteDeleteAt = const Value.absent(),
-                Value<int> remoteLocked = const Value.absent(),
                 Value<String> remoteMd5 = const Value.absent(),
-                Value<String> remoteName = const Value.absent(),
-                Value<String> remotePath = const Value.absent(),
-                Value<String> remoteReminder = const Value.absent(),
                 Value<int> remoteFileVersion = const Value.absent(),
+                Value<String> remoteJson = const Value.absent(),
                 Value<int> baseFileVersion = const Value.absent(),
-                Value<int> localEditType = const Value.absent(),
-                Value<int> localVersion = const Value.absent(),
-                Value<int> localFileVersion = const Value.absent(),
-                Value<int> localEditAt = const Value.absent(),
-                Value<int> localFileEditAt = const Value.absent(),
-                Value<String> localName = const Value.absent(),
-                Value<String> localMd5 = const Value.absent(),
-                Value<int> localLocked = const Value.absent(),
-                Value<String> localReminder = const Value.absent(),
-                Value<String> localPath = const Value.absent(),
+                Value<int> editType = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<int> fileVersion = const Value.absent(),
+                Value<int> editAt = const Value.absent(),
+                Value<int> fileEditAt = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> md5 = const Value.absent(),
+                Value<int> locked = const Value.absent(),
+                Value<String> reminder = const Value.absent(),
+                Value<String> path = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalRecordsCompanion(
                 uuid: uuid,
                 batchNo: batchNo,
                 remoteVersion: remoteVersion,
-                remoteCreateAt: remoteCreateAt,
-                remoteEditAt: remoteEditAt,
-                remoteFileEditAt: remoteFileEditAt,
-                remoteDeleteAt: remoteDeleteAt,
-                remoteLocked: remoteLocked,
                 remoteMd5: remoteMd5,
-                remoteName: remoteName,
-                remotePath: remotePath,
-                remoteReminder: remoteReminder,
                 remoteFileVersion: remoteFileVersion,
+                remoteJson: remoteJson,
                 baseFileVersion: baseFileVersion,
-                localEditType: localEditType,
-                localVersion: localVersion,
-                localFileVersion: localFileVersion,
-                localEditAt: localEditAt,
-                localFileEditAt: localFileEditAt,
-                localName: localName,
-                localMd5: localMd5,
-                localLocked: localLocked,
-                localReminder: localReminder,
-                localPath: localPath,
+                editType: editType,
+                version: version,
+                fileVersion: fileVersion,
+                editAt: editAt,
+                fileEditAt: fileEditAt,
+                name: name,
+                md5: md5,
+                locked: locked,
+                reminder: reminder,
+                path: path,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -2916,53 +2385,39 @@ class $$LocalRecordsTableTableManager
                 required String uuid,
                 Value<int> batchNo = const Value.absent(),
                 Value<int> remoteVersion = const Value.absent(),
-                Value<int> remoteCreateAt = const Value.absent(),
-                Value<int> remoteEditAt = const Value.absent(),
-                Value<int> remoteFileEditAt = const Value.absent(),
-                Value<int> remoteDeleteAt = const Value.absent(),
-                Value<int> remoteLocked = const Value.absent(),
                 Value<String> remoteMd5 = const Value.absent(),
-                Value<String> remoteName = const Value.absent(),
-                Value<String> remotePath = const Value.absent(),
-                Value<String> remoteReminder = const Value.absent(),
                 Value<int> remoteFileVersion = const Value.absent(),
+                Value<String> remoteJson = const Value.absent(),
                 Value<int> baseFileVersion = const Value.absent(),
-                Value<int> localEditType = const Value.absent(),
-                Value<int> localVersion = const Value.absent(),
-                Value<int> localFileVersion = const Value.absent(),
-                Value<int> localEditAt = const Value.absent(),
-                Value<int> localFileEditAt = const Value.absent(),
-                Value<String> localName = const Value.absent(),
-                Value<String> localMd5 = const Value.absent(),
-                Value<int> localLocked = const Value.absent(),
-                Value<String> localReminder = const Value.absent(),
-                required String localPath,
+                Value<int> editType = const Value.absent(),
+                Value<int> version = const Value.absent(),
+                Value<int> fileVersion = const Value.absent(),
+                Value<int> editAt = const Value.absent(),
+                Value<int> fileEditAt = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> md5 = const Value.absent(),
+                Value<int> locked = const Value.absent(),
+                Value<String> reminder = const Value.absent(),
+                Value<String> path = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => LocalRecordsCompanion.insert(
                 uuid: uuid,
                 batchNo: batchNo,
                 remoteVersion: remoteVersion,
-                remoteCreateAt: remoteCreateAt,
-                remoteEditAt: remoteEditAt,
-                remoteFileEditAt: remoteFileEditAt,
-                remoteDeleteAt: remoteDeleteAt,
-                remoteLocked: remoteLocked,
                 remoteMd5: remoteMd5,
-                remoteName: remoteName,
-                remotePath: remotePath,
-                remoteReminder: remoteReminder,
                 remoteFileVersion: remoteFileVersion,
+                remoteJson: remoteJson,
                 baseFileVersion: baseFileVersion,
-                localEditType: localEditType,
-                localVersion: localVersion,
-                localFileVersion: localFileVersion,
-                localEditAt: localEditAt,
-                localFileEditAt: localFileEditAt,
-                localName: localName,
-                localMd5: localMd5,
-                localLocked: localLocked,
-                localReminder: localReminder,
-                localPath: localPath,
+                editType: editType,
+                version: version,
+                fileVersion: fileVersion,
+                editAt: editAt,
+                fileEditAt: fileEditAt,
+                name: name,
+                md5: md5,
+                locked: locked,
+                reminder: reminder,
+                path: path,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

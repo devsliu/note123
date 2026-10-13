@@ -8,7 +8,7 @@ import 'package:note123/filesync/file_store.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/filesync/table_record.dart';
-import 'package:note123/filesync/record_utils.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/sync_engine.dart' show SyncEngine, SyncState;
 import 'package:note123/filesync/user.dart';
 import 'package:note123/filesync/http_api.dart';
@@ -87,7 +87,7 @@ class Repository {
     recordTree.build([]);
     if (userId != 0) {
       _fileStore = FileStore(join(appRootDir, userId.toString()));
-      _db = createRecordsDatabase(File(join(_fileStore!.rootDir, "records_v3.db")));
+      _db = createRecordsDatabase(File(join(_fileStore!.rootDir, "records_v4.db")));
       _fileStore!.db = _db!;
       _syncEngine = SyncEngine(
         db: _db!,
@@ -97,7 +97,7 @@ class Repository {
       );
       // Badge count is pushed only when the recycle table actually changes
       _recyclerCountSub = _db!.watchRecycleCount().listen((c) => recyclerCountNotifier.value = c);
-      recordTree.build(await _db!.getAllLocalRecords());
+      recordTree.build(await _db!.getAllRecords());
       syncRecords(true);
     } else {
       recyclerCountNotifier.value = 0;
@@ -117,13 +117,7 @@ class Repository {
   // 🎯 CREATE / EDIT / DELETE — local write operations
   // =========================================================================
 
-  Future<LocalRecord?> createRecord(
-    String path,
-    String name,
-    bool sync,
-    int localFileEditAt, {
-    String? reminder,
-  }) async {
+  Future<RecordEntry?> createRecord(String path, String name, bool sync, int fileEditAt, {String? reminder}) async {
     if (_db == null || _fileStore == null) return null;
     int time = DateTime.now().millisecondsSinceEpoch;
     final uuid = Uuid().v4();
@@ -131,13 +125,13 @@ class Repository {
       uuid: uuid,
       name: name,
       path: path,
-      localFileEditAt: localFileEditAt,
-      time: time,
+      fileEditAt: fileEditAt,
+      editAt: time,
       reminder: reminder,
     );
     final record = (await _db!.getRecord(uuid))!;
     recordTree.insertRecord(record);
-    await _db!.createOperate(Operates.typeLocal, "create record $uuid ${record.localPath}${record.localName}");
+    await _db!.createOperate(Operates.typeLocal, "create record $uuid ${record.local.path}${record.local.name}");
     _fileStore!.deleteWorkFile(uuid);
     if (sync) await syncRecords(false);
     return record;
@@ -147,7 +141,7 @@ class Repository {
   /// md5: md5 of the work file content (post-encryption if locked).
   /// path/name/locked/md5: optional; when null the field is left unchanged.
   /// reminder: optional JSON string of reminder tasks; pass null to leave it unchanged.
-  Future<LocalRecord?> editRecord(
+  Future<RecordEntry?> editRecord(
     String uuid,
     bool fileEdit,
     int time, {
@@ -165,21 +159,21 @@ class Repository {
 
     await db.updateRecord(
       uuid,
-      localPath: path,
-      localName: name,
-      localMd5: md5,
-      localEditType: LocalEditType.edit,
-      localEditAt: time,
-      localFileEditAt: fileEdit ? time : null,
-      localLocked: locked,
-      localReminder: reminder,
+      path: path,
+      name: name,
+      md5: md5,
+      editType: LocalEditType.edit,
+      editAt: time,
+      fileEditAt: fileEdit ? time : null,
+      locked: locked,
+      reminder: reminder,
     );
 
     final record = await db.getRecord(uuid);
     if (record != null) {
       await db.createOperate(
         Operates.typeLocal,
-        "edit record ${record.uuid} ${record.localPath}${record.localName} version:${record.remoteVersion}, fileEdit:$fileEdit",
+        "edit record ${record.uuid} ${record.local.path}${record.local.name} version:${record.local.remoteVersion}, fileEdit:$fileEdit",
       );
       recordTree.insertRecord(record);
       unawaited(
@@ -191,25 +185,25 @@ class Repository {
     return record;
   }
 
-  /// Soft delete: mark localEditType=delete and capture into recycle bin immediately
+  /// Soft delete: mark editType=delete and capture into recycle bin immediately
   /// (works offline too). Push conflict will undo the capture and restore the record.
   Future<void> deleteRecord(String uuid) async {
     if (_db == null) return;
     AppDatabase db = _db!;
-    LocalRecord? record = await db.getRecord(uuid);
+    RecordEntry? record = await db.getRecord(uuid);
     int time = DateTime.now().millisecondsSinceEpoch;
-    int count = await db.updateRecord(uuid, localEditType: LocalEditType.delete, localEditAt: time);
+    int count = await db.updateRecord(uuid, editType: LocalEditType.delete, editAt: time);
     if (count > 0) {
       // Records with no content at all (no work file and remoteMd5 empty)
       // skip the recycle bin capture.
-      final hasContent = (_fileStore?.isWorkFileExist(uuid) ?? false) || (record?.remoteMd5.isNotEmpty ?? false);
+      final hasContent = (_fileStore?.isWorkFileExist(uuid) ?? false) || (record?.local.remoteMd5.isNotEmpty ?? false);
       if (hasContent) {
-        await _captureToRecycler(record, time);
+        await _captureToRecycler(record?.local, time);
       }
       recordTree.deleteRecord(uuid);
       await db.createOperate(
         Operates.typeLocal,
-        "delete record ${record?.uuid} ${record?.localPath}${record?.localName} version:${record?.remoteVersion}",
+        "delete record ${record?.local.uuid} ${record?.local.path}${record?.local.name} version:${record?.local.remoteVersion}",
       );
       await syncRecords(false);
     }
@@ -223,10 +217,10 @@ class Repository {
     try {
       await _db!.insertRecycleRecord(
         uuid: record.uuid,
-        path: record.localPath,
-        name: record.localName,
-        reminder: record.localReminder,
-        locked: record.localLocked,
+        path: record.path,
+        name: record.name,
+        reminder: record.reminder,
+        locked: record.locked,
         deleteAt: deleteAt,
       );
       _fileStore?.moveFileToRecycler(record.uuid);
@@ -259,9 +253,9 @@ class Repository {
     await db.createOperate(Operates.typeLocal, "rename folder $oldPath to $newPath");
 
     final tableName = db.localRecords.actualTableName;
-    final localPathCol = db.localRecords.localPath.name;
-    final editAtCol = db.localRecords.localEditAt.name;
-    final typeCol = db.localRecords.localEditType.name;
+    final localPathCol = db.localRecords.path.name;
+    final editAtCol = db.localRecords.editAt.name;
+    final typeCol = db.localRecords.editType.name;
 
     await db.customUpdate(
       'UPDATE $tableName '
@@ -292,14 +286,12 @@ class Repository {
     final likePattern = '$path%';
     final time = DateTime.now().millisecondsSinceEpoch;
     final table = db.localRecords.actualTableName;
-    final localPathCol = db.localRecords.localPath.name;
-    final typeCol = db.localRecords.localEditType.name;
-    final editAtCol = db.localRecords.localEditAt.name;
+    final localPathCol = db.localRecords.path.name;
+    final typeCol = db.localRecords.editType.name;
+    final editAtCol = db.localRecords.editAt.name;
 
     // Records to capture (not yet delete-marked; already-marked ones were captured when deleted)
-    final toCapture = await (db.select(
-      db.localRecords,
-    )..where((t) => t.localPath.like(likePattern) & t.localEditType.equals(LocalEditType.delete).not())).get();
+    final toCapture = await db.getUndeletedRecordsByPathPrefix(path);
 
     int count = await db.customUpdate(
       'UPDATE $table '
@@ -309,7 +301,7 @@ class Repository {
       updates: {db.localRecords},
     );
     for (final record in toCapture) {
-      await _captureToRecycler(record, time);
+      await _captureToRecycler(record.local, time);
     }
     await db.createOperate(Operates.typeLocal, "delete folder $path, records count:$count");
     recordTree.deleteFolder(path);
@@ -320,9 +312,9 @@ class Repository {
   // 🎯 CONFLICT — detection and resolution
   // =========================================================================
 
-  Future<List<LocalRecord>> getConflictRecords() async {
+  Future<List<RecordEntry>> getConflictRecords() async {
     if (_db == null) return [];
-    return _db!.getSyncConflictRecords();
+    return _db!.getConflictRecords();
   }
 
   /// Resolve conflict.
@@ -333,11 +325,11 @@ class Repository {
     final db = _db!;
     final fileStore = _fileStore!;
     final record = await db.getRecord(uuid);
-    if (record == null || !record.syncConflict) return;
+    if (record == null || !record.local.syncConflict) return;
 
     if (keepLocal) {
       // Only align baseline version, keep all local edits
-      await db.updateRecord(uuid, localVersion: record.remoteVersion);
+      await db.updateRecord(uuid, version: record.local.remoteVersion);
       final refreshed = await db.getRecord(uuid);
       if (refreshed != null) recordTree.insertRecord(refreshed);
     } else {
@@ -348,7 +340,7 @@ class Repository {
       if (refreshed != null) recordTree.insertRecord(refreshed);
     }
 
-    final remaining = await db.getSyncConflictRecords();
+    final remaining = await db.getConflictRecords();
     if (remaining.isEmpty) {
       syncStateNotifier.value = SyncState(state: SyncState.success);
     }
@@ -380,7 +372,7 @@ class Repository {
     if (entry == null) return false;
 
     final existing = await db.getRecord(uuid);
-    if (existing != null && existing.localEditType != LocalEditType.delete) {
+    if (existing != null && existing.local.editType != LocalEditType.delete) {
       // Same uuid still live locally and not pending deletion (e.g. re-created on another device),
       // refuse to avoid duplicate primary key
       return false;
@@ -392,9 +384,9 @@ class Repository {
       // Delete not yet pushed to server (e.g. deleted offline): just un-delete the pending record
       await db.updateRecord(
         uuid,
-        localEditType: LocalEditType.edit,
-        localEditAt: time,
-        localFileEditAt: _fileStore!.isWorkFileExist(uuid) ? time : null,
+        editType: LocalEditType.edit,
+        editAt: time,
+        fileEditAt: _fileStore!.isWorkFileExist(uuid) ? time : null,
       );
     } else {
       // Delete already pushed: re-create the local record (remote_* zeroed, DB default values),
@@ -405,8 +397,8 @@ class Repository {
         path: entry.path,
         locked: entry.locked,
         reminder: entry.reminder,
-        localFileEditAt: _fileStore!.isWorkFileExist(uuid) ? time : 0,
-        time: time,
+        fileEditAt: _fileStore!.isWorkFileExist(uuid) ? time : 0,
+        editAt: time,
       );
     }
     await db.deleteRecycleRecord(uuid);

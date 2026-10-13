@@ -1,3 +1,4 @@
+import 'package:note123/filesync/path_utils.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/config/language_manager.dart';
@@ -33,13 +34,7 @@ class RecordFolderPickerState extends State<RecordFolderPicker> {
   }
 
   String get currentPath {
-    var raw = _pathController.text.trim();
-    if (raw.isEmpty || raw == '/') return '/';
-    raw = raw.startsWith('/') ? raw : '/$raw';
-    raw = raw.endsWith('/') ? raw : '$raw/';
-    // Ensure path does not contain consecutive slashes
-    raw = raw.replaceAll(RegExp(r'/{2,}'), '/');
-    return raw;
+    return normalizePath(_pathController.text.trim());
   }
 
   List<String> get _currentFolderNames {
@@ -62,7 +57,6 @@ class RecordFolderPickerState extends State<RecordFolderPicker> {
 
   void _enterFolder(String folderName) {
     String path = currentPath;
-    if (!path.endsWith('/')) path += '/';
     if (path == '/') path = '';
     setState(() {
       _pathController.text = '/${(path + folderName).replaceAll(RegExp(r'^/+'), '')}/';
@@ -71,7 +65,6 @@ class RecordFolderPickerState extends State<RecordFolderPicker> {
 
   void _createFolder() {
     String path = currentPath;
-    if (!path.endsWith('/')) path += '/';
     setState(() {
       _pathController.text = '$path${l10n.newFolder}/';
     });

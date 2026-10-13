@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -5,6 +6,7 @@ import 'package:drift/native.dart';
 import 'package:note123/utils/app_logger.dart';
 import 'package:note123/filesync/remote_record.dart';
 
+import 'record_ext.dart';
 import 'table_record.dart';
 
 part 'database.g.dart';
@@ -14,11 +16,12 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 1;
 
   // ========== Queries ==========
 
-  Future<List<LocalRecord>> getAllLocalRecords() async => await select(localRecords).get();
+  Future<List<RecordEntry>> getAllRecords() async =>
+      (await select(localRecords).get()).map((r) => RecordEntry(r)).toList();
 
   Future<List<Operate>> getAllOperates() async =>
       await (select(operates)..orderBy([(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)])).get();
@@ -33,23 +36,42 @@ class AppDatabase extends _$AppDatabase {
   }
 
   /// PUSH: retrieve all locally edited entries (edit=1, non-delete)
-  Future<List<LocalRecord>> getEditRecords() async =>
-      await (select(localRecords)..where((t) => t.localEditType.equals(LocalEditType.edit))).get();
+  Future<List<RecordEntry>> getEditRecords() async => (await (select(
+    localRecords,
+  )..where((t) => t.editType.equals(LocalEditType.edit))).get()).map((r) => RecordEntry(r)).toList();
 
-  Future<LocalRecord?> getRecord(String uuid) async =>
-      await (select(localRecords)..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
+  Future<RecordEntry?> getRecord(String uuid) async {
+    final r = await (select(localRecords)..where((t) => t.uuid.equals(uuid))).getSingleOrNull();
+    return r == null ? null : RecordEntry(r);
+  }
+
+  /// Fetch multiple records by their uuids.
+  Future<List<RecordEntry>> getRecordsByUuids(List<String> uuids) async =>
+      (await (select(localRecords)..where((t) => t.uuid.isIn(uuids))).get()).map((r) => RecordEntry(r)).toList();
 
   /// PUSH: retrieve all locally deleted entries
-  Future<List<LocalRecord>> getDeleteRecords() async =>
-      await (select(localRecords)..where((t) => t.localEditType.equals(LocalEditType.delete))).get();
+  Future<List<RecordEntry>> getDeleteRecords() async => (await (select(
+    localRecords,
+  )..where((t) => t.editType.equals(LocalEditType.delete))).get()).map((r) => RecordEntry(r)).toList();
 
-  /// All conflicted entries: local has edit (non-delete) && localVersion != remoteVersion
+  /// All conflicted entries: local has edit (non-delete) && version != remoteVersion
   /// Local deletion is not considered a conflict (deletion is an independent push flow)
-  Future<List<LocalRecord>> getSyncConflictRecords() async =>
-      await (select(localRecords)
-            ..where((t) => t.localEditType.equals(LocalEditType.edit))
-            ..where((t) => t.localVersion.equalsExp(t.remoteVersion).not()))
-          .get();
+  Future<List<RecordEntry>> getConflictRecords() async =>
+      (await (select(localRecords)
+                ..where((t) => t.editType.equals(LocalEditType.edit))
+                ..where((t) => t.version.equalsExp(t.remoteVersion).not()))
+              .get())
+          .map((r) => RecordEntry(r))
+          .toList();
+
+  /// Records under a path prefix that are not delete-marked (used for folder deletion capture).
+  Future<List<RecordEntry>> getUndeletedRecordsByPathPrefix(String pathPrefix) async =>
+      (await (select(localRecords)
+                ..where((t) => t.path.like('$pathPrefix%'))
+                ..where((t) => t.editType.equals(LocalEditType.delete).not()))
+              .get())
+          .map((r) => RecordEntry(r))
+          .toList();
 
   // ========== Recycle bin ==========
 
@@ -123,19 +145,19 @@ class AppDatabase extends _$AppDatabase {
     required String uuid,
     required String name,
     required String path,
-    required int localFileEditAt,
-    required int time,
+    required int editAt,
+    required int fileEditAt,
     String? reminder,
   }) async {
     return await into(localRecords).insert(
       LocalRecordsCompanion.insert(
         uuid: uuid,
-        localEditType: const Value(LocalEditType.edit),
-        localEditAt: Value(time),
-        localFileEditAt: Value(localFileEditAt),
-        localName: Value(name),
-        localPath: path,
-        localReminder: Value(reminder ?? ''),
+        editType: const Value(LocalEditType.edit),
+        editAt: Value(editAt),
+        fileEditAt: Value(fileEditAt),
+        name: Value(name),
+        path: Value(path),
+        reminder: Value(reminder ?? ''),
       ),
     );
   }
@@ -148,155 +170,126 @@ class AppDatabase extends _$AppDatabase {
     required String path,
     required int locked,
     required String reminder,
-    required int localFileEditAt,
-    required int time,
+    required int editAt,
+    required int fileEditAt,
   }) async {
     return await into(localRecords).insert(
       LocalRecordsCompanion.insert(
         uuid: uuid,
-        localEditType: const Value(LocalEditType.edit),
-        localEditAt: Value(time),
-        localFileEditAt: Value(localFileEditAt),
-        localName: Value(name),
-        localLocked: Value(locked),
-        localReminder: Value(reminder),
-        localPath: path,
+        editType: const Value(LocalEditType.edit),
+        editAt: Value(editAt),
+        fileEditAt: Value(fileEditAt),
+        name: Value(name),
+        locked: Value(locked),
+        reminder: Value(reminder),
+        path: Value(path),
       ),
     );
   }
 
   /// Unified LocalRecord update. All fields optional, null means do not update.
   ///
-  /// local_* / remote_* split fields are directly named.
-  /// Called after successful sync: overwrites remote_* to local_*, localVersion=remoteVersion, localEditType=none.
+  /// remote fields: 3 indexed columns (remoteVersion/remoteMd5/remoteFileVersion) + remoteJson blob.
+  /// Called after successful sync: overwrites remote fields to local fields, version=remoteVersion, editType=none.
   Future<int> updateRecord(
     String uuid, {
     int? batchNo,
-    // remote_*
+    // remote: 3 columns + json blob
     int? remoteVersion,
-    int? remoteCreateAt,
-    int? remoteEditAt,
-    int? remoteFileEditAt,
-    int? remoteDeleteAt,
-    int? remoteLocked,
     String? remoteMd5,
-    String? remoteName,
-    String? remotePath,
-    String? remoteReminder,
-    // remote file version
     int? remoteFileVersion,
+    String? remoteJson,
     // base file tracking
     int? baseFileVersion,
-    // local_*
-    int? localEditType,
-    int? localVersion,
-    int? localFileVersion,
-    int? localEditAt,
-    int? localFileEditAt,
-    String? localName,
-    String? localMd5,
-    String? localPath,
-    int? localLocked,
-    String? localReminder,
+    // local
+    int? editType,
+    int? version,
+    int? fileVersion,
+    int? editAt,
+    int? fileEditAt,
+    String? name,
+    String? md5,
+    String? path,
+    int? locked,
+    String? reminder,
   }) async {
     return await (update(localRecords)..where((t) => t.uuid.equals(uuid))).write(
       LocalRecordsCompanion(
         batchNo: batchNo != null ? Value(batchNo) : Value.absent(),
         remoteVersion: remoteVersion != null ? Value(remoteVersion) : Value.absent(),
-        remoteCreateAt: remoteCreateAt != null ? Value(remoteCreateAt) : Value.absent(),
-        remoteEditAt: remoteEditAt != null ? Value(remoteEditAt) : Value.absent(),
-        remoteFileEditAt: remoteFileEditAt != null ? Value(remoteFileEditAt) : Value.absent(),
-        remoteDeleteAt: remoteDeleteAt != null ? Value(remoteDeleteAt) : Value.absent(),
-        remoteLocked: remoteLocked != null ? Value(remoteLocked) : Value.absent(),
         remoteMd5: remoteMd5 != null ? Value(remoteMd5) : Value.absent(),
-        remoteName: remoteName != null ? Value(remoteName) : Value.absent(),
-        remotePath: remotePath != null ? Value(remotePath) : Value.absent(),
-        remoteReminder: remoteReminder != null ? Value(remoteReminder) : Value.absent(),
         remoteFileVersion: remoteFileVersion != null ? Value(remoteFileVersion) : Value.absent(),
+        remoteJson: remoteJson != null ? Value(remoteJson) : Value.absent(),
         baseFileVersion: baseFileVersion != null ? Value(baseFileVersion) : Value.absent(),
-        localEditType: localEditType != null ? Value(localEditType) : Value.absent(),
-        localVersion: localVersion != null ? Value(localVersion) : Value.absent(),
-        localFileVersion: localFileVersion != null ? Value(localFileVersion) : Value.absent(),
-        localEditAt: localEditAt != null ? Value(localEditAt) : Value.absent(),
-        localFileEditAt: localFileEditAt != null ? Value(localFileEditAt) : Value.absent(),
-        localName: localName != null ? Value(localName) : Value.absent(),
-        localMd5: localMd5 != null ? Value(localMd5) : Value.absent(),
-        localPath: localPath != null ? Value(localPath) : Value.absent(),
-        localLocked: localLocked != null ? Value(localLocked) : Value.absent(),
-        localReminder: localReminder != null ? Value(localReminder) : Value.absent(),
+        editType: editType != null ? Value(editType) : Value.absent(),
+        version: version != null ? Value(version) : Value.absent(),
+        fileVersion: fileVersion != null ? Value(fileVersion) : Value.absent(),
+        editAt: editAt != null ? Value(editAt) : Value.absent(),
+        fileEditAt: fileEditAt != null ? Value(fileEditAt) : Value.absent(),
+        name: name != null ? Value(name) : Value.absent(),
+        md5: md5 != null ? Value(md5) : Value.absent(),
+        path: path != null ? Value(path) : Value.absent(),
+        locked: locked != null ? Value(locked) : Value.absent(),
+        reminder: reminder != null ? Value(reminder) : Value.absent(),
       ),
     );
   }
 
   /// Update DB remote_* fields from server-side RemoteRecord (do not touch local_*).
   /// Optional batchNo: mark this pull cycle, used for full cleanup.
-  /// Optional localVersion: needed to align baseline version during concurrent push edits.
-  Future<int> updateRecordRemote(String uuid, RemoteRecord remote, {int? batchNo, int? localVersion}) async {
-    String formattedPath = remote.path;
-    if (!formattedPath.endsWith('/')) formattedPath += '/';
+  /// Optional version: needed to align baseline version during concurrent push edits.
+  Future<int> updateRecordRemote(String uuid, RemoteRecord remote, {int? batchNo, int? version}) async {
+    final formattedPath = normalizePath(remote.path);
+    final remoteJson = jsonEncode({...remote.toJson(), 'path': formattedPath});
     return await updateRecord(
       uuid,
       batchNo: batchNo,
       remoteVersion: remote.version,
-      remoteCreateAt: remote.createAt,
-      remoteEditAt: remote.editAt,
-      remoteFileEditAt: remote.fileEditAt,
-      remoteDeleteAt: remote.deleteAt,
-      remoteLocked: remote.locked,
       remoteMd5: remote.md5,
-      remoteName: remote.name,
-      remotePath: formattedPath,
-      remoteReminder: remote.reminder,
       remoteFileVersion: remote.fileVersion,
-      localVersion: localVersion,
+      remoteJson: remoteJson,
+      version: version,
     );
   }
 
   /// Clear remote_* fields (server deleted, local has edits = needs to be re-created).
-  /// Also resets localVersion/localFileVersion to zero so push treats it as a new record via upsertRecord.
+  /// Also resets version/fileVersion to zero so push treats it as a new record via upsertRecord.
   /// Optional batchNo: mark this pull cycle, used for full cleanup.
   Future<int> clearRecordRemote(String uuid, {int? batchNo}) async {
     return await updateRecord(
       uuid,
       batchNo: batchNo,
       remoteVersion: 0,
-      remoteCreateAt: 0,
-      remoteEditAt: 0,
-      remoteFileEditAt: 0,
-      remoteDeleteAt: 0,
-      remoteLocked: 0,
       remoteMd5: '',
-      remoteName: '',
-      remotePath: '',
-      remoteReminder: '',
       remoteFileVersion: 0,
-      localVersion: 0,
-      localFileVersion: 0,
+      remoteJson: '',
+      version: 0,
+      fileVersion: 0,
       baseFileVersion: 0,
     );
   }
 
-  /// One-click alignment after successful sync: local_* all = remote_*, localEditType=none.
-  /// localEditAt/localFileEditAt are also set to remote values (not cleared),
+  /// One-click alignment after successful sync: local_* all = remote_*, editType=none.
+  /// editAt/fileEditAt are also set to remote values (not cleared),
   /// so the UI layer can directly read local fields as correct values, no need to fall back to remote.
   /// Optional batchNo: mark this pull cycle, used for full cleanup.
   Future<int> markSynced(String uuid, {int? batchNo}) async {
     final e = await getRecord(uuid);
     if (e == null) return 0;
-    // Only update local_* fields, aligning them to remote_*; remote_* / baseFileVersion remain unchanged.
+    // Only update local fields, aligning them to remote; remote / baseFileVersion remain unchanged.
     return await updateRecord(
       uuid,
       batchNo: batchNo,
-      localEditType: LocalEditType.none,
-      localVersion: e.remoteVersion,
-      localFileVersion: e.remoteFileVersion,
-      localEditAt: e.remoteEditAt,
-      localFileEditAt: e.remoteFileEditAt,
-      localName: e.remoteName,
-      localMd5: e.remoteMd5,
-      localPath: e.remotePath,
-      localLocked: e.remoteLocked,
-      localReminder: e.remoteReminder,
+      editType: LocalEditType.none,
+      version: e.remote.version,
+      fileVersion: e.remote.fileVersion,
+      editAt: e.remote.editAt,
+      fileEditAt: e.remote.fileEditAt,
+      name: e.remote.name,
+      md5: e.remote.md5,
+      path: e.remote.path,
+      locked: e.remote.locked,
+      reminder: e.remote.reminder,
     );
   }
 }

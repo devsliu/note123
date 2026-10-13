@@ -205,9 +205,9 @@ class FileStore {
         await previous.future;
       }
 
-      final localRecord = await db?.getRecord(uuid);
+      final record = await db?.getRecord(uuid);
 
-      if (file.existsSync() && localRecord != null && localRecord.remoteFileVersion <= localRecord.baseFileVersion) {
+      if (file.existsSync() && record != null && record.local.remoteFileVersion <= record.local.baseFileVersion) {
         return true;
       }
 
@@ -218,7 +218,7 @@ class FileStore {
         // Server returned "file not found", meaning this record has no file; reset local flag
         // to avoid retrying download on next loadContent
         if (result.code == HttpApi.ResultErrorFileNotFound) {
-          await db?.updateRecord(uuid, localFileEditAt: 0);
+          await db?.updateRecord(uuid, fileEditAt: 0);
         }
         return false;
       }
@@ -226,7 +226,7 @@ class FileStore {
       final meta = result.data!;
       // During download, the record in DB may have been updated by sync flow; re-read latest expected state
       final latestRecord = await db?.getRecord(uuid);
-      final latestFileVersion = latestRecord?.remoteFileVersion ?? 0;
+      final latestFileVersion = latestRecord?.local.remoteFileVersion ?? 0;
       // Verify fileVersion: downloaded file version must >= latest expected to prevent stale files
       if (meta.fileVersion < latestFileVersion) {
         AppLogger.e(

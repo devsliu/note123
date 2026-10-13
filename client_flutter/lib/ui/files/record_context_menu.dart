@@ -148,7 +148,7 @@ Future<void> moveRecordToPath(BuildContext context, TreeContentFile file, String
     return;
   }
   if (context.mounted) {
-    final fileName = newRecord.localName;
+    final fileName = newRecord.local.name;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(l10n.movedToPath(fileName, newPath)), duration: const Duration(seconds: 2)));

@@ -10,7 +10,7 @@ import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/file_store.dart';
 import 'package:note123/filesync/http_api.dart';
-import 'package:note123/filesync/record_utils.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/remote_record.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/utils/app_logger.dart';
@@ -115,7 +115,7 @@ class SyncEngine {
     await pushRecords();
 
     // Check conflicts again after push
-    var conflictList = await db.getSyncConflictRecords();
+    var conflictList = await db.getConflictRecords();
     if (conflictList.isNotEmpty) {
       syncStateNotifier.value = SyncState(
         state: SyncState.error,
@@ -166,14 +166,14 @@ class SyncEngine {
           await db.replaceRecord(newRecord);
           await db.createOperate(
             Operates.typeDownload,
-            "create record ${newRecord.uuid} ${newRecord.localPath}${newRecord.localName} version:${newRecord.remoteVersion}",
+            "create record ${newRecord.uuid} ${newRecord.path}${newRecord.name} version:${newRecord.remoteVersion}",
           );
           upsertUuids.add(newRecord.uuid);
           downloadUUids.add(remote.uuid);
         }
         // === Remote already deleted ===
         else if (remote.deleteAt > 0) {
-          if (local.localEditType == LocalEditType.delete || local.localEditType == LocalEditType.none) {
+          if (local.editType == LocalEditType.delete || local.editType == LocalEditType.none) {
             // Local deleted or local not modified: delete directly
             await (db.delete(db.localRecords)..where((t) => t.uuid.equals(remote.uuid))).go();
             deleteUuids.add(remote.uuid);
@@ -192,7 +192,7 @@ class SyncEngine {
           }
         }
         // === Remote not deleted ===
-        else if (local.localEditType == LocalEditType.delete || local.localEditType == LocalEditType.none) {
+        else if (local.editType == LocalEditType.delete || local.editType == LocalEditType.none) {
           // ---- Local deleted or local not modified ----
           if (remote.version > local.remoteVersion) {
             // Remote version updated, undo local delete / align local state (handled by one replaceLocalRecord)
@@ -219,7 +219,7 @@ class SyncEngine {
         }
         // Remote modified, local modified → conflict
         else if (remote.version > local.remoteVersion) {
-          final localVersion = local.localVersion;
+          final version = local.version;
           // Remote version advanced → conflict
           await db.updateRecordRemote(remote.uuid, remote, batchNo: batchNo);
           // Base file modified, download latest base for diff comparison (judge by fileVersion)
@@ -229,7 +229,7 @@ class SyncEngine {
           upsertUuids.add(remote.uuid);
           await db.createOperate(
             Operates.typeDownload,
-            "conflict record ${remote.uuid} ${remote.path}${remote.name} remoteV:${remote.version} localV:$localVersion",
+            "conflict record ${remote.uuid} ${remote.path}${remote.name} remoteV:${remote.version} localV:$version",
           );
         }
         // Remote version unchanged, why did it get downloaded???
@@ -245,11 +245,11 @@ class SyncEngine {
     // local edit (editRecord/deleteRecord etc.) blocks on the DB lock during our
     // transaction and runs right after commit, so the rows written inside the
     // transaction may already be stale. Feeding stale snapshots to the tree
-    // would desync it from DB (e.g. tree shows localEditType=none while DB has
-    // localEditType=edit). Re-reading guarantees tree always mirrors DB.
-    final List<LocalRecord> finalRecords = upsertUuids.isEmpty
-        ? const []
-        : await (db.select(db.localRecords)..where((t) => t.uuid.isIn(upsertUuids))).get();
+    // would desync it from DB (e.g. tree shows editType=none while DB has
+    // editType=edit). Re-reading guarantees tree always mirrors DB.
+    final List<RecordEntry> finalRecords = upsertUuids.isEmpty
+        ? <RecordEntry>[]
+        : await db.getRecordsByUuids(upsertUuids);
 
     recordTree.batchUpdateRecords(deleteUuids, finalRecords);
     // UI already updated, run file actions in background without blocking sync return.
@@ -313,7 +313,7 @@ class SyncEngine {
                 (t) =>
                     (t.batchNo.equals(batchNo).not()) &
                     (t.remoteVersion.isSmallerOrEqualValue(purgedVersion)) &
-                    (t.localEditType.equals(LocalEditType.none)),
+                    (t.editType.equals(LocalEditType.none)),
               ))
               .get();
       var uuids = list.map((e) => e.uuid).toList();
@@ -336,62 +336,62 @@ class SyncEngine {
 
   Future<void> pushRecords() async {
     // Push deletions first
-    for (var localRecord in await db.getDeleteRecords()) {
-      final result = await HttpApi.deleteRecord(localRecord.uuid);
+    for (var entry in await db.getDeleteRecords()) {
+      final result = await HttpApi.deleteRecord(entry.local.uuid);
       if (result.isSuccess() || result.code == HttpApi.ResultErrorRecordNotFound) {
         // Recycle bin capture already happened at delete time (Repository.deleteRecord/deleteFolder).
         // Only delete DB + files on successful request, prevent data loss from network failure
-        recordTree.deleteRecord(localRecord.uuid);
-        await db.deleteRecord(localRecord.uuid);
-        fileStore.deleteBaseFile(localRecord.uuid);
-        fileStore.deleteWorkFile(localRecord.uuid);
+        recordTree.deleteRecord(entry.local.uuid);
+        await db.deleteRecord(entry.local.uuid);
+        fileStore.deleteBaseFile(entry.local.uuid);
+        fileStore.deleteWorkFile(entry.local.uuid);
         await db.createOperate(
           Operates.typeUpload,
-          "delete record ${localRecord.uuid} ${localRecord.localPath}${localRecord.localName} version:${localRecord.remoteVersion}",
+          "delete record ${entry.local.uuid} ${entry.local.path}${entry.local.name} version:${entry.local.remoteVersion}",
         );
       } else if (result.code == HttpApi.ResultErrorRecordConflict) {
         // Server rejected deletion (record modified by someone else), restore to latest remote state.
         // Undo the recycle-bin capture made at delete time: move content file back to work folder
         // and drop the recycler row, so the restored record is not duplicated in the recycle bin.
         try {
-          fileStore.moveRecyclerFileToWork(localRecord.uuid);
-          await db.deleteRecycleRecord(localRecord.uuid);
+          fileStore.moveRecyclerFileToWork(entry.local.uuid);
+          await db.deleteRecycleRecord(entry.local.uuid);
         } catch (e) {
-          AppLogger.e("[pushRecords] undo recycler capture failed uuid=${localRecord.uuid}: $e");
+          AppLogger.e("[pushRecords] undo recycler capture failed uuid=${entry.local.uuid}: $e");
         }
         final remote = result.data!;
-        final newRecord = remote.toLocalRecord(0, baseFileVersion: localRecord.baseFileVersion);
+        final newRecord = remote.toLocalRecord(0, baseFileVersion: entry.local.baseFileVersion);
         int rows = await db.replaceRecord(newRecord);
-        if (localRecord.baseFileVersion < remote.fileVersion) {
-          await fileStore.downloadBaseFile(localRecord.uuid);
+        if (entry.local.baseFileVersion < remote.fileVersion) {
+          await fileStore.downloadBaseFile(entry.local.uuid);
         }
-        if (rows > 0) recordTree.insertRecord(newRecord);
+        if (rows > 0) recordTree.insertRecord(RecordEntry(newRecord));
       } else {
         throw SyncException(result.message, null, result.code);
       }
     }
 
     // Push edits second
-    for (var localRecord in await db.getEditRecords()) {
-      if (localRecord.syncConflict) continue;
+    for (var entry in await db.getEditRecords()) {
+      if (entry.local.syncConflict) continue;
 
-      final file = File(fileStore.getWorkFile(localRecord.uuid));
+      final file = File(fileStore.getWorkFile(entry.local.uuid));
       final fileExist = file.existsSync();
 
-      final uploadPath = localRecord.localPath;
-      final uploadName = localRecord.localName;
-      final baseVersion = localRecord.localVersion;
-      final uploadFileEditAt = fileExist ? localRecord.localFileEditAt : localRecord.remoteFileEditAt;
+      final uploadPath = entry.local.path;
+      final uploadName = entry.local.name;
+      final baseVersion = entry.local.version;
+      final uploadFileEditAt = fileExist ? entry.local.fileEditAt : entry.remote.fileEditAt;
 
       final result = await HttpApi.upsertRecord(
-        localRecord.uuid,
+        entry.local.uuid,
         uploadPath,
         uploadName,
-        localRecord.remoteCreateAt,
-        localRecord.localEditAt,
+        entry.remote.createAt,
+        entry.local.editAt,
         uploadFileEditAt,
-        localRecord.localLocked,
-        localRecord.localReminder,
+        entry.local.locked,
+        entry.local.reminder,
         fileExist ? file.absolute.path : '',
         baseVersion,
       );
@@ -402,38 +402,38 @@ class SyncEngine {
         // 否则后续 pull 会因 baseFileVersion 陈旧而重复下载或漏下载
         final newRecord = newRemote.toLocalRecord(
           0,
-          baseFileVersion: fileExist ? newRemote.fileVersion : localRecord.baseFileVersion,
+          baseFileVersion: fileExist ? newRemote.fileVersion : entry.local.baseFileVersion,
         );
 
         int rows =
             await (db.update(db.localRecords)..where(
                   (t) =>
-                      t.uuid.equals(localRecord.uuid) &
-                      t.localEditAt.equals(localRecord.localEditAt) &
-                      t.localEditType.equals(localRecord.localEditType),
+                      t.uuid.equals(entry.local.uuid) &
+                      t.editAt.equals(entry.local.editAt) &
+                      t.editType.equals(entry.local.editType),
                 ))
                 .write(newRecord);
 
         if (rows == 0) {
           // Concurrent edit: only update remote_*, keep local edits
-          await db.updateRecordRemote(localRecord.uuid, newRemote, localVersion: newRemote.version);
-          final merged = await db.getRecord(localRecord.uuid);
+          await db.updateRecordRemote(entry.local.uuid, newRemote, version: newRemote.version);
+          final merged = await db.getRecord(entry.local.uuid);
           if (merged != null) recordTree.insertRecord(merged);
         } else {
           await db.createOperate(
             Operates.typeUpload,
-            "edit record ${newRecord.uuid} ${newRecord.localPath}${newRecord.localName} version:${newRecord.remoteVersion}",
+            "edit record ${newRecord.uuid} ${newRecord.path}${newRecord.name} version:${newRecord.remoteVersion}",
           );
-          if (fileExist) fileStore.moveWorkFileToBase(localRecord.uuid);
-          recordTree.insertRecord(newRecord);
+          if (fileExist) fileStore.moveWorkFileToBase(entry.local.uuid);
+          recordTree.insertRecord(RecordEntry(newRecord));
         }
       } else if (result.code == HttpApi.ResultErrorRecordConflict) {
         final remote = result.data!;
-        await db.updateRecordRemote(localRecord.uuid, remote);
-        if (localRecord.baseFileVersion < remote.fileVersion) {
-          await fileStore.downloadBaseFile(localRecord.uuid);
+        await db.updateRecordRemote(entry.local.uuid, remote);
+        if (entry.local.baseFileVersion < remote.fileVersion) {
+          await fileStore.downloadBaseFile(entry.local.uuid);
         }
-        final refreshed = await db.getRecord(localRecord.uuid);
+        final refreshed = await db.getRecord(entry.local.uuid);
         if (refreshed != null) recordTree.insertRecord(refreshed);
       } else {
         throw SyncException(result.message, null, result.code);

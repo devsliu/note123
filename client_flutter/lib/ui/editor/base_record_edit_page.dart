@@ -4,10 +4,9 @@ import 'dart:io';
 import 'package:note123/filesync/file_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
-import 'package:note123/filesync/record_utils.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/model/record_utils.dart';
 import 'package:note123/utils/app_logger.dart';
@@ -67,7 +66,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   }
 
   // Track last known LocalRecord (all final, replaced as a whole during sync) for diff comparison
-  LocalRecord? _lastKnownRecord;
+  RecordEntry? _lastKnownRecord;
 
   @override
   void initState() {
@@ -135,13 +134,13 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     _lastKnownRecord = newRecord;
 
     // Title change: always update (doesn't affect editing content)
-    if (oldRecord?.localName != newRecord.localName) {
+    if (oldRecord?.local.name != newRecord.local.name) {
       if (mounted) setState(() {});
     }
 
     if (isContentChanged) return;
-    if (newRecord.syncConflict) return;
-    if (_contentMd5.value != "" && _contentMd5.value == newRecord.localMd5) return;
+    if (newRecord.local.syncConflict) return;
+    if (_contentMd5.value != "" && _contentMd5.value == newRecord.local.md5) return;
 
     await loadContent();
   }
@@ -242,14 +241,14 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   Future<void> loadContent() async {
     setStateMode(PageState.modeLoad);
 
-    LocalRecord record = widget.record.record;
+    RecordEntry record = widget.record.record;
     FileStore? fileStore = Repository.get().fileStore;
     if (fileStore == null) {
       return;
     }
 
     File file = File(fileStore.getWorkFile(record.uuid));
-    if (record.remoteFileVersion > 0 && !file.existsSync()) {
+    if (record.local.remoteFileVersion > 0 && !file.existsSync()) {
       file = File(fileStore.getBaseFile(record.uuid));
       if (!file.existsSync()) {
         await fileStore.downloadBaseFile(record.uuid);
@@ -269,7 +268,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     }
 
     // If record is locked, unlock via UnlockContentWidget (password input + errors inside widget)
-    if (record.localLocked == 1 && content.isNotEmpty) {
+    if (record.local.locked == 1 && content.isNotEmpty) {
       // Try saved password first (auto re-unlock after remote refresh)
       if (_password != null) {
         final decrypted = Utils.decryptContent(content, _password!);
@@ -286,7 +285,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
       // Widget decrypts and calls back with plaintext
       setStateMode(PageState.modePass, content);
       return;
-    } else if (record.localLocked != 1) {
+    } else if (record.local.locked != 1) {
       _password = null; // Password becomes plaintext after version upgrade
     }
 
@@ -316,7 +315,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
       return _saveFuture;
     }
 
-    LocalRecord record = widget.record.record;
+    RecordEntry record = widget.record.record;
     var (String content, String name) = formatContent();
 
     if (name.isEmpty) {
@@ -329,10 +328,10 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     _saveFuture =
         saveWorkFile(
               uuid: record.uuid,
-              path: record.localPath,
+              path: record.local.path,
               name: name,
               content: content,
-              locked: record.localLocked,
+              locked: record.local.locked,
               password: _password,
               md5Ref: _contentMd5,
             )

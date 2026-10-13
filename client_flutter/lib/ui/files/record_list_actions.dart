@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
-import 'package:note123/filesync/database.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/model/record_opened_state.dart';
@@ -147,7 +147,7 @@ class RecordListActions {
     }
     RecordTree recordTree = Repository.get().recordTree;
 
-    LocalRecord? record = await Repository.get().createRecord(folder, RecordUtils.generateRecordName(), true, 0);
+    RecordEntry? record = await Repository.get().createRecord(folder, RecordUtils.generateRecordName(), true, 0);
     if (record == null) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(l10n.saveRecordFailed)));

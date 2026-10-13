@@ -2,21 +2,21 @@ import 'package:drift/drift.dart';
 
 /// Local edit type.
 /// none(0) = synced, no pending upload changes
-/// edit(1) = has local edits (metadata and/or file content, check localFileEditAt > remoteFileEditAt)
+/// edit(1) = has local edits (metadata and/or file content, check fileEditAt > 0)
 /// delete(2) = local deletion
 ///
 /// Detection:
-///   Has edits           → localEditType > none
-///   Need to upload work file → localFileEditAt > remoteFileEditAt
-///   Conflict            → localEditType > none && localVersion != remoteVersion
-///   Local deletion     → localEditType == delete
+///   Has edits           → editType > none
+///   Need to upload work file → fileEditAt > 0
+///   Conflict            → editType > none && version != remoteVersion
+///   Local deletion     → editType == delete
 class LocalEditType {
   static const int none = 0;
   static const int edit = 1;
   static const int delete = 2;
 }
 
-@TableIndex(name: 'records_path_idx', columns: {#localPath})
+@TableIndex(name: 'records_path_idx', columns: {#path})
 @TableIndex(name: 'records_version_idx', columns: {#remoteVersion})
 @DataClassName('LocalRecord')
 class LocalRecords extends Table {
@@ -27,19 +27,19 @@ class LocalRecords extends Table {
   IntColumn get batchNo => integer().withDefault(const Constant(0))();
 
   // ========== Server authoritative (downloaded from server) ==========
+  /// Conflict detection + sort, participates in SQL WHERE/ORDER BY
   IntColumn get remoteVersion => integer().withDefault(const Constant(0))();
-  IntColumn get remoteCreateAt => integer().withDefault(const Constant(0))();
-  IntColumn get remoteEditAt => integer().withDefault(const Constant(0))();
-  IntColumn get remoteFileEditAt => integer().withDefault(const Constant(0))();
-  IntColumn get remoteDeleteAt => integer().withDefault(const Constant(0))();
-  IntColumn get remoteLocked => integer().withDefault(const Constant(0))();
-  TextColumn get remoteMd5 => text().withDefault(const Constant(''))();
-  TextColumn get remoteName => text().withDefault(const Constant(''))();
-  TextColumn get remotePath => text().withDefault(const Constant(''))();
-  TextColumn get remoteReminder => text().withDefault(const Constant(''))();
 
-  /// Server-side file version number (incremented independently per record, only +1 when file content changes, defaults to 0)
+  /// Empty-record detection (server never had a file)
+  TextColumn get remoteMd5 => text().withDefault(const Constant(''))();
+
+  /// Download detection + file conflict, participates in SQL logic
   IntColumn get remoteFileVersion => integer().withDefault(const Constant(0))();
+
+  /// Full server snapshot as JSON (all RemoteRecord fields).
+  /// The 3 columns above are redundant indexed copies kept only for SQL WHERE/ORDER BY.
+  /// Decoded lazily into RemoteRecord via RecordEntry.remote.
+  TextColumn get remoteJson => text().withDefault(const Constant(''))();
 
   // ========== Base file tracking ==========
   /// The server-side fileVersion of the locally downloaded base file.
@@ -49,29 +49,29 @@ class LocalRecords extends Table {
 
   // ========== Local working state ==========
   /// Local edit type: 0=synced, 1=edited, 2=deleted
-  IntColumn get localEditType => integer().withDefault(const Constant(0))();
+  IntColumn get editType => integer().withDefault(const Constant(0))();
 
-  /// Local globally-modified version number. Conflict detection: localEditType>0 && localVersion != remoteVersion
-  IntColumn get localVersion => integer().withDefault(const Constant(0))();
+  /// Local globally-modified version number. Conflict detection: editType>0 && version != remoteVersion
+  IntColumn get version => integer().withDefault(const Constant(0))();
 
-  /// Local file edit based on the remote fileVersion. File conflict detection: localFileEdited==1 && localFileVersion != remoteFileVersion
-  IntColumn get localFileVersion => integer().withDefault(const Constant(0))();
+  /// Local file edit based on the remote fileVersion. File conflict detection: localFileEdited==1 && fileVersion != remoteFileVersion
+  IntColumn get fileVersion => integer().withDefault(const Constant(0))();
 
   /// Local edit timestamp (optimistic concurrency + server editAt). 0=no edit
-  IntColumn get localEditAt => integer().withDefault(const Constant(0))();
+  IntColumn get editAt => integer().withDefault(const Constant(0))();
 
   /// Local file edit timestamp. 0=no file edit
-  IntColumn get localFileEditAt => integer().withDefault(const Constant(0))();
+  IntColumn get fileEditAt => integer().withDefault(const Constant(0))();
 
   /// Field values after local edits. Overwritten with remote_* after successful sync (restored to server values)
-  TextColumn get localName => text().withDefault(const Constant(''))();
-  TextColumn get localMd5 => text().withDefault(const Constant(''))();
-  IntColumn get localLocked => integer().withDefault(const Constant(0))();
-  TextColumn get localReminder => text().withDefault(const Constant(''))();
+  TextColumn get name => text().withDefault(const Constant(''))();
+  TextColumn get md5 => text().withDefault(const Constant(''))();
+  IntColumn get locked => integer().withDefault(const Constant(0))();
+  TextColumn get reminder => text().withDefault(const Constant(''))();
 
   /// Local path: COLLATE BINARY ensures LIKE index works, CHECK constraint guarantees format
-  TextColumn get localPath =>
-      text().withLength(min: 1, max: 1024).customConstraint("NOT NULL COLLATE BINARY CHECK (local_path LIKE '%/')")();
+  TextColumn get path =>
+      text().withDefault(const Constant('/')).customConstraint("NOT NULL COLLATE BINARY CHECK (path LIKE '%/')")();
 
   @override
   Set<Column> get primaryKey => {uuid};
@@ -84,7 +84,7 @@ abstract class PathRecordCounts extends View {
   Expression<int> get recordCount => records.uuid.count();
 
   @override
-  Query as() => select([records.localPath, recordCount]).from(records)..groupBy([records.localPath]);
+  Query as() => select([records.path, recordCount]).from(records)..groupBy([records.path]);
 }
 
 /// Recycle bin entry: metadata snapshot of a locally deleted record.

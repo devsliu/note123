@@ -202,8 +202,8 @@ class UpgradeManager {
         ok = await downloadAndInstallWindows(url, onProgress: (p) => progressNotifier.value = p);
       } else {
         // 其他平台: 只下载
-        final localPath = await download(url, onProgress: (p) => progressNotifier.value = p);
-        ok = localPath != null;
+        final path = await download(url, onProgress: (p) => progressNotifier.value = p);
+        ok = path != null;
       }
     } catch (_) {}
 
@@ -271,9 +271,9 @@ class UpgradeManager {
 
   static Future<bool> downloadAndInstallAndroid(String url, {void Function(double progress)? onProgress}) async {
     if (!Platform.isAndroid) return false;
-    final localPath = await download(url, onProgress: onProgress);
-    if (localPath == null) return false;
-    final result = await OpenFilex.open(localPath);
+    final path = await download(url, onProgress: onProgress);
+    if (path == null) return false;
+    final result = await OpenFilex.open(path);
     return result.type == ResultType.done;
   }
 

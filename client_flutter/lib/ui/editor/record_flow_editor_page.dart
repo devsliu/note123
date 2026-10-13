@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/record_tree.dart';
-import 'package:note123/filesync/record_utils.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/model/record_utils.dart';
 import 'package:note123/ui/editor/flow_editor/flow_fixed_toolbar.dart';
 import 'package:note123/ui/editor/base_record_edit_page.dart';
@@ -396,14 +396,14 @@ ToolbarItem createInfoToolbarItem(String? recordUuid) {
           if (record == null || !context.mounted) return;
           final buffer = StringBuffer()
             ..writeln(record.uuid)
-            ..writeln(record.localPath)
-            ..writeln(record.localName)
-            ..writeln('version: ${record.remoteVersion}')
-            ..writeln('md5: ${record.remoteMd5}')
-            ..writeln('createAt: ${Utils.formatTime(record.remoteCreateAt)}')
-            ..writeln('editAt: ${Utils.formatTime(record.localEditAt)}')
-            ..writeln('fileEditAt: ${Utils.formatTime(record.localFileEditAt)}')
-            ..writeln('locked: ${record.localLocked}');
+            ..writeln(record.local.path)
+            ..writeln(record.local.name)
+            ..writeln('version: ${record.local.remoteVersion}')
+            ..writeln('md5: ${record.local.remoteMd5}')
+            ..writeln('createAt: ${Utils.formatTime(record.remote.createAt)}')
+            ..writeln('editAt: ${Utils.formatTime(record.local.editAt)}')
+            ..writeln('fileEditAt: ${Utils.formatTime(record.local.fileEditAt)}')
+            ..writeln('locked: ${record.local.locked}');
           showDialog(
             context: context,
             builder: (context) => Dialog(
@@ -459,15 +459,15 @@ class _LastModifyTimeWidgetState extends State<_LastModifyTimeWidget> {
     final theme = Theme.of(context);
     final fileNode = Repository.get().recordTree.findFile(widget.uuid);
     if (fileNode == null) return const SizedBox.shrink();
-    final record = fileNode.record;
+    final record = fileNode.record.local;
     final hasConflict = record.syncConflict;
     final color = hasConflict ? theme.colorScheme.error : theme.colorScheme.onSurface.withAlpha(150);
     final conflictLabel = hasConflict ? "  [${l10n.hasConflict}]" : "";
-    final version = record.localVersion != record.remoteVersion
-        ? 'v${record.localVersion}->v${record.remoteVersion}'
-        : 'v${record.localVersion}';
+    final version = record.version != record.remoteVersion
+        ? 'v${record.version}->v${record.remoteVersion}'
+        : 'v${record.version}';
     return Text(
-      " $version $conflictLabel ${l10n.lastModify}: ${Utils.formatTime(record.localEditAt)}",
+      " $version $conflictLabel ${l10n.lastModify}: ${Utils.formatTime(record.editAt)}",
       style: TextStyle(fontSize: 12, color: color),
     );
   }

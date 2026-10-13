@@ -2,20 +2,21 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:note123/filesync/database.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/ui/common/platform_app_bar.dart';
 import 'package:note123/ui/conflict/conflict_diff_page.dart';
 import 'package:note123/config/language_manager.dart';
 
 /// Determine true file conflict:
-/// - remoteFileVersion > localFileVersion (remote file version is indeed newer than last local alignment)
+/// - remoteFileVersion > fileVersion (remote file version is indeed newer than last local alignment)
 /// - workfile truly exists (local has actually edited the file)
-/// localFileEditAt timestamp is not reliable, workfile existence is the authority
-bool _isFileConflict(LocalRecord record) {
+/// fileEditAt timestamp is not reliable, workfile existence is the authority
+bool _isFileConflict(RecordEntry record) {
   final fs = Repository.get().fileStore;
   if (fs == null) return false;
   final workFile = File(fs.getWorkFile(record.uuid));
-  return record.remoteFileVersion > record.localFileVersion && workFile.existsSync();
+  return record.local.remoteFileVersion > record.local.fileVersion && workFile.existsSync();
 }
 
 /// Conflict list page: list all sync-conflicted records.
@@ -51,7 +52,7 @@ class ConflictListPage extends StatefulWidget {
 }
 
 class _ConflictListPageState extends State<ConflictListPage> {
-  List<LocalRecord> _conflicts = [];
+  List<RecordEntry> _conflicts = [];
   bool _loading = true;
 
   @override
@@ -69,7 +70,7 @@ class _ConflictListPageState extends State<ConflictListPage> {
     });
   }
 
-  Future<void> _resolve(LocalRecord record) async {
+  Future<void> _resolve(RecordEntry record) async {
     final resolved = await Navigator.of(context)
         .push<bool>(MaterialPageRoute(builder: (_) => ConflictDiffPage(record: record)));
     if (resolved == true && mounted) {
@@ -95,7 +96,7 @@ class _ConflictListPageState extends State<ConflictListPage> {
     );
   }
 
-  Widget _buildItem(LocalRecord record) {
+  Widget _buildItem(RecordEntry record) {
     final fileConflict = _isFileConflict(record);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -105,7 +106,7 @@ class _ConflictListPageState extends State<ConflictListPage> {
           color: fileConflict ? Colors.red : Colors.orange,
         ),
         title: Text(
-          "${record.localPath}${record.localName}",
+          "${record.local.path}${record.local.name}",
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
         trailing: Wrap(

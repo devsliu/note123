@@ -1,5 +1,5 @@
 import 'package:note123/filesync/record_tree.dart';
-import 'package:note123/filesync/record_utils.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/ui/files/record_context_menu.dart';
 import 'package:flutter/material.dart';
@@ -189,12 +189,15 @@ class FileWidget extends _BaseItemWidget {
         ),
       ),
       if (file.locked != 0) ...[const SizedBox(width: 2.0), Icon(Icons.lock, size: 12, color: Colors.amber)],
-      if (file.record.localReminder.isNotEmpty) ...[
+      if (file.record.local.reminder.isNotEmpty) ...[
         const SizedBox(width: 2.0),
         Icon(Icons.notifications, size: 12, color: Colors.blueAccent),
       ],
-      if (file.record.syncConflict) ...[const SizedBox(width: 2.0), Icon(Icons.warning, size: 12, color: Colors.red)],
-      if (file.record.localEditType == LocalEditType.edit && !file.record.syncConflict) ...[
+      if (file.record.local.syncConflict) ...[
+        const SizedBox(width: 2.0),
+        Icon(Icons.warning, size: 12, color: Colors.red),
+      ],
+      if (file.record.local.editType == LocalEditType.edit && !file.record.local.syncConflict) ...[
         const SizedBox(width: 2.0),
         Container(
           width: 8,

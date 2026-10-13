@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:note123/filesync/database.dart';
+import 'package:note123/filesync/path_utils.dart';
 
 import 'table_record.dart';
 
@@ -34,37 +37,31 @@ class RemoteRecord {
   /// RemoteRecord → LocalRecord: copy all remote_*, local_* = remote_* (synced baseline).
   /// [baseFileVersion]: which file version the local base file corresponds to, default 0 (new record).
   LocalRecord toLocalRecord(int batchNo, {int baseFileVersion = 0}) {
-    String formattedPath = path;
-    if (!formattedPath.endsWith('/')) formattedPath += '/';
-    if (!formattedPath.startsWith('/')) formattedPath = '/$formattedPath';
+    final formattedPath = normalizePath(path);
+
+    // remoteJson stores the full server snapshot; path is formatted for consistency.
+    final remoteJson = jsonEncode({...toJson(), 'path': formattedPath});
 
     return LocalRecord(
       uuid: uuid,
       batchNo: batchNo,
-      // Server authoritative
+      // Indexed columns (redundant with remoteJson, kept for SQL WHERE)
       remoteVersion: version,
-      remoteCreateAt: createAt,
-      remoteEditAt: editAt,
-      remoteFileEditAt: fileEditAt,
-      remoteDeleteAt: deleteAt,
-      remoteLocked: locked,
       remoteMd5: md5,
-      remoteName: name,
-      remotePath: formattedPath,
-      remoteReminder: reminder,
       remoteFileVersion: fileVersion,
+      remoteJson: remoteJson,
       baseFileVersion: baseFileVersion,
       // Local = remote (synced)
-      localEditType: LocalEditType.none,
-      localVersion: version,
-      localFileVersion: fileVersion,
-      localEditAt: editAt,
-      localFileEditAt: fileEditAt,
-      localName: name,
-      localMd5: md5,
-      localPath: formattedPath,
-      localLocked: locked,
-      localReminder: reminder,
+      editType: LocalEditType.none,
+      version: version,
+      fileVersion: fileVersion,
+      editAt: editAt,
+      fileEditAt: fileEditAt,
+      name: name,
+      md5: md5,
+      path: formattedPath,
+      locked: locked,
+      reminder: reminder,
     );
   }
 

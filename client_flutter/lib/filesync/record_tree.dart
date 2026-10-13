@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:note123/filesync/database.dart';
-import 'package:note123/filesync/record_utils.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/utils/app_logger.dart';
@@ -33,33 +32,36 @@ abstract class TreeContent {
 // Once a TreeContentFile object is created, regardless of how the file corresponding to the uuid is modified,
 // the object will always exist and never be re-created unless the file is deleted
 class TreeContentFile extends TreeContent {
-  LocalRecord _record;
+  RecordEntry _entry;
   int _editAt;
 
-  TreeContentFile(this._record) : _editAt = _record.localEditAt, super(_record.localPath, _record.localName);
+  TreeContentFile(RecordEntry entry)
+    : _entry = entry,
+      _editAt = entry.local.editAt,
+      super(entry.local.path, entry.local.name);
 
-  String get uuid => _record.uuid;
-  String get md5 => _record.remoteMd5;
-  int get version => _record.remoteVersion;
-  int get createAt => _record.remoteCreateAt;
+  String get uuid => _entry.local.uuid;
+  String get md5 => _entry.local.remoteMd5;
+  int get version => _entry.local.remoteVersion;
+  int get createAt => _entry.remote.createAt;
   int get editAt => _editAt;
-  int get fileEditAt => _record.localFileEditAt;
-  bool get syncConflict => _record.syncConflict;
-  int get locked => _record.localLocked;
+  int get fileEditAt => _entry.local.fileEditAt;
+  bool get syncConflict => _entry.local.syncConflict;
+  int get locked => _entry.local.locked;
   // All LocalRecord fields are final; setLocalRecord replaces the whole thing during sync,
   // external callers can compare before/after to determine if file/title changed
-  LocalRecord get record => _record;
+  RecordEntry get record => _entry;
 
   @override
   String get dir => _path;
   @override
-  String get key => _record.uuid;
+  String get key => _entry.local.uuid;
 
-  void setLocalRecord(LocalRecord record) {
-    _record = record;
-    _path = record.localPath;
-    _name = record.localName;
-    _editAt = record.localEditAt;
+  void setLocalRecord(RecordEntry entry) {
+    _entry = entry;
+    _path = entry.local.path;
+    _name = entry.local.name;
+    _editAt = entry.local.editAt;
   }
 }
 
@@ -125,7 +127,7 @@ class TreeNode extends TreeViewNode<TreeContent> {
 class RecordTree extends TreeNode {
   final Map<String /* path */, TreeNode> _foldersMap = {};
   final Map<String /* uuid */, TreeNode> _filesMap = {};
-  final Map<String /* uuid */, LocalRecord> _conflictMap = {};
+  final Map<String /* uuid */, RecordEntry> _conflictMap = {};
 
   // Since TreeContentFile objects once created always exist and are only modified, never re-created until delete,
   // only insert and delete operations need to modify _recentlyFiles array; rename/name changes and edits only need sorting
@@ -139,7 +141,7 @@ class RecordTree extends TreeNode {
 
   RecordTree() : super(TreeContentFolder("/", ""));
 
-  void build(List<LocalRecord> allRecords) {
+  void build(List<RecordEntry> allRecords) {
     // 1. Create root node
     children.clear();
     _foldersMap.clear();
@@ -214,9 +216,9 @@ class RecordTree extends TreeNode {
     return current;
   }
 
-  List<LocalRecord> get conflictRecords => _conflictMap.values.toList();
+  List<RecordEntry> get conflictRecords => _conflictMap.values.toList();
 
-  LocalRecord? findConflictRecord(String uuid) => _conflictMap[uuid];
+  RecordEntry? findConflictRecord(String uuid) => _conflictMap[uuid];
 
   void _deleteRecord(String recordUuid, List<RecordEvent> eventList) {
     _conflictMap.remove(recordUuid);
@@ -252,19 +254,19 @@ class RecordTree extends TreeNode {
     }
   }
 
-  (TreeNode?, bool) _insertRecord(LocalRecord newRecord, List<RecordEvent> eventList) {
-    if (newRecord.localEditType == LocalEditType.delete) {
-      _deleteRecord(newRecord.uuid, eventList);
+  (TreeNode?, bool) _insertRecord(RecordEntry newRecord, List<RecordEvent> eventList) {
+    if (newRecord.local.editType == LocalEditType.delete) {
+      _deleteRecord(newRecord.local.uuid, eventList);
       return (null, false);
     }
 
     bool isNew = false;
-    TreeNode? node = _filesMap[newRecord.uuid];
-    final newFolderPath = ensurePathFormat(newRecord.localPath);
+    TreeNode? node = _filesMap[newRecord.local.uuid];
+    final newFolderPath = normalizePath(newRecord.local.path);
     final TreeContentFile? oldFile = node?.content as TreeContentFile?;
-    _conflictMap.remove(newRecord.uuid);
-    if (newRecord.syncConflict) {
-      _conflictMap[newRecord.uuid] = newRecord;
+    _conflictMap.remove(newRecord.local.uuid);
+    if (newRecord.local.syncConflict) {
+      _conflictMap[newRecord.local.uuid] = newRecord;
     }
 
     if (oldFile != null && oldFile.path == newFolderPath) {
@@ -276,7 +278,7 @@ class RecordTree extends TreeNode {
       final TreeNode? oldParent = _foldersMap[oldFolder];
 
       // 1. Detach from old home
-      oldParent?.removeChild(newRecord.uuid);
+      oldParent?.removeChild(newRecord.local.uuid);
 
       // 2. Ensure new home folder exists
       final newParent = _ensureFolderExists(newFolderPath, eventList);
@@ -295,12 +297,14 @@ class RecordTree extends TreeNode {
       file.setLocalRecord(newRecord);
       node = TreeNode(file);
       newParent.insertChild(node);
-      _filesMap[newRecord.uuid] = node;
+      _filesMap[newRecord.local.uuid] = node;
       isNew = true;
     }
 
     reminderTree.upsertRecord(newRecord);
-    eventList.add(RecordEvent(RecordEvent.typeUpsertRecord, value1: newRecord.localPath, value2: newRecord.uuid));
+    eventList.add(
+      RecordEvent(RecordEvent.typeUpsertRecord, value1: newRecord.local.path, value2: newRecord.local.uuid),
+    );
     return (node, isNew);
   }
 
@@ -326,7 +330,7 @@ class RecordTree extends TreeNode {
     refreshNotifier.value = List.unmodifiable(eventList);
   }
 
-  void insertRecord(LocalRecord newRecord) {
+  void insertRecord(RecordEntry newRecord) {
     List<RecordEvent> eventList = [];
     final (node, isNew) = _insertRecord(newRecord, eventList);
     if (node != null && isNew) {
@@ -343,7 +347,7 @@ class RecordTree extends TreeNode {
     _notifyEvents(eventList);
   }
 
-  void batchUpdateRecords(List<String> deleteUUids, List<LocalRecord> records) {
+  void batchUpdateRecords(List<String> deleteUUids, List<RecordEntry> records) {
     List<RecordEvent> eventList = [];
     for (final uuid in deleteUUids) {
       _deleteRecord(uuid, eventList);
@@ -360,7 +364,7 @@ class RecordTree extends TreeNode {
   }
 
   void deleteFolder(String folderPath) {
-    folderPath = ensurePathFormat(folderPath);
+    folderPath = normalizePath(folderPath);
     final folder = _foldersMap[folderPath];
     if (folder == null) return;
     List<RecordEvent> eventList = [];
@@ -373,8 +377,8 @@ class RecordTree extends TreeNode {
   /// 👑 Main entry point for folder rename (perfectly adapts to virtual file structure)
   void renameFolder(String oldFolderPath, String newFolderPath, int time) {
     // 1. Force-format and clean input paths
-    final oldPath = ensurePathFormat(oldFolderPath);
-    final newPath = ensurePathFormat(newFolderPath);
+    final oldPath = normalizePath(oldFolderPath);
+    final newPath = normalizePath(newFolderPath);
 
     // Defense: if paths are exactly same, or attempting to rename root directory, reject directly
     if (oldPath == newPath || oldPath == '/') return;
@@ -417,9 +421,9 @@ class RecordTree extends TreeNode {
       if (child.content is TreeContentFile) {
         final file = child.content as TreeContentFile;
         _filesMap.remove(file.key);
-        // Use setLocalRecord to also update _record.localPath / _record.localEditAt,
+        // Use setLocalRecord to also update _record.path / _record.editAt,
         // avoid only changing _path causing record.path to return stale value during window
-        file.setLocalRecord(file.record.copyWith(localPath: target.content.path, localEditAt: time));
+        file.setLocalRecord(RecordEntry(file.record.local.copyWith(path: target.content.path, editAt: time)));
         TreeNode fileNode = TreeNode(file);
         target.insertChild(fileNode);
         _filesMap[fileNode.content.key] = fileNode;
@@ -466,7 +470,7 @@ class RecordTree extends TreeNode {
         final file = node.content as TreeContentFile;
         final fileRelativePath = file.path.substring(oldPrefix.length);
         // Use setLocalRecord to update _record synchronously, avoid dirty reads during record.path window
-        file.setLocalRecord(file.record.copyWith(localPath: newPrefix + fileRelativePath, localEditAt: time));
+        file.setLocalRecord(RecordEntry(file.record.local.copyWith(path: newPrefix + fileRelativePath, editAt: time)));
       } else {
         // 5. 🌊 Recurse downward: correct all subfolders
         // Core closure: when passing downward, oldPrefix and newPrefix as absolute references remain unchanged!
@@ -476,7 +480,7 @@ class RecordTree extends TreeNode {
   }
 
   TreeNode? findFolder(String path) {
-    return _foldersMap[ensurePathFormat(path)];
+    return _foldersMap[normalizePath(path)];
   }
 
   void createFolder(String path) {
