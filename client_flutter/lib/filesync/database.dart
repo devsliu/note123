@@ -20,14 +20,6 @@ class AppDatabase extends _$AppDatabase {
 
   Future<List<LocalRecord>> getAllLocalRecords() async => await select(localRecords).get();
 
-  /// Latest 15 non-deleted entries (ordered by remoteVersion descending)
-  Future<List<LocalRecord>> getRecentRecords() async =>
-      await (select(localRecords)
-            ..where((t) => t.localEditType.equals(LocalEditType.delete).not())
-            ..orderBy([(t) => OrderingTerm(expression: t.remoteVersion, mode: OrderingMode.desc)])
-            ..limit(15))
-          .get();
-
   Future<List<Operate>> getAllOperates() async =>
       await (select(operates)..orderBy([(t) => OrderingTerm(expression: t.id, mode: OrderingMode.desc)])).get();
 
