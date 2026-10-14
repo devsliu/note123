@@ -13,7 +13,10 @@ class BreadcrumbBar extends StatefulWidget {
   /// Receives the path that the tap navigates to.
   final ValueCallback<String> onNavigate;
 
-  const BreadcrumbBar({super.key, required this.path, required this.onNavigate});
+  /// Whether to use compact spacing (desktop) or roomy spacing (mobile).
+  final bool shrink;
+
+  const BreadcrumbBar({super.key, required this.path, required this.onNavigate, this.shrink = false});
 
   @override
   State<BreadcrumbBar> createState() => _BreadcrumbBarState();
@@ -49,6 +52,10 @@ class _BreadcrumbBarState extends State<BreadcrumbBar> {
     final theme = Theme.of(context);
     final segments = widget.path.split('/').where((s) => s.isNotEmpty).toList();
     String segmentPath(int i) => '/${segments.sublist(0, i + 1).join('/')}';
+    final double hPad = widget.shrink ? 12 : 16;
+    final double vPad = widget.shrink ? 6 : 10;
+    final double iconSize = widget.shrink ? 18 : 20;
+    final double chevronSize = widget.shrink ? 16 : 18;
 
     // Initial scroll to end so the current directory is visible.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -58,13 +65,13 @@ class _BreadcrumbBarState extends State<BreadcrumbBar> {
     });
 
     return SizedBox(
-      height: 32,
+      height: widget.shrink ? 32 : 40,
       child: Container(
         decoration: BoxDecoration(
           color: theme.colorScheme.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(20),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: EdgeInsets.symmetric(horizontal: hPad, vertical: vPad),
         child: Row(
           children: [
             // Fixed: home icon (never scrolls out of view).
@@ -72,10 +79,10 @@ class _BreadcrumbBarState extends State<BreadcrumbBar> {
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
                 onTap: () => widget.onNavigate('/'),
-                child: Icon(Icons.home_outlined, size: 18, color: theme.colorScheme.onSurface),
+                child: Icon(Icons.home_outlined, size: iconSize, color: theme.colorScheme.onSurface),
               ),
             ),
-            Icon(Icons.chevron_right, size: 16, color: theme.colorScheme.onSurfaceVariant),
+            Icon(Icons.chevron_right, size: chevronSize, color: theme.colorScheme.onSurfaceVariant),
             // Scrollable trailing segments.
             Expanded(
               child: SingleChildScrollView(
@@ -89,7 +96,7 @@ class _BreadcrumbBarState extends State<BreadcrumbBar> {
                         child: GestureDetector(
                           onTap: i < segments.length - 1 ? () => widget.onNavigate(segmentPath(i)) : null,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            padding: EdgeInsets.symmetric(horizontal: widget.shrink ? 4 : 6),
                             child: i < segments.length - 1
                                 ? Text(segments[i])
                                 : Text(
@@ -100,7 +107,7 @@ class _BreadcrumbBarState extends State<BreadcrumbBar> {
                         ),
                       ),
                       if (i < segments.length - 1)
-                        Icon(Icons.chevron_right, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                        Icon(Icons.chevron_right, size: chevronSize, color: theme.colorScheme.onSurfaceVariant),
                     ],
                   ],
                 ),

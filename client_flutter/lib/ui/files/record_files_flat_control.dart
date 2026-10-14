@@ -64,7 +64,11 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          child: BreadcrumbBar(path: folder.path, onNavigate: RecordOpenedState.get().setOpenedFolder),
+          child: BreadcrumbBar(
+            path: folder.path,
+            onNavigate: RecordOpenedState.get().setOpenedFolder,
+            shrink: widget.shrink,
+          ),
         ),
         AppConfig.listViewDivider(context),
         Expanded(
