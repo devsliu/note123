@@ -152,6 +152,20 @@ class HttpApi {
     });
   }
 
+  static Future<ApiResult<void>> changePassword(String oldPassword, String newPassword) async {
+    return _apiWrapper("changePassword", (client, baseUrl) async {
+      var req = http.Request('POST', Uri.parse('$baseUrl/user/change_password'));
+      req.headers['Content-Type'] = 'application/json';
+      req.body = jsonEncode({'oldPassword': oldPassword, 'newPassword': newPassword});
+      setTokenToRequest(req);
+      final resp = await Response.fromStream(await req.send().timeout(_receiveTimeout));
+      if (resp.statusCode == 200) {
+        return ApiResult.success(null);
+      }
+      return ApiResult.fromResponse(resp);
+    });
+  }
+
   static Future<ApiResult<FetchEntitesResult>> fetchRecords(
     int version, // Start version number, exclusive
     int limit,

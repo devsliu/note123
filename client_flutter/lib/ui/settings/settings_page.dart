@@ -16,6 +16,7 @@ import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'login_dialog.dart';
+import 'change_password_dialog.dart';
 import 'upgrade_manager.dart';
 import '../../config/language_manager.dart';
 import '../../config/layout_mode.dart';
@@ -206,6 +207,14 @@ class _SettingsPageState extends State<SettingsPage> {
               style: TextStyle(color: _isUserLoggedIn() ? null : Theme.of(context).colorScheme.error),
             ),
           ),
+          if (_isUserLoggedIn()) ...[
+            AppConfig.listViewDivider(context),
+            ListTile(
+              onTap: () => ChangePasswordDialog.show(context),
+              title: Text(l10n.changePassword),
+              trailing: const Icon(Icons.lock_outline),
+            ),
+          ],
           AppConfig.listViewDivider(context),
           ListTile(onTap: _onAppFolderTap, title: Text(l10n.dataDirectory), subtitle: Text(AppConfig.appRootDir)),
           AppConfig.listViewDivider(context),

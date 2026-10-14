@@ -269,6 +269,7 @@ func (s *Server) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/record/list", s.authAndStatWrapper("queryRecords", http.MethodGet, s.queryRecordsHandler))
 	mux.HandleFunc("/record/download", s.authAndStatWrapper("downloadRecord", http.MethodGet, s.downloadRecordFileHandler))
 	mux.HandleFunc("/record/clear", s.authAndStatWrapper("clearRecords", http.MethodPost, s.clearRecordsHandler))
+	mux.HandleFunc("/user/change_password", s.authAndStatWrapper("changePassword", http.MethodPost, s.changePasswordHandler))
 	mux.HandleFunc("/api_stat/list", s.authAndStatWrapper("queryAPIStat", http.MethodGet, s.queryAPIStatHandler))
 
 	// Public: version upgrade check + static file serve

@@ -244,6 +244,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get loginInvalidCredentials => '用户名或密码错误';
 
   @override
+  String get changePassword => '修改密码';
+
+  @override
+  String get oldPassword => '旧密码';
+
+  @override
+  String get newPassword => '新密码';
+
+  @override
+  String get confirmPassword => '确认新密码';
+
+  @override
+  String get passwordMismatch => '两次输入的新密码不一致';
+
+  @override
+  String get passwordChanged => '密码修改成功, 请重新登录';
+
+  @override
+  String get changePasswordFailed => '修改密码失败';
+
+  @override
   String get username => '用户名';
 
   @override

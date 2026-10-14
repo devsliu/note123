@@ -245,6 +245,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginInvalidCredentials => 'Invalid username or password';
 
   @override
+  String get changePassword => 'Change Password';
+
+  @override
+  String get oldPassword => 'Old Password';
+
+  @override
+  String get newPassword => 'New Password';
+
+  @override
+  String get confirmPassword => 'Confirm New Password';
+
+  @override
+  String get passwordMismatch => 'The two new passwords do not match';
+
+  @override
+  String get passwordChanged => 'Password changed, please login again';
+
+  @override
+  String get changePasswordFailed => 'Failed to change password';
+
+  @override
   String get username => 'Username';
 
   @override

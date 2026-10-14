@@ -96,6 +96,38 @@ func (s *Server) loginHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// changePassword changes the current user's password.
+// oldPassword / newPassword are both client-side md5(name_password) hashes.
+// On success all sessions are cleared so every device must log in with the new password.
+func (s *Server) changePasswordHandler(w http.ResponseWriter, r *http.Request, user *CacheUser, token string) {
+	var req struct {
+		OldPassword string `json:"oldPassword"`
+		NewPassword string `json:"newPassword"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+	if req.OldPassword == "" || req.NewPassword == "" {
+		http.Error(w, ResultErrorParams.Message, ResultErrorParams.Value)
+		return
+	}
+	// Verify old password against the stored salted hash
+	if _, err := s.db.GetUserByNamePass(user.UserName, req.OldPassword); err != nil {
+		http.Error(w, ResultErrorUserPasswordError.Message, ResultErrorUserPasswordError.Value)
+		return
+	}
+	// UpdateUser generates a fresh salt and stores md5(newPassword + salt)
+	if err := s.db.UpdateUser(user.UserID, user.UserName, req.NewPassword); err != nil {
+		http.Error(w, ResultErrorDatabase.Message, ResultErrorDatabase.Value)
+		return
+	}
+	// Invalidate all sessions: password changed, every device must re-login
+	s.deleteCacheUser(user.UserID)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]interface{}{"ok": true})
+}
+
 // queryAPIStat queries API call statistics for the current user
 func (s *Server) queryAPIStatHandler(w http.ResponseWriter, r *http.Request, user *CacheUser, token string) {
 	stats, err := s.db.QueryAPIStats(user.UserID)

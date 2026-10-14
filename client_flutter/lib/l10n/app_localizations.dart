@@ -554,6 +554,48 @@ abstract class AppLocalizations {
   /// **'用户名或密码错误'**
   String get loginInvalidCredentials;
 
+  /// No description provided for @changePassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'修改密码'**
+  String get changePassword;
+
+  /// No description provided for @oldPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'旧密码'**
+  String get oldPassword;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'新密码'**
+  String get newPassword;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In zh, this message translates to:
+  /// **'确认新密码'**
+  String get confirmPassword;
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In zh, this message translates to:
+  /// **'两次输入的新密码不一致'**
+  String get passwordMismatch;
+
+  /// No description provided for @passwordChanged.
+  ///
+  /// In zh, this message translates to:
+  /// **'密码修改成功, 请重新登录'**
+  String get passwordChanged;
+
+  /// No description provided for @changePasswordFailed.
+  ///
+  /// In zh, this message translates to:
+  /// **'修改密码失败'**
+  String get changePasswordFailed;
+
   /// No description provided for @username.
   ///
   /// In zh, this message translates to:
