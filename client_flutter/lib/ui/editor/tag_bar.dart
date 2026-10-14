@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/tag_tree.dart';
 import 'package:note123/ui/editor/tag_editor.dart';
@@ -47,11 +48,10 @@ class _TagBarState extends State<TagBar> {
   @override
   Widget build(BuildContext context) {
     final file = Repository.get().recordTree.findFile(widget.uuid);
-    if (file == null) return const SizedBox.shrink();
-    final tags = file.record.tags;
-    if (tags.isEmpty) return const SizedBox.shrink();
-
     final theme = Theme.of(context);
+    final tags = file?.record.tags ?? const <String>[];
+    final hasTags = tags.isNotEmpty;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -64,8 +64,11 @@ class _TagBarState extends State<TagBar> {
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
-                  tags.join(' · '),
-                  style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface),
+                  hasTags ? tags.join(' · ') : l10n.addTag,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: hasTags ? theme.colorScheme.onSurface : theme.colorScheme.onSurface.withAlpha(120),
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

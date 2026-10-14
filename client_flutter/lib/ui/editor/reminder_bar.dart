@@ -80,7 +80,7 @@ class _ReminderBarState extends State<ReminderBar> {
               Expanded(
                 child: Text(
                   '${first.name.isEmpty ? l10n.unnamedTask : first.name} · $timeStr',
-                  style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface),
+                  style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurface),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

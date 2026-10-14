@@ -103,7 +103,7 @@ class _TagEditorState extends State<TagEditor> {
                 );
               }).toList(),
             ),
-            const SizedBox(height: 9),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -120,7 +120,15 @@ class _TagEditorState extends State<TagEditor> {
           ],
         ),
       ),
-      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.done))],
+      actions: [
+        TextButton(
+          onPressed: () {
+            _addTag();
+            Navigator.of(context).pop();
+          },
+          child: Text(l10n.done),
+        ),
+      ],
     );
   }
 }

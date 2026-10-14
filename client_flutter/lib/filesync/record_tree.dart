@@ -153,10 +153,12 @@ class RecordTree extends TreeNode {
     _sortedFiles.files.clear();
 
     for (final n in allRecords) {
-      _insertRecord(n, emit: false);
+      final (node, isNew) = _insertRecord(n, emit: false);
+      if (node != null && isNew) {
+        _sortedFiles.add(node.content as TreeContentFile);
+      }
     }
     _sortedFiles.sort();
-
     _emit(RecordEvent(RecordEvent.typeRebuild));
   }
 
