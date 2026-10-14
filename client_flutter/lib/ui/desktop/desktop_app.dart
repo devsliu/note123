@@ -200,7 +200,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
         ),
         LayoutId(
           id: 'right',
-          child: Scaffold(body: DesktopTabsPage(key: detailKey)),
+          child: DesktopTabsPage(key: detailKey),
         ),
         LayoutId(id: 'dragger', child: buildLeftSideDragger()),
       ],

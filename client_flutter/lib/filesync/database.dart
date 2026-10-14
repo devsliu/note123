@@ -139,6 +139,9 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteRecord(String uuid) async => await (delete(localRecords)..where((t) => t.uuid.equals(uuid))).go();
 
+  Future<int> deleteRecordsByUuids(List<String> uuids) async =>
+      await (delete(localRecords)..where((t) => t.uuid.isIn(uuids))).go();
+
   Future<int> replaceRecord(LocalRecord localRecord) async =>
       await into(localRecords).insertOnConflictUpdate(localRecord);
 

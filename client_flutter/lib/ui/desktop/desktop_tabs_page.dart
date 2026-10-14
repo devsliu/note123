@@ -234,7 +234,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
     }
     var theme = Theme.of(context);
     return Material(
-      color: Colors.transparent,
+      color: theme.scaffoldBackgroundColor,
       child: CustomMultiChildLayout(
         delegate: _DesktopRightSideAllLayoutDelegate(
           showDropdown: showDropdown,

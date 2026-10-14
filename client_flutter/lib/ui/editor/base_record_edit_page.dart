@@ -15,6 +15,8 @@ import 'package:note123/utils/utils.dart';
 import 'package:note123/utils/object_ref.dart';
 import 'package:note123/ui/desktop/desktop_tabs_page.dart';
 
+import 'editor_save_coordinator.dart';
+
 /// Unified page state: mode + payload + buildCount.
 /// buildCount is reset to 0 by setStateMode on every state transition, then incremented
 /// by build() on each frame. Subclasses use buildCount == 0 to detect "first build after
@@ -48,7 +50,7 @@ abstract class BaseRecordEditPage extends StatefulWidget {
 
 abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends State<T>
     with WidgetsBindingObserver
-    implements DesktopTabPageState {
+    implements DesktopTabPageState, SaveFlushTarget {
   PageState pageState = PageState(PageState.modeLoad);
   String? _password; // Save unlock password
   int _saveCount = 0; // Track save count
@@ -73,6 +75,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    EditorSaveCoordinator.register(this);
 
     record = Repository.get().recordTree.findFile(widget.uuid)!.record;
     _treeSub = Repository.get().recordTree.onEvent.listen(_onTreeChanged);
@@ -88,6 +91,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _treeSub?.cancel();
+    EditorSaveCoordinator.unregister(this);
     // Kick off save chain — coalescing inside saveRecord guarantees latest dirty content
     // gets saved even if a prior save is still in-flight. The returned Future continues
     // on the Dart isolate after dispose; the isolate stays alive until save completes.
@@ -238,6 +242,9 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   }
 
   Future<void> loadContent() async {
+    // 先等该 uuid 的在飞保存链写完: 关闭后快速重开同一笔记时, 旧页面的 dispose
+    // 已发起保存但尚未落盘, 新页面实例的 _saveFuture 是 null, 必须按 uuid 全局等待
+    await EditorSaveCoordinator.waitPending(record.uuid);
     setStateMode(PageState.modeLoad);
 
     RecordEntry entry = record;
@@ -296,6 +303,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   /// Save edit. Returns the Future tracking this save (or the in-flight one if coalesced).
   /// Coalesce strategy: if a save is already running AND new edits arrived, it chains a
   /// follow-up save AFTER the current one finishes — never drops the latest dirty state.
+  @override
   Future<void>? saveRecord() {
     if (!isContentChanged) {
       return _saveFuture; // return in-progress Future if any, otherwise null
@@ -323,7 +331,8 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     _saveCount++;
     isContentChanged = false;
 
-    _saveFuture =
+    late Future<void> chain;
+    chain =
         saveWorkFile(
               uuid: record.uuid,
               path: record.local.path,
@@ -335,11 +344,16 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
             )
             .catchError((e) {
               AppLogger.e("[BaseEditPage] save failed: $e");
+              // 保存失败必须恢复 dirty 标记: 否则 md5 缓存未污染但 isContentChanged 已清,
+              // 本次编辑不会再有任何重试入口, 后续树事件还会用磁盘旧内容重载编辑器
+              isContentChanged = true;
             })
             .whenComplete(() {
               _saveFuture = null;
             });
-    return _saveFuture;
+    chain = EditorSaveCoordinator.trackSave(chain, record.uuid);
+    _saveFuture = chain;
+    return chain;
   }
 
   /// Write content to work file + update DB metadata. Handles post-encryption md5.
@@ -371,12 +385,11 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     } else {
       effLocked = 0;
     }
-    // md5 is synchronous — compare & update before any await
+    // md5 is synchronous — compare before any await
     final md5 = Utils.generateMd5(writeContent);
     if (md5 == md5Ref.value) {
       return;
     }
-    md5Ref.value = md5;
     await File(fileStore.getWorkFile(uuid)).writeAsString(writeContent);
     await Repository.get().editRecord(
       uuid,
@@ -386,6 +399,8 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
       locked: effLocked,
       md5: md5,
     );
+    // md5Ref 只在写盘+落库都成功后更新: 中途失败时保留旧值, 重试不会被上面的短路跳过
+    md5Ref.value = md5;
   }
 
   Widget buildContentWidget(String plaintext, bool reload);

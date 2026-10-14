@@ -175,7 +175,7 @@ class SyncEngine {
         else if (remote.deleteAt > 0) {
           if (local.editType == LocalEditType.delete || local.editType == LocalEditType.none) {
             // Local deleted or local not modified: delete directly
-            await (db.delete(db.localRecords)..where((t) => t.uuid.equals(remote.uuid))).go();
+            await db.deleteRecord(remote.uuid);
             deleteUuids.add(remote.uuid);
             fileActions.add(() {
               fileStore.deleteBaseFile(remote.uuid);
@@ -247,11 +247,13 @@ class SyncEngine {
     // transaction may already be stale. Feeding stale snapshots to the tree
     // would desync it from DB (e.g. tree shows editType=none while DB has
     // editType=edit). Re-reading guarantees tree always mirrors DB.
-    final List<RecordEntry> finalRecords = upsertUuids.isEmpty
-        ? <RecordEntry>[]
-        : await db.getRecordsByUuids(upsertUuids);
+    await recordTree.withRefreshLock(() async {
+      final List<RecordEntry> finalRecords = upsertUuids.isEmpty
+          ? <RecordEntry>[]
+          : await db.getRecordsByUuids(upsertUuids);
 
-    recordTree.batchUpdateRecords(deleteUuids, finalRecords);
+      recordTree.batchUpdateRecords(deleteUuids, finalRecords);
+    });
     // UI already updated, run file actions in background without blocking sync return.
     // When user opens a record, loadContent will wait for downloadBaseFile internally (dedup by uuid).
     // Download failures must log, otherwise file loss goes unnoticed until user opens the record.
@@ -317,12 +319,17 @@ class SyncEngine {
               ))
               .get();
       var uuids = list.map((e) => e.uuid).toList();
-      for (var uuid in uuids) {
-        fileStore.deleteBaseFile(uuid);
-        fileStore.deleteWorkFile(uuid);
+      // DB 先删, 成功后再刷树、删文件: DB 失败时树与文件原样保留, 下次全量同步重试, 不留幽灵行
+      int count = await db.deleteRecordsByUuids(uuids);
+      if (count > 0) {
+        await recordTree.withRefreshLock(() async {
+          recordTree.batchUpdateRecords(uuids, []);
+        });
+        for (var uuid in uuids) {
+          fileStore.deleteBaseFile(uuid);
+          fileStore.deleteWorkFile(uuid);
+        }
       }
-      recordTree.batchUpdateRecords(uuids, []);
-      int count = await (db.delete(db.localRecords)..where((t) => t.uuid.isIn(uuids))).go();
       await db.createOperate(
         Operates.typeDownload,
         "full pull and delete $count records, purge version:$purgedVersion",
@@ -341,8 +348,8 @@ class SyncEngine {
       if (result.isSuccess() || result.code == HttpApi.ResultErrorRecordNotFound) {
         // Recycle bin capture already happened at delete time (Repository.deleteRecord/deleteFolder).
         // Only delete DB + files on successful request, prevent data loss from network failure
-        recordTree.deleteRecord(entry.local.uuid);
         await db.deleteRecord(entry.local.uuid);
+        recordTree.deleteRecord(entry.local.uuid);
         fileStore.deleteBaseFile(entry.local.uuid);
         fileStore.deleteWorkFile(entry.local.uuid);
         await db.createOperate(
@@ -427,8 +434,12 @@ class SyncEngine {
             Operates.typeUpload,
             "edit record ${newRecord.uuid} ${newRecord.path}${newRecord.name} version:${newRecord.remoteVersion}",
           );
-          if (fileExist) fileStore.moveWorkFileToBase(entry.local.uuid);
           recordTree.insertRecord(RecordEntry(newRecord));
+          // Move work file to base after successful upload; a move failure only leaves an
+          // orphan work file and must not abort the tree refresh
+          if (fileExist) {
+            fileStore.moveWorkFileToBase(entry.local.uuid);
+          }
         }
       } else if (result.code == HttpApi.ResultErrorRecordConflict) {
         final remote = result.data!;

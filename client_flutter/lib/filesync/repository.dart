@@ -184,13 +184,18 @@ class Repository {
       tags: tags,
     );
 
-    final record = await db.getRecord(uuid);
+    await db.createOperate(
+      Operates.typeLocal,
+      "edit record ${existing.uuid} ${existing.local.path}${existing.local.name} version:${existing.local.version}, fileEdit:$fileEdit",
+    );
+    final record = await recordTree.withRefreshLock(() async {
+      final r = await db.getRecord(uuid);
+      if (r != null) {
+        recordTree.insertRecord(r);
+      }
+      return r;
+    });
     if (record != null) {
-      await db.createOperate(
-        Operates.typeLocal,
-        "edit record ${record.uuid} ${record.local.path}${record.local.name} version:${record.local.remoteVersion}, fileEdit:$fileEdit",
-      );
-      recordTree.insertRecord(record);
       unawaited(
         syncRecords(false).catchError((e) {
           AppLogger.e("[Repository] editLocalRecord sync failed: $e");
@@ -420,8 +425,12 @@ class Repository {
       );
     }
     await db.deleteRecycleRecord(uuid);
-    final record = await db.getRecord(uuid);
-    if (record != null) recordTree.insertRecord(record);
+    await recordTree.withRefreshLock(() async {
+      final record = await db.getRecord(uuid);
+      if (record != null) {
+        recordTree.insertRecord(record);
+      }
+    });
     await db.createOperate(Operates.typeLocal, "restore record $uuid ${entry.path}${entry.name} from recycler");
     unawaited(syncRecords(false));
     return true;

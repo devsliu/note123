@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/record_tree.dart';

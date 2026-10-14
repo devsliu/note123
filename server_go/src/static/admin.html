@@ -362,17 +362,25 @@ function createUser() {
         else alert('创建失败');
     });
 }
+// HTML 实体转义: 用户名等字段由用户任意注册, 直接插入 innerHTML 会触发存储型 XSS
+function escHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+// 按 id 缓存当前用户列表: 按钮事件通过 data-uid 查表取用户名, 避免把用户可控字符串拼进 HTML/onclick
+var usersById = {};
 function loadUsers() {
     fetch('/admin/list_users').then(r => r.json()).then(users => {
         if (users != null) {
+            usersById = {};
+            users.forEach(u => { usersById[u.id] = u; });
             userTable.innerHTML = '<tr><th>ID</th><th>用户名</th><th>密码哈希</th><th>操作</th></tr>' +
                 users.map(u => `<tr>
                     <td>${u.id}</td>
-                    <td>${u.name}</td>
-                    <td>${u.password}</td>
+                    <td>${escHtml(u.name)}</td>
+                    <td>${escHtml(u.password)}</td>
                     <td><div class="action-btns">
-                        <button class="edit-btn" onclick="showEditUser(${u.id}, '${u.name.replace(/'/g, "\\'")}')">修改</button>
-                        <button class="del-btn" onclick="delUser(${u.id})">删除</button>
+                        <button class="edit-btn" data-uid="${u.id}">修改</button>
+                        <button class="del-btn" data-uid="${u.id}">删除</button>
                     </div></td>
                 </tr>`).join('');
         } else {
@@ -380,6 +388,18 @@ function loadUsers() {
         }
     });
 }
+// 事件委托: u.id 是服务端自增整数, data-uid 与查表均不含用户可控内容
+userTable.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-uid]');
+    if (!btn) return;
+    const id = Number(btn.dataset.uid);
+    if (btn.classList.contains('edit-btn')) {
+        const u = usersById[id];
+        if (u) showEditUser(u.id, u.name);
+    } else if (btn.classList.contains('del-btn')) {
+        delUser(id);
+    }
+});
 // 编辑前的原用户名: 哈希绑定用户名, 改名时必须同时设置新密码
 var editOriginalName = '';
 function showEditUser(id, name) {

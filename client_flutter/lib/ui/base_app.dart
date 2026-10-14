@@ -10,6 +10,7 @@ import 'package:note123/config/language_manager.dart';
 
 import '../l10n/app_localizations.dart';
 import 'conflict/conflict_list_page.dart';
+import 'editor/editor_save_coordinator.dart';
 
 /// 跨平台 app 抽象基类。
 ///
@@ -75,6 +76,9 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
     if (state == AppLifecycleState.resumed) {
       // 从后台回到前台时检查是否需要同步
       Repository.get().syncRecordsFromBackground();
+    } else if (state == AppLifecycleState.detached) {
+      // 进程即将终止: 触发并等待所有打开编辑页的 pending 保存 (尽力而为, 覆盖移动端系统杀进程等路径)
+      EditorSaveCoordinator.flushAll();
     }
   }
 

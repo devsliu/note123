@@ -142,6 +142,14 @@ class RecordTree extends TreeNode {
 
   final ValueNotifier<int> countNotifier = ValueNotifier<int>(0);
 
+  /// 串行化"读 DB → 刷树"临界区: 防止并发事务提交后, 持有旧快照的一方后执行 insert 覆盖新快照
+  Future<void> _refreshChain = Future<void>.value();
+  Future<T> withRefreshLock<T>(Future<T> Function() action) {
+    final next = _refreshChain.then((_) => action());
+    _refreshChain = next.then((_) {}, onError: (_) {});
+    return next;
+  }
+
   RecordTree() : super(TreeContentFolder("/", ""));
 
   void build(List<RecordEntry> allRecords) {
