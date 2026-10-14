@@ -54,6 +54,7 @@ class DesktopTabBar extends StatelessWidget {
       controller: scrollController,
       scrollDirection: Axis.horizontal,
       child: Row(
+        spacing: 0.8,
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: List.generate(tabs.length, (i) {

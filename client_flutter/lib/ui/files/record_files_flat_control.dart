@@ -101,7 +101,7 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
         content: file,
         isSelected: RecordOpenedState.get().openedFile?.key == file.key,
         onClickCallback: (f) {
-          Future.delayed(const Duration(milliseconds: 120), () {
+          Future.delayed(const Duration(milliseconds: 40), () {
             if (context.mounted) onClickFile(context, (f as TreeContentFile).record);
           });
         },
