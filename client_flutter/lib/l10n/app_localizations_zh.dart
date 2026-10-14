@@ -241,6 +241,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get login => '登录';
 
   @override
+  String get loginInvalidCredentials => '用户名或密码错误';
+
+  @override
   String get username => '用户名';
 
   @override

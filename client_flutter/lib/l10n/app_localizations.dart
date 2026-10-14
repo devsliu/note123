@@ -548,6 +548,12 @@ abstract class AppLocalizations {
   /// **'登录'**
   String get login;
 
+  /// No description provided for @loginInvalidCredentials.
+  ///
+  /// In zh, this message translates to:
+  /// **'用户名或密码错误'**
+  String get loginInvalidCredentials;
+
   /// No description provided for @username.
   ///
   /// In zh, this message translates to:

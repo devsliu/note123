@@ -242,6 +242,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login => 'Login';
 
   @override
+  String get loginInvalidCredentials => 'Invalid username or password';
+
+  @override
   String get username => 'Username';
 
   @override

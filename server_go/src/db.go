@@ -54,6 +54,7 @@ func (db *DB) initUserTable() error {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL UNIQUE,
         password TEXT NOT NULL,
+        salt TEXT NOT NULL DEFAULT '',
         createAt INTEGER NOT NULL DEFAULT 0,
 		version INTEGER NOT NULL DEFAULT 0,
 		purgedVersion INTEGER NOT NULL DEFAULT 0

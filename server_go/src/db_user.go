@@ -1,8 +1,12 @@
 package main
 
 import (
+	"crypto/md5"
+	"crypto/rand"
 	"database/sql"
+	"encoding/hex"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -10,9 +14,27 @@ type User struct {
 	ID            int64  `json:"id"`
 	Name          string `json:"name"`
 	Password      string `json:"password"`
+	Salt          string `json:"-"` // per-user salt for password hashing, not exposed via JSON
 	CreateAt      int64  `json:"createAt"`
 	Version       int64  `json:"version"`       // incremented whenever user data changes
 	PurgedVersion int64  `json:"purgedVersion"` // highest purged record version, default 0
+}
+
+// generateSalt returns 16 random bytes hex-encoded (32 chars).
+func generateSalt() string {
+	b := make([]byte, 16)
+	if _, err := rand.Read(b); err != nil {
+		// Crypto random unavailable — fall back to a time-based salt, never a fixed constant
+		return fmt.Sprintf("%x", time.Now().UnixNano())
+	}
+	return hex.EncodeToString(b)
+}
+
+// hashPasswordWithSalt computes md5(password + salt) as uppercase hex.
+// The password argument is already the client-side md5(name_password) hash.
+func hashPasswordWithSalt(password, salt string) string {
+	sum := md5.Sum([]byte(password + salt))
+	return strings.ToUpper(hex.EncodeToString(sum[:]))
 }
 
 // APIStat API call statistics
@@ -31,12 +53,15 @@ func createAPIStatTableSql(userId int64) string {
 		);`, userId)
 }
 
-// CreateUser registers a user; creates the user row, record_N table, and apiStat_N table in a single transaction
+// CreateUser registers a user; creates the user row, record_N table, and apiStat_N table in a single transaction.
+// password is the client-side md5(name_password) hash; it is re-hashed with a per-user salt before storage.
 func (db *DB) CreateUser(name, password string) (*User, error) {
 	now := time.Now().UnixMilli()
+	salt := generateSalt()
+	hashed := hashPasswordWithSalt(password, salt)
 	var user *User
 	err := db.ExecInTransaction(func(tx *sql.Tx) error {
-		res, err := tx.Exec("INSERT INTO user(name, password, createAt) VALUES (?, ?, ?)", name, password, now)
+		res, err := tx.Exec("INSERT INTO user(name, password, salt, createAt) VALUES (?, ?, ?, ?)", name, hashed, salt, now)
 		if err != nil {
 			return err
 		}
@@ -53,7 +78,8 @@ func (db *DB) CreateUser(name, password string) (*User, error) {
 		user = &User{
 			ID:            userId,
 			Name:          name,
-			Password:      password,
+			Password:      hashed,
+			Salt:          salt,
 			CreateAt:      now,
 			PurgedVersion: 0,
 			Version:       0,
@@ -84,31 +110,46 @@ func (db *DB) DeleteUser(id int64) error {
 
 func (db *DB) GetUserByID(id int64) (*User, error) {
 	user := &User{}
-	err := db.conn.QueryRow("SELECT id, name, password, createAt, purgedVersion, version FROM user WHERE id = ?", id).
-		Scan(&user.ID, &user.Name, &user.Password, &user.CreateAt, &user.PurgedVersion, &user.Version)
+	err := db.conn.QueryRow("SELECT id, name, password, salt, createAt, purgedVersion, version FROM user WHERE id = ?", id).
+		Scan(&user.ID, &user.Name, &user.Password, &user.Salt, &user.CreateAt, &user.PurgedVersion, &user.Version)
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
+// GetUserByNamePass looks up the user by name and verifies the password against the stored hash.
+// password is the client-side md5(name_password) hash.
+// Legacy users (salt == "") store the client hash verbatim; new users store md5(clientHash + salt).
 func (db *DB) GetUserByNamePass(name, password string) (*User, error) {
 	user := &User{}
-	err := db.conn.QueryRow("SELECT id, name, password, createAt, purgedVersion, version FROM user WHERE name = ? AND password = ?", name, password).
-		Scan(&user.ID, &user.Name, &user.Password, &user.CreateAt, &user.PurgedVersion, &user.Version)
+	err := db.conn.QueryRow("SELECT id, name, password, salt, createAt, purgedVersion, version FROM user WHERE name = ?", name).
+		Scan(&user.ID, &user.Name, &user.Password, &user.Salt, &user.CreateAt, &user.PurgedVersion, &user.Version)
 	if err != nil {
 		return nil, err
+	}
+	var expected string
+	if user.Salt == "" {
+		expected = password // legacy: stored verbatim client hash
+	} else {
+		expected = hashPasswordWithSalt(password, user.Salt)
+	}
+	if expected != user.Password {
+		return nil, sql.ErrNoRows
 	}
 	return user, nil
 }
 
-// UpdateUser updates name/password. When password is empty, only name is updated; original password hash is preserved
+// UpdateUser updates name/password. When password is empty, only name is updated; original password hash and salt are preserved.
+// When password is provided, a new salt is generated and the password is re-hashed.
 func (db *DB) UpdateUser(id int64, name, password string) error {
 	if password == "" {
 		_, err := db.conn.Exec("UPDATE user SET name=? WHERE id=?", name, id)
 		return err
 	}
-	_, err := db.conn.Exec("UPDATE user SET name=?, password=? WHERE id=?", name, password, id)
+	salt := generateSalt()
+	hashed := hashPasswordWithSalt(password, salt)
+	_, err := db.conn.Exec("UPDATE user SET name=?, password=?, salt=? WHERE id=?", name, hashed, salt, id)
 	return err
 }
 
@@ -128,7 +169,7 @@ func (db *DB) IncrementUserVersion(tx *sql.Tx, id int64) (int64, error) {
 
 // ListUsers lists all users
 func (db *DB) ListUsers() ([]User, error) {
-	rows, err := db.conn.Query("SELECT id, name, password, createAt, purgedVersion, version FROM user")
+	rows, err := db.conn.Query("SELECT id, name, password, salt, createAt, purgedVersion, version FROM user")
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +177,7 @@ func (db *DB) ListUsers() ([]User, error) {
 	var users []User
 	for rows.Next() {
 		var u User
-		if err := rows.Scan(&u.ID, &u.Name, &u.Password, &u.CreateAt, &u.PurgedVersion, &u.Version); err != nil {
+		if err := rows.Scan(&u.ID, &u.Name, &u.Password, &u.Salt, &u.CreateAt, &u.PurgedVersion, &u.Version); err != nil {
 			return nil, err
 		}
 		users = append(users, u)

@@ -75,6 +75,7 @@
   "lockUnlockFailedCheckPassword": "{operation}失败，请检查密码",
   "cannotReadRecordContent": "无法读取笔记内容",
   "login": "登录",
+  "loginInvalidCredentials": "用户名或密码错误",
   "username": "用户名",
   "password": "密码",
   "confirmDelete": "确认删除？",

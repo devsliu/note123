@@ -77,7 +77,9 @@ class _LoginDialogState extends State<LoginDialog> {
       // Dialog may have been closed by back key during request, cannot call setState on unmounted state
       if (!mounted) return;
       setState(() {
-        _error = result.message;
+        _error = result.code == HttpApi.ResultErrorUserPasswordError
+            ? l10n.loginInvalidCredentials
+            : result.message;
         _loading = false;
       });
     }

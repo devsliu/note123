@@ -41,11 +41,11 @@ class User {
     isLogin.value = true;
   }
 
+  // 登出仅清除 token 和密码, 保留 id 与 name: 本地 DB/树保持打开, 仍可离线编辑;
+  // Repository._onUserChanged 因 _userId == userId 提前返回, 不会关闭数据库
   Future<void> logout() async {
-    id = 0;
     token = null;
     final sp = await SharedPreferences.getInstance();
-    await sp.remove(_kUserId);
     await sp.remove(_kUserToken);
     await sp.remove(_kUserPassword);
     isLogin.value = false;

@@ -48,7 +48,7 @@ func (s *Server) registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// Protocol convention: the client sends md5(name_password) hash for both register and login;
-	// the server stores it verbatim and compares bytes directly at login — no secondary hashing on the server
+	// the server re-hashes it with a per-user random salt before storage, and verifies with the same salt at login
 	userId, err := s.db.CreateUser(req.Name, req.Password)
 	if err != nil {
 		http.Error(w, "User exists or DB error", http.StatusBadRequest)
@@ -163,7 +163,8 @@ func (s *Server) adminCreateUserHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	// Admin page and client share the same protocol: the browser has already computed md5(name_password); store it verbatim
+	// Admin page and client share the same protocol: the browser has already computed md5(name_password);
+	// the server re-hashes it with a per-user salt before storage
 	_, err := s.db.CreateUser(req.Name, req.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -188,7 +189,7 @@ func (s *Server) adminUpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
-	// The admin-page browser has already computed md5(name_password); store verbatim.
+	// The admin-page browser has already computed md5(name_password); the server re-hashes it with a fresh salt.
 	// Empty Password means keep the original password and only update the name.
 	if err := s.db.UpdateUser(req.UserID, req.Name, req.Password); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

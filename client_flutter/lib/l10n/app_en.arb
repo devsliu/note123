@@ -75,6 +75,7 @@
   "lockUnlockFailedCheckPassword": "{operation} failed, please check password",
   "cannotReadRecordContent": "Cannot read note content",
   "login": "Login",
+  "loginInvalidCredentials": "Invalid username or password",
   "username": "Username",
   "password": "Password",
   "confirmDelete": "Confirm Delete?",
