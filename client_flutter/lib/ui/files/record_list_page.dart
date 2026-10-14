@@ -65,9 +65,8 @@ class _RecordListPageState extends State<RecordListPage> {
 
   Widget _buildTabBar(BuildContext context) {
     final theme = Theme.of(context);
-    final bool desktop = Utils.isDesktop();
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: desktop ? 4 : 8),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       child: Material(
         color: theme.colorScheme.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(4),

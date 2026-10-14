@@ -388,12 +388,13 @@ class _TabButton extends StatelessWidget {
     final theme = Theme.of(context);
     final color = active ? theme.colorScheme.primary : theme.colorScheme.onSurface;
     final bgColor = active ? theme.colorScheme.primary.withAlpha(70) : null;
+    final isDesktop = Utils.isDesktop();
     return InkWell(
       onTap: onTap,
       hoverColor: theme.colorScheme.primary.withAlpha(25),
       child: Container(
         alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(vertical: 8),
+        padding: EdgeInsets.symmetric(vertical: isDesktop ? 8 : 10),
         decoration: BoxDecoration(color: bgColor),
         child: Text(
           '$label${count > 0 ? ' ($count)' : ''}',

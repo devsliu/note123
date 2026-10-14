@@ -95,15 +95,12 @@ class _BreadcrumbBarState extends State<BreadcrumbBar> {
                         cursor: SystemMouseCursors.click,
                         child: GestureDetector(
                           onTap: i < segments.length - 1 ? () => widget.onNavigate(segmentPath(i)) : null,
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: widget.shrink ? 4 : 6),
-                            child: i < segments.length - 1
-                                ? Text(segments[i])
-                                : Text(
-                                    segments[i],
-                                    style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
-                                  ),
-                          ),
+                          child: i < segments.length - 1
+                              ? Text(segments[i])
+                              : Text(
+                                  segments[i],
+                                  style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600),
+                                ),
                         ),
                       ),
                       if (i < segments.length - 1)

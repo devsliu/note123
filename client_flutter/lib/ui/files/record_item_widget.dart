@@ -143,6 +143,13 @@ class TreeFolderWidget extends FolderWidget {
   }
 
   @override
+  void onClick(BuildContext context, TreeContent file) {
+    Future.delayed(const Duration(milliseconds: 180), () {
+      if (context.mounted) super.onClick(context, file);
+    });
+  }
+
+  @override
   Widget buildContentWidget(BuildContext context) {
     final folderWidgets = buildFolderWidgets(node);
     folderWidgets.insert(
@@ -186,6 +193,13 @@ class FileWidget extends _BaseItemWidget {
   @override
   void onLongClick(BuildContext context, TreeContent file, Offset position) {
     showRecordContextMenu(context, file, position, (_) => {});
+  }
+
+  @override
+  void onClick(BuildContext context, TreeContent file) {
+    Future.delayed(const Duration(milliseconds: 180), () {
+      if (context.mounted) super.onClick(context, file);
+    });
   }
 
   @override
