@@ -5,8 +5,6 @@ import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:note123/filesync/repository.dart';
-import 'package:note123/filesync/record_tree.dart';
-import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/ui/calendar/reminder_task_editor.dart';
 import 'package:note123/model/record_utils.dart';
@@ -19,9 +17,10 @@ import 'package:note123/utils/utils.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_component.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_toolbar_item.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_newline.dart';
-import 'package:note123/ui/editor/reminder_bar.dart';
-import 'package:note123/ui/editor/tag_editor.dart';
-import 'package:note123/ui/editor/tag_bar.dart';
+import 'package:note123/ui/editor/record_info_dialog.dart';
+import 'package:note123/ui/editor/record_modify_time_bar.dart';
+import 'package:note123/ui/editor/record_reminder_bar.dart';
+import 'package:note123/ui/editor/record_tags_bar.dart';
 
 /// Shared text style configuration (edit page + diff page).
 TextStyleConfiguration buildEditorTextStyle(ThemeData theme) {
@@ -340,7 +339,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
         Expanded(child: _buildEditorWidget(theme, _blockComponentBuilders, _textStyleConfiguration)),
         TagBar(uuid: record.uuid),
         ReminderBar(uuid: record.uuid),
-        _LastModifyTimeWidget(uuid: record.uuid),
+        RecordModifyTimeBar(uuid: record.uuid),
       ],
     );
   }
@@ -411,84 +410,13 @@ ToolbarItem createInfoToolbarItem(String? recordUuid) {
         iconColor: iconColor,
         onPressed: () async {
           if (recordUuid == null) return;
-          final record = await Repository.get().db?.getRecord(recordUuid);
-          if (record == null || !context.mounted) return;
-          final buffer = StringBuffer()
-            ..writeln(record.uuid)
-            ..writeln(record.local.path)
-            ..writeln(record.local.name)
-            ..writeln('version: ${record.local.remoteVersion}')
-            ..writeln('md5: ${record.local.remoteMd5}')
-            ..writeln('createAt: ${Utils.formatTime(record.remote.createAt)}')
-            ..writeln('editAt: ${Utils.formatTime(record.local.editAt)}')
-            ..writeln('fileEditAt: ${Utils.formatTime(record.local.fileEditAt)}')
-            ..writeln('locked: ${record.local.locked}');
-          showDialog(
-            context: context,
-            builder: (context) => Dialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2)),
-              child: Padding(padding: EdgeInsets.all(8), child: Text(buffer.toString())),
-            ),
-          );
+          await showRecordInfoDialog(context, recordUuid);
         },
       );
       if (tooltipBuilder != null) {
-        return tooltipBuilder(context, 'editor.info', 'Note Info', child);
+        return tooltipBuilder(context, 'editor.info', 'Record Info', child);
       }
       return child;
     },
   );
-}
-
-class _LastModifyTimeWidget extends StatefulWidget {
-  final String uuid;
-  const _LastModifyTimeWidget({required this.uuid});
-
-  @override
-  State<_LastModifyTimeWidget> createState() => _LastModifyTimeWidgetState();
-}
-
-class _LastModifyTimeWidgetState extends State<_LastModifyTimeWidget> {
-  StreamSubscription<RecordEvent>? _treeSub;
-
-  @override
-  void initState() {
-    super.initState();
-    _treeSub = Repository.get().recordTree.onEvent.listen(_onEvent);
-  }
-
-  @override
-  void dispose() {
-    _treeSub?.cancel();
-    super.dispose();
-  }
-
-  void _onEvent(RecordEvent event) {
-    // rebuild = 全量刷新，强制重建；其他事件只处理与当前 uuid 相关的
-    if (event.type != RecordEvent.typeRebuild && event.value2 != null && event.value2 != widget.uuid) return;
-    if (mounted) setState(() {});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final fileNode = Repository.get().recordTree.findFile(widget.uuid);
-    if (fileNode == null) return const SizedBox.shrink();
-    final record = fileNode.record.local;
-    final hasConflict = record.syncConflict;
-    final color = hasConflict ? theme.colorScheme.error : theme.colorScheme.onSurface.withAlpha(150);
-    final conflictLabel = hasConflict ? "  [${l10n.hasConflict}]" : "";
-    final version = record.version != record.remoteVersion
-        ? 'v${record.version}->v${record.remoteVersion}'
-        : 'v${record.version}';
-    //Text加个padding，
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8),
-      child: Text(
-        " $version $conflictLabel ${l10n.lastModify}: ${Utils.formatTime(record.editAt)}",
-        style: TextStyle(fontSize: 12, color: color),
-      ),
-    );
-  }
 }

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/tag_tree.dart';
-import 'package:note123/ui/editor/tag_editor.dart';
+import 'package:note123/ui/editor/record_tags_editor.dart';
 
 /// Show the tag editor dialog with a title bar (same pattern as [showReminderDialog]).
 void showTagDialog(BuildContext context, String uuid) {
