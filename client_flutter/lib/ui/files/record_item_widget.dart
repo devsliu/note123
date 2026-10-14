@@ -238,7 +238,7 @@ class TreeFileWidget extends FileWidget {
   Widget buildContentWidget(BuildContext context) {
     final widgets = buildFileWidgets(content as TreeContentFile, showIcon);
     int depth = node.depth ?? 0;
-    double intent = depth * iconSize + arrowSize;
+    double intent = depth * iconSize;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
