@@ -455,27 +455,23 @@ class _LastModifyTimeWidget extends StatefulWidget {
 }
 
 class _LastModifyTimeWidgetState extends State<_LastModifyTimeWidget> {
-  late final ValueNotifier<List<RecordEvent>> _notifier;
+  StreamSubscription<RecordEvent>? _treeSub;
 
   @override
   void initState() {
     super.initState();
-    _notifier = Repository.get().recordTree.refreshNotifier;
-    _notifier.addListener(_onEvents);
+    _treeSub = Repository.get().recordTree.onEvent.listen(_onEvent);
   }
 
   @override
   void dispose() {
-    _notifier.removeListener(_onEvents);
+    _treeSub?.cancel();
     super.dispose();
   }
 
-  void _onEvents() {
-    // Only rebuild for events touching current record; skip sync/rename of other records or folders.
-    final events = _notifier.value;
-    if (events.isNotEmpty && !events.any((e) => e.value2 == widget.uuid)) {
-      return;
-    }
+  void _onEvent(RecordEvent event) {
+    // rebuild = 全量刷新，强制重建；其他事件只处理与当前 uuid 相关的
+    if (event.type != RecordEvent.typeRebuild && event.value2 != null && event.value2 != widget.uuid) return;
     if (mounted) setState(() {});
   }
 

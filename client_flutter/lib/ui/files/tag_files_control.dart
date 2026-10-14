@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
@@ -41,6 +43,7 @@ class _TagFolderWidget extends TreeFolderWidget {
 class _TagFilesControlState extends State<TagFilesControl> {
   final recordTree = Repository.get().recordTree;
   final TreeViewController _treeController = TreeViewController();
+  StreamSubscription<TagTreeEvent>? _tagSub;
 
   /// Stable tree nodes. Created once in initState with all tags expanded.
   /// Subsequent refreshes only update children (records), never replace nodes,
@@ -55,19 +58,27 @@ class _TagFilesControlState extends State<TagFilesControl> {
   void initState() {
     super.initState();
     _buildInitialTree();
-    recordTree.refreshNotifier.addListener(_onRefresh);
+    _tagSub = Repository.get().tagTree.onEvent.listen(_onTagEvent);
     RecordOpenedState.get().openedFileNotifier.addListener(_onFileChanged);
   }
 
   @override
   void dispose() {
-    recordTree.refreshNotifier.removeListener(_onRefresh);
+    _tagSub?.cancel();
     RecordOpenedState.get().openedFileNotifier.removeListener(_onFileChanged);
     super.dispose();
   }
 
-  void _onRefresh() {
-    _syncChildren();
+  void _onTagEvent(TagTreeEvent event) {
+    switch (event.type) {
+      case TagTreeEvent.typeRebuild:
+        _buildInitialTree();
+        break;
+      case TagTreeEvent.typeUpsert:
+      case TagTreeEvent.typeRemove:
+        _syncChildren();
+        break;
+    }
     if (mounted) setState(() {});
   }
 
@@ -78,7 +89,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
   /// Build the tag tree once. Each tag starts at the expanded state stored on
   /// the Tag object, so state survives State recreation (tab switches etc.).
   void _buildInitialTree() {
-    final tags = recordTree.tagTree.tags;
+    final tags = Repository.get().tagTree.tags;
     final nodes = <TreeViewNode<TreeContent>>[];
     for (final tag in tags) {
       final node = _buildTagNode(tag, expanded: tag.expanded);
@@ -88,15 +99,12 @@ class _TagFilesControlState extends State<TagFilesControl> {
     _tagNodes = nodes;
   }
 
-  /// Build a single tag node. Children are looked up from findFile so we reuse
-  /// the same TreeContentFile instances that RecordTree already maintains.
+  /// Build a single tag node. Children are freshly created from each RecordEntry
+  /// so TagFilesControl doesn't depend on RecordTree's internal TreeContentFile instances.
   TreeViewNode<TreeContent> _buildTagNode(Tag tag, {required bool expanded}) {
     final tagChildren = <TreeViewNode<TreeContent>>[];
     for (final entry in tag.records) {
-      final file = recordTree.findFile(entry.uuid);
-      if (file != null) {
-        tagChildren.add(TreeNode(file));
-      }
+      tagChildren.add(TreeNode(TreeContentFile(entry)));
     }
     return TreeViewNode<TreeContent>(
       TreeContentFolder('tag:${tag.name}/', tag.name),
@@ -107,7 +115,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
 
   /// Refresh children in place for existing tags, add new tags, remove deleted tags.
   void _syncChildren() {
-    final tags = recordTree.tagTree.tags;
+    final tags = Repository.get().tagTree.tags;
     final newNames = <String>{};
     for (final tag in tags) {
       newNames.add(tag.name);
@@ -117,7 +125,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
         // node so in-flight toggle animations aren't clobbered, and sync it
         // back to Tag for consistency.
         final expanded = existing.isExpanded;
-        recordTree.tagTree.setExpanded(tag.name, expanded);
+        Repository.get().tagTree.setExpanded(tag.name, expanded);
         existing.children
           ..clear()
           ..addAll(_buildTagNode(tag, expanded: expanded).children);
@@ -147,7 +155,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
     if (node != null) {
       _treeController.toggleNode(node);
       // Persist expanded state back to TagTree so it survives tab switches.
-      recordTree.tagTree.setExpanded(content.name, node.isExpanded);
+      Repository.get().tagTree.setExpanded(content.name, node.isExpanded);
     }
   }
 

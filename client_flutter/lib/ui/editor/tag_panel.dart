@@ -1,5 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:note123/filesync/record_tree.dart';
+import 'package:note123/filesync/tag_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/ui/editor/tag_editor.dart';
 
@@ -15,27 +17,23 @@ class TagPanel extends StatefulWidget {
 }
 
 class _TagPanelState extends State<TagPanel> {
-  late final ValueNotifier<List<RecordEvent>> _notifier;
+  StreamSubscription<TagTreeEvent>? _tagSub;
 
   @override
   void initState() {
     super.initState();
-    _notifier = Repository.get().recordTree.refreshNotifier;
-    _notifier.addListener(_onEvents);
+    _tagSub = Repository.get().tagTree.onEvent.listen((event) {
+      // Only care about tag changes affecting this record, or full rebuild.
+      if (event.type == TagTreeEvent.typeRebuild || event.uuid == widget.uuid) {
+        if (mounted) setState(() {});
+      }
+    });
   }
 
   @override
   void dispose() {
-    _notifier.removeListener(_onEvents);
+    _tagSub?.cancel();
     super.dispose();
-  }
-
-  void _onEvents() {
-    final events = _notifier.value;
-    if (events.isNotEmpty && !events.any((e) => e.value2 == widget.uuid)) {
-      return;
-    }
-    if (mounted) setState(() {});
   }
 
   @override

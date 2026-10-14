@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/record_tree.dart';
@@ -59,9 +61,9 @@ class PhoneRecordDetailPageState<T extends PhoneRecordDetailPage> extends Record
     return AppBar(
       leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.arrow_back)),
       titleSpacing: 0,
-      title: ValueListenableBuilder<List<RecordEvent>>(
-        valueListenable: recordTree.refreshNotifier,
-        builder: (context, value, child) =>
+      title: StreamBuilder<RecordEvent>(
+        stream: recordTree.onEvent,
+        builder: (context, snapshot) =>
             Text(record.local.path + record.local.name, overflow: TextOverflow.fade, style: TextStyle(fontSize: 16.0)),
       ),
       actions: [

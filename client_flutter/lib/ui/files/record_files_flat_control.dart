@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/model/record_opened_state.dart';
@@ -18,17 +20,18 @@ class RecordFilesFlatControl extends StatefulWidget {
 
 class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
   final RecordTree recordTree = Repository.get().recordTree;
+  StreamSubscription<RecordEvent>? _treeSub;
   @override
   void initState() {
     super.initState();
-    recordTree.refreshNotifier.addListener(onRefreshChanged);
+    _treeSub = recordTree.onEvent.listen((_) => onRefreshChanged());
     RecordOpenedState.get().openedFileNotifier.addListener(onRefreshChanged);
     RecordOpenedState.get().openedFolderNotifier.addListener(onOpenedFolderChanged);
   }
 
   @override
   void dispose() {
-    recordTree.refreshNotifier.removeListener(onRefreshChanged);
+    _treeSub?.cancel();
     RecordOpenedState.get().openedFileNotifier.removeListener(onRefreshChanged);
     RecordOpenedState.get().openedFolderNotifier.removeListener(onOpenedFolderChanged);
     super.dispose();

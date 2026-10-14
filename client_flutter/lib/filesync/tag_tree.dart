@@ -1,7 +1,24 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:note123/filesync/record_ext.dart';
+import 'package:note123/filesync/record_tree.dart';
 
 /// Helpers for the pipe-separated tag storage format, e.g. `|work|todo|`.
+
+/// Single event emitted by [TagTree] when its contents change.
+class TagTreeEvent {
+  static const typeRebuild = 1; // full rebuild (initial load, DB clear)
+  static const typeUpsert = 2; // a record's tags changed (added/removed/modified)
+  static const typeRemove = 3; // a record was removed, its tags dropped
+
+  final int type;
+
+  /// Affected record uuid (upsert/remove), or null for rebuild.
+  final String? uuid;
+
+  TagTreeEvent(this.type, [this.uuid]);
+}
 
 /// A single tag: its name, expanded state in the tree, and the records that
 /// carry it.
@@ -19,8 +36,35 @@ class Tag {
 class TagTree {
   final Map<String /*uuid*/, List<Tag>> _recordTags = {};
   final Map<String /*tagname*/, Tag> _tagsMap = {};
+  StreamSubscription<RecordEvent>? _recordSub;
+
+  /// Bind to [RecordTree] and listen to its event stream for sync.
+  void bind(RecordTree recordTree) {
+    _recordSub?.cancel();
+    _recordSub = recordTree.onEvent.listen((event) {
+      switch (event.type) {
+        case RecordEvent.typeRebuild:
+          final all = recordTree.sortedFiles.map((f) => f.record).toList();
+          rebuild(all);
+        case RecordEvent.typeUpsertRecord:
+          final uuid = event.value2;
+          if (uuid != null) {
+            final entry = recordTree.findFile(uuid)?.record;
+            if (entry != null) upsert(entry);
+          }
+        case RecordEvent.typeDeleteRecord:
+          final uuid = event.value2;
+          if (uuid != null) remove(uuid);
+      }
+    });
+  }
 
   final ValueNotifier<int> tagCountNotifier = ValueNotifier<int>(0);
+
+  /// Stream of fine-grained change events (rebuild / upsert / remove).
+  final StreamController<TagTreeEvent> _eventController = StreamController.broadcast();
+  Stream<TagTreeEvent> get onEvent => _eventController.stream;
+
   bool _sortedDirty = true;
   List<Tag> _sortedTags = const [];
 
@@ -41,15 +85,20 @@ class TagTree {
       _upsertInternal(record);
     }
     _recomputeSorted();
+    _eventController.add(TagTreeEvent(TagTreeEvent.typeRebuild));
   }
 
-  /// Incremental upsert: apply tags from [record].
+  /// Incremental upsert: apply tags from [record]. No-op (no event emitted)
+  /// if the record's tag set hasn't actually changed.
   void upsert(RecordEntry record) {
-    _upsertInternal(record);
-    _recomputeSorted();
+    if (_upsertInternal(record)) {
+      _recomputeSorted();
+      _eventController.add(TagTreeEvent(TagTreeEvent.typeUpsert, record.uuid));
+    }
   }
 
-  /// Incremental remove: drop all tags for record with [uuid].
+  /// Incremental remove: drop all tags for record with [uuid]. No-op (no
+  /// event emitted) if the record wasn't tracked.
   void remove(String uuid) {
     final oldTags = _recordTags.remove(uuid);
     if (oldTags == null) return;
@@ -59,12 +108,21 @@ class TagTree {
     }
     _sortedDirty = true;
     _recomputeSorted();
+    _eventController.add(TagTreeEvent(TagTreeEvent.typeRemove, uuid));
   }
 
-  void _upsertInternal(RecordEntry record) {
+  /// Returns true iff the tag structure actually changed.
+  bool _upsertInternal(RecordEntry record) {
     final uuid = record.uuid;
     final newNames = record.tags;
     final oldTags = _recordTags.remove(uuid) ?? const [];
+
+    // Fast path: identical tag set, no change at all
+    if (_tagSetsEqual(oldTags.map((t) => t.name).toList(), newNames)) {
+      _recordTags[uuid] = oldTags;
+      return false;
+    }
+
     final oldMap = <String, Tag>{for (final t in oldTags) t.name: t};
 
     final newTags = <Tag>[];
@@ -91,6 +149,15 @@ class TagTree {
       _recordTags[uuid] = newTags;
     }
     _sortedDirty = true;
+    return true;
+  }
+
+  bool _tagSetsEqual(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   void _recomputeSorted() {

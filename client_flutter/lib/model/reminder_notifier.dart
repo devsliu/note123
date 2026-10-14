@@ -32,6 +32,7 @@ class ReminderNotifier with WidgetsBindingObserver {
 
   final FlutterLocalNotificationsPlugin _plugin = FlutterLocalNotificationsPlugin();
   bool _initialized = false;
+  StreamSubscription<ReminderEvent>? _reminderSub;
 
   /// Emits the record uuid when the user taps a reminder notification.
   /// Listeners (e.g. the app shell) use it to open the corresponding note.
@@ -97,7 +98,7 @@ class ReminderNotifier with WidgetsBindingObserver {
     await androidPlugin?.requestNotificationsPermission();
     await androidPlugin?.requestExactAlarmsPermission();
 
-    Repository.get().reminderTree.refreshNotifier.addListener(_onTreeChanged);
+    _reminderSub = Repository.get().reminderTree.onEvent.listen(_onTreeChanged);
     WidgetsBinding.instance.addObserver(this);
 
     _initialized = true;
@@ -117,7 +118,7 @@ class ReminderNotifier with WidgetsBindingObserver {
 
   /// Any tree change may alter which occurrences should be scheduled, so we
   /// recompute everything from scratch.
-  void _onTreeChanged() {
+  void _onTreeChanged(ReminderEvent _) {
     unawaited(rescheduleAll());
   }
 

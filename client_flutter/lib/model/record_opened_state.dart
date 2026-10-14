@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/record_ext.dart';
@@ -32,42 +34,53 @@ class RecordOpenedState {
   final List<String> openedUuids = [];
 
   RecordTree? _tree;
+  StreamSubscription<RecordEvent>? _treeSub;
 
   /// Attach to [tree] and start listening for folder delete events so the
   /// opened folder can be adjusted automatically.
   void bind(RecordTree tree) {
     _tree = tree;
-    tree.refreshNotifier.addListener(_onTreeEvents);
+    _treeSub = tree.onEvent.listen(_onTreeEvent);
   }
 
-  void _onTreeEvents() {
-    final tree = _tree;
-    if (tree == null) return;
-    for (final event in tree.refreshNotifier.value) {
-      switch (event.type) {
-        case RecordEvent.typeDeleteFolder:
-          final deletedPath = event.value1!;
-          final current = openedFolderNotifier.value;
-          // The opened folder is gone if it was the deleted folder itself or a
-          // descendant (deleteFolder clears all subfolders silently). Navigate
-          // to the deleted folder's parent in either case.
-          if (current == deletedPath || current.startsWith(deletedPath)) {
-            setOpenedFolder(dirname(deletedPath));
+  void _onTreeEvent(RecordEvent event) {
+    switch (event.type) {
+      case RecordEvent.typeRebuild:
+        // 全量刷新后重新校准 opened folder / file
+        final tree = _tree;
+        if (tree != null) {
+          final currentFolder = openedFolderNotifier.value;
+          if (tree.findFolder(currentFolder) == null) {
+            setOpenedFolder("/");
           }
-          break;
-        case RecordEvent.typeRenameFolder:
-          final oldPath = event.value1!;
-          final newPath = event.value2!;
-          final current = openedFolderNotifier.value;
-          // Remap the opened folder if it was the renamed folder or a descendant.
-          if (current == oldPath || current.startsWith(oldPath)) {
-            setOpenedFolder(newPath + current.substring(oldPath.length));
+          final currentUuid = openedFileNotifier.value;
+          if (currentUuid.isNotEmpty && tree.findFile(currentUuid) == null) {
+            closeFile(currentUuid);
           }
-          break;
-        case RecordEvent.typeCreateFolder:
-          // Creating a folder does not change the currently opened folder.
-          break;
-      }
+        }
+        break;
+      case RecordEvent.typeDeleteFolder:
+        final deletedPath = event.value1!;
+        final current = openedFolderNotifier.value;
+        // The opened folder is gone if it was the deleted folder itself or a
+        // descendant (deleteFolder clears all subfolders silently). Navigate
+        // to the deleted folder's parent in either case.
+        if (current == deletedPath || current.startsWith(deletedPath)) {
+          setOpenedFolder(dirname(deletedPath));
+        }
+        break;
+      case RecordEvent.typeRenameFolder:
+        final oldPath = event.value1!;
+        final newPath = event.value2!;
+        final current = openedFolderNotifier.value;
+        // Remap the opened folder if it was the renamed folder or a descendant.
+        if (current == oldPath || current.startsWith(oldPath)) {
+          setOpenedFolder(newPath + current.substring(oldPath.length));
+        }
+        break;
+      case RecordEvent.typeCreateFolder:
+        // Creating a folder does not change the currently opened folder.
+        break;
     }
   }
 

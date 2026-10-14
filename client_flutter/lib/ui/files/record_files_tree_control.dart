@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/model/record_opened_state.dart';
@@ -23,6 +25,7 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
   final RecordTree recordTree = Repository.get().recordTree;
 
   final TreeViewController _treeController = TreeViewController();
+  StreamSubscription<RecordEvent>? _treeSub;
 
   /// Convert RecordTree to recursive TreeViewNode structure
 
@@ -53,14 +56,14 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
   @override
   void initState() {
     super.initState();
-    recordTree.refreshNotifier.addListener(onEventChanged);
+    _treeSub = recordTree.onEvent.listen((_) => onEventChanged());
     RecordOpenedState.get().openedFolderNotifier.addListener(onFolderChanged);
     RecordOpenedState.get().openedFileNotifier.addListener(onFileChanged);
   }
 
   @override
   void dispose() {
-    recordTree.refreshNotifier.removeListener(onEventChanged);
+    _treeSub?.cancel();
     RecordOpenedState.get().openedFolderNotifier.removeListener(onFolderChanged);
     RecordOpenedState.get().openedFileNotifier.removeListener(onFileChanged);
     super.dispose();

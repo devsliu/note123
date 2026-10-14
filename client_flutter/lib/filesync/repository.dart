@@ -7,6 +7,7 @@ import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/file_store.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/reminder_tree.dart';
+import 'package:note123/filesync/tag_tree.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/sync_engine.dart' show SyncEngine, SyncState;
@@ -35,15 +36,17 @@ class Repository {
   DateTime? get lastSuccessfulPullTime => _syncEngine?.lastSuccessfulPullTime;
 
   final RecordTree recordTree = RecordTree();
+  final ReminderTree reminderTree = ReminderTree();
+  final TagTree tagTree = TagTree();
   final ValueNotifier<SyncState> syncStateNotifier = ValueNotifier(SyncState(state: SyncState.idle));
 
   /// Recycle bin entry count, for the list page entry badge.
   final ValueNotifier<int> recyclerCountNotifier = ValueNotifier(0);
 
-  /// Shortcut to the reminder tree held by [recordTree].
-  ReminderTree get reminderTree => recordTree.reminderTree;
-
-  Repository._();
+  Repository._() {
+    reminderTree.bind(recordTree);
+    tagTree.bind(recordTree);
+  }
   static Repository get() => _instance!;
 
   static Future<void> init(String appRootDir) async {

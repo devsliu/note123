@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/widgets.dart';
 import 'package:note123/filesync/record_ext.dart';
+import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/table_record.dart';
 import 'package:note123/utils/lunar.dart';
 
@@ -336,10 +338,33 @@ class ReminderEvent {
 class ReminderTree {
   final List<ReminderEntry> _entries = [];
   final Map<String, List<ReminderEntry>> _byRecord = {};
+  StreamSubscription<RecordEvent>? _recordSub;
 
-  /// Detailed events emitted on each change, so listeners can react
-  /// incrementally instead of rescanning everything.
-  final ValueNotifier<List<ReminderEvent>> refreshNotifier = ValueNotifier<List<ReminderEvent>>(const []);
+  /// Bind to [RecordTree] and listen to its event stream for sync.
+  void bind(RecordTree recordTree) {
+    _recordSub?.cancel();
+    _recordSub = recordTree.onEvent.listen((event) {
+      switch (event.type) {
+        case RecordEvent.typeRebuild:
+          final all = recordTree.sortedFiles.map((f) => f.record).toList();
+          rebuild(all);
+        case RecordEvent.typeUpsertRecord:
+          final uuid = event.value2;
+          if (uuid != null) {
+            final entry = recordTree.findFile(uuid)?.record;
+            if (entry != null) upsertRecord(entry);
+          }
+        case RecordEvent.typeDeleteRecord:
+          final uuid = event.value2;
+          if (uuid != null) deleteRecord(uuid);
+      }
+    });
+  }
+
+  /// Detailed events emitted on each change (rebuild / upsert / delete),
+  /// so listeners can react incrementally instead of rescanning everything.
+  final StreamController<ReminderEvent> _eventController = StreamController.broadcast();
+  Stream<ReminderEvent> get onEvent => _eventController.stream;
 
   /// Count of undone reminder tasks occurring today, for badge displays.
   final ValueNotifier<int> countNotifier = ValueNotifier(0);
@@ -355,7 +380,7 @@ class ReminderTree {
       _addRecord(record);
     }
     _sort();
-    _notify([ReminderEvent(ReminderEvent.typeRebuild)]);
+    _notify(ReminderEvent(ReminderEvent.typeRebuild));
   }
 
   /// Insert or update a single record's reminders.
@@ -368,7 +393,7 @@ class ReminderTree {
     // Only sort and notify when something actually changed.
     if (old != null || added) {
       _sort();
-      _notify([ReminderEvent(ReminderEvent.typeUpsertRecord, recordUuid: record.uuid)]);
+      _notify(ReminderEvent(ReminderEvent.typeUpsertRecord, recordUuid: record.uuid));
     }
   }
 
@@ -377,7 +402,7 @@ class ReminderTree {
     final removed = _byRecord.remove(uuid);
     if (removed == null) return;
     removed.forEach(_entries.remove);
-    _notify([ReminderEvent(ReminderEvent.typeDeleteRecord, recordUuid: uuid)]);
+    _notify(ReminderEvent(ReminderEvent.typeDeleteRecord, recordUuid: uuid));
   }
 
   /// Reminder tasks belonging to [uuid], or empty list if none.
@@ -390,9 +415,8 @@ class ReminderTree {
     return _entries.where((e) => reminderOccursOnDay(e.task, day)).toList();
   }
 
-  void _notify(List<ReminderEvent> events) {
-    if (events.isEmpty) return;
-    refreshNotifier.value = List.unmodifiable(events);
+  void _notify(ReminderEvent event) {
+    _eventController.add(event);
     _recalcCount();
   }
 

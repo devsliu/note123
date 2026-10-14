@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:note123/config/app_config.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -34,18 +36,19 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
   static const int _modeCalendar = 0;
   static const int _modeList = 1;
   int _viewMode = _modeCalendar;
+  StreamSubscription<ReminderEvent>? _reminderSub;
 
   @override
   void initState() {
     super.initState();
     _selectedDay = _focusedDay;
     _load();
-    Repository.get().reminderTree.refreshNotifier.addListener(_load);
+    _reminderSub = Repository.get().reminderTree.onEvent.listen((_) => _load());
   }
 
   @override
   void dispose() {
-    Repository.get().reminderTree.refreshNotifier.removeListener(_load);
+    _reminderSub?.cancel();
     super.dispose();
   }
 

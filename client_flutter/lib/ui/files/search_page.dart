@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
@@ -6,7 +8,6 @@ import 'package:note123/ui/common/platform_app_bar.dart';
 import 'package:note123/ui/files/record_item_widget.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/utils/utils.dart';
-import 'package:note123/config/app_config.dart';
 
 /// Full-page record search: app bar with a back button and a search input,
 /// body shows title/path matches. Replaces the whole list page while active.
@@ -111,17 +112,18 @@ class RecordSearchResultsControl extends StatefulWidget {
 
 class _RecordSearchResultsControlState extends State<RecordSearchResultsControl> {
   final RecordTree recordTree = Repository.get().recordTree;
+  StreamSubscription<RecordEvent>? _treeSub;
 
   @override
   void initState() {
     super.initState();
-    recordTree.refreshNotifier.addListener(onRefreshChanged);
+    _treeSub = recordTree.onEvent.listen((_) => onRefreshChanged());
     RecordOpenedState.get().openedFileNotifier.addListener(onRefreshChanged);
   }
 
   @override
   void dispose() {
-    recordTree.refreshNotifier.removeListener(onRefreshChanged);
+    _treeSub?.cancel();
     RecordOpenedState.get().openedFileNotifier.removeListener(onRefreshChanged);
     super.dispose();
   }
@@ -148,7 +150,7 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
         child: Text(l10n.searchNoResults, style: TextStyle(fontSize: 13, color: theme.colorScheme.outline)),
       );
     }
-    return ListView.separated(
+    return ListView.builder(
       itemCount: list.length,
       itemBuilder: (BuildContext context, int index) {
         final file = list[index];
@@ -164,7 +166,6 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
           },
         );
       },
-      separatorBuilder: (_, i) => AppConfig.listViewDivider(context),
     );
   }
 }

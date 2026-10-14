@@ -99,14 +99,13 @@ class RecordListActions {
   /// Tags tab button: click to switch to the tags panel. Shows the total tag
   /// count.
   static Widget tagsButton(BuildContext context) {
-    final recordTree = Repository.get().recordTree;
     return ListenableBuilder(
-      listenable: Listenable.merge([recordTree.tagTree.tagCountNotifier, ListActiveTab.notifier]),
+      listenable: Listenable.merge([Repository.get().tagTree.tagCountNotifier, ListActiveTab.notifier]),
       builder: (context, _) {
         return _TabButton(
           label: l10n.tags,
           active: ListActiveTab.notifier.value == ListActiveTab.tags,
-          count: recordTree.tagTree.tagCountNotifier.value,
+          count: Repository.get().tagTree.tagCountNotifier.value,
           onTap: () {
             ListActiveTab.notifier.value = ListActiveTab.tags;
             Prefs.instance.setInt(PrefKeys.listActiveTab, ListActiveTab.tags);

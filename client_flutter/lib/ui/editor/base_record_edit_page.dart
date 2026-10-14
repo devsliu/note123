@@ -59,6 +59,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
 
   /// Current record — non-final, replaced in _onTreeChanged when sync delivers a new one.
   late RecordEntry record;
+  StreamSubscription<RecordEvent>? _treeSub;
 
   /// Transition to a new page state; buildCount resets to 0 so the next build
   /// signals a fresh state transition.
@@ -74,7 +75,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     WidgetsBinding.instance.addObserver(this);
 
     record = Repository.get().recordTree.findFile(widget.uuid)!.record;
-    Repository.get().recordTree.refreshNotifier.addListener(_onTreeChanged);
+    _treeSub = Repository.get().recordTree.onEvent.listen(_onTreeChanged);
 
     // loadContent() routes locked records to password mode (sPageModePass)
     loadContent();
@@ -86,7 +87,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    Repository.get().recordTree.refreshNotifier.removeListener(_onTreeChanged);
+    _treeSub?.cancel();
     // Kick off save chain — coalescing inside saveRecord guarantees latest dirty content
     // gets saved even if a prior save is still in-flight. The returned Future continues
     // on the Dart isolate after dispose; the isolate stays alive until save completes.
@@ -101,19 +102,19 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   /// - Deleted remotely → close page (only when no unsaved edits)
   /// - File content change (md5) → re-download and refresh UI (only when no unsaved edits)
   /// - Title change → update title bar
-  Future<void> _onTreeChanged() async {
+  Future<void> _onTreeChanged(RecordEvent event) async {
     if (!mounted) return;
+    final myUuid = widget.uuid;
+    // rebuild = 全量刷新，强制命中后再查 findFile 判断是否存在
+    final hit =
+        event.type == RecordEvent.typeRebuild ||
+        ((event.type == RecordEvent.typeDeleteRecord || event.type == RecordEvent.typeUpsertRecord) &&
+            event.value2 == myUuid);
+    if (!hit) return;
+
     final fileStore = Repository.get().fileStore;
     if (fileStore == null) return;
     final tree = Repository.get().recordTree;
-    // Only process events involving this record's uuid, ignore unrelated changes directly
-    final events = tree.refreshNotifier.value;
-    final myUuid = widget.uuid;
-    final hit = events.any(
-      (e) => (e.type == RecordEvent.typeDeleteRecord || e.type == RecordEvent.typeUpsertRecord) && e.value2 == myUuid,
-    );
-    if (!hit) return;
-
     final current = tree.findFile(myUuid);
 
     // Record has been deleted

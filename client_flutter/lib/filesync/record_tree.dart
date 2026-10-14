@@ -1,12 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:note123/filesync/record_ext.dart';
-import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/filesync/table_record.dart';
-import 'package:note123/filesync/tag_tree.dart';
 import 'package:note123/utils/app_logger.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 class RecordEvent {
+  static const int typeRebuild = 0; // full rebuild from DB, value2 为 null
   static const int typeDeleteFolder = 1; // value1 = path
   static const int typeRenameFolder = 2; // value1 = oldPath, value2 = newPath
   static const int typeCreateFolder = 3; // value1 = path;
@@ -134,40 +135,29 @@ class RecordTree extends TreeNode {
   // only insert and delete operations need to modify _recentlyFiles array; rename/name changes and edits only need sorting
   final RecordList _sortedFiles = RecordList();
 
-  final ValueNotifier<List<RecordEvent>> refreshNotifier = ValueNotifier<List<RecordEvent>>([]);
+  /// Detailed record change events (upsert/delete/rename folder/create folder/delete folder),
+  /// emitted individually as they happen so listeners can react incrementally.
+  final StreamController<RecordEvent> _eventController = StreamController.broadcast();
+  Stream<RecordEvent> get onEvent => _eventController.stream;
+
   final ValueNotifier<int> countNotifier = ValueNotifier<int>(0);
-
-  /// Reminder tree, kept in sync with record changes. Non-null and always
-  /// available; callers read reminders from here instead of scanning the DB.
-  final ReminderTree reminderTree = ReminderTree();
-
-  /// Tag tree, kept in sync with record changes. Non-null and always
-  /// available; callers read tags from here instead of scanning the DB.
-  final TagTree tagTree = TagTree();
 
   RecordTree() : super(TreeContentFolder("/", ""));
 
   void build(List<RecordEntry> allRecords) {
-    // 1. Create root node
     children.clear();
     _foldersMap.clear();
     _filesMap.clear();
     _conflictMap.clear();
     _foldersMap["/"] = this;
-
     _sortedFiles.files.clear();
 
-    List<RecordEvent> eventList = [];
     for (final n in allRecords) {
-      final (node, isNew) = _insertRecord(n, eventList);
-      if (node != null && isNew) {
-        _sortedFiles.add(node.content as TreeContentFile);
-      }
+      _insertRecord(n, emit: false);
     }
     _sortedFiles.sort();
-    tagTree.rebuild(allRecords);
-    _notifyEvents(eventList);
-    reminderTree.rebuild(allRecords);
+
+    _emit(RecordEvent(RecordEvent.typeRebuild));
   }
 
   List<TreeContentFile> get sortedFiles => _sortedFiles.files;
@@ -185,15 +175,20 @@ class RecordTree extends TreeNode {
     return _filesMap[uuid];
   }
 
+  /// Emit a single event on the public stream (with logging), and update
+  /// countNotifier so listeners see the current file count right away.
+  void _emit(RecordEvent event) {
+    AppLogger.i("_notifyEvent ${event.type}");
+    _eventController.add(event);
+    countNotifier.value = _filesMap.length;
+  }
+
   /// Helper: ensure a folder exists by path; if not, recursively create and attach to tree
-  TreeNode _ensureFolderExists(String folderPath, List<RecordEvent> eventList) {
-    // If already created, return directly
+  TreeNode _ensureFolderExists(String folderPath, {bool emit = true}) {
     if (_foldersMap.containsKey(folderPath)) {
       return _foldersMap[folderPath]!;
     }
 
-    // If not, we need to break it down level by level upward and ensure parents exist
-    // e.g. break "/work/flutter/ui/" into: "/", "/work/", "/work/flutter/", "/work/flutter/ui/"
     final segments = folderPath.split('/').where((s) => s.isNotEmpty).toList();
 
     String currentPath = '/';
@@ -202,20 +197,17 @@ class RecordTree extends TreeNode {
     for (final segment in segments) {
       currentPath += '$segment/';
 
-      // If this level's folder hasn't been created yet
       if (!_foldersMap.containsKey(currentPath)) {
         final newFolder = TreeContentFolder(currentPath, segment);
         final treeNode = TreeNode(newFolder);
         _foldersMap[currentPath] = treeNode;
 
-        // Attach it to the parent folder's children list
         current.insertChild(treeNode);
         current = treeNode;
 
-        eventList.add(RecordEvent(RecordEvent.typeCreateFolder, value1: newFolder._path));
+        if (emit) _emit(RecordEvent(RecordEvent.typeCreateFolder, value1: newFolder._path));
       }
 
-      // Move pointer down
       current = _foldersMap[currentPath]!;
     }
 
@@ -226,25 +218,20 @@ class RecordTree extends TreeNode {
 
   RecordEntry? findConflictRecord(String uuid) => _conflictMap[uuid];
 
-  void _deleteRecord(String recordUuid, List<RecordEvent> eventList) {
+  void _deleteRecord(String recordUuid, {bool emit = true}) {
     _conflictMap.remove(recordUuid);
-    reminderTree.deleteRecord(recordUuid);
-    // 1. Get its parent folder path
     final TreeNode? file = _filesMap.remove(recordUuid);
     if (file == null) return;
-    eventList.add(RecordEvent(RecordEvent.typeDeleteRecord, value1: file.content.path, value2: recordUuid));
+    if (emit) _emit(RecordEvent(RecordEvent.typeDeleteRecord, value1: file.content.path, value2: recordUuid));
 
     final String folder = file.content.dir;
     final TreeNode? parent = _foldersMap[folder];
     if (parent == null) return;
-    // 2. O(1) locate and physically delete the record
     parent.removeChild(recordUuid);
-    // 3. 🧠 Smart cleanup: if this folder has neither records nor subfolders anymore, it's an empty shell; remove it too
-    _checkAndPurgeEmptyFolder(folder, eventList);
+    _checkAndPurgeEmptyFolder(folder);
   }
 
-  // Recursively clean up empty folders
-  void _checkAndPurgeEmptyFolder(String folder, List<RecordEvent> eventList) {
+  void _checkAndPurgeEmptyFolder(String folder) {
     String current = folder;
     while (current != '/' && current != '') {
       final TreeNode? node = _foldersMap[current];
@@ -252,7 +239,7 @@ class RecordTree extends TreeNode {
       if (node.children.isNotEmpty) return;
 
       _foldersMap.remove(current);
-      eventList.add(RecordEvent(RecordEvent.typeDeleteFolder, value1: current));
+      _emit(RecordEvent(RecordEvent.typeDeleteFolder, value1: current));
       String parentDir = dirname(current);
       _foldersMap[parentDir]?.removeChild(current);
 
@@ -260,9 +247,9 @@ class RecordTree extends TreeNode {
     }
   }
 
-  (TreeNode?, bool) _insertRecord(RecordEntry newRecord, List<RecordEvent> eventList) {
+  (TreeNode?, bool) _insertRecord(RecordEntry newRecord, {bool emit = true}) {
     if (newRecord.local.editType == LocalEditType.delete) {
-      _deleteRecord(newRecord.local.uuid, eventList);
+      _deleteRecord(newRecord.local.uuid, emit: emit);
       return (null, false);
     }
 
@@ -276,29 +263,22 @@ class RecordTree extends TreeNode {
     }
 
     if (oldFile != null && oldFile.path == newFolderPath) {
-      // 🟢 Case A: in-place modification (title, modification time, etc. changed, directory unchanged)
       oldFile.setLocalRecord(newRecord);
     } else if (oldFile != null) {
-      // 🟢 Case B: cross-directory move
       final String oldFolder = oldFile.dir;
       final TreeNode? oldParent = _foldersMap[oldFolder];
 
-      // 1. Detach from old home
       oldParent?.removeChild(newRecord.local.uuid);
 
-      // 2. Ensure new home folder exists
-      final newParent = _ensureFolderExists(newFolderPath, eventList);
+      final newParent = _ensureFolderExists(newFolderPath, emit: emit);
 
-      // 3. Update internal record, create new TreeNode to trigger Flutter TreeView structural change detection
       oldFile.setLocalRecord(newRecord);
       newParent.insertChild(node = TreeNode(oldFile));
       _filesMap[oldFile.uuid] = node;
 
-      // 4. Clean up if old home is empty
-      _checkAndPurgeEmptyFolder(oldFolder, eventList);
+      _checkAndPurgeEmptyFolder(oldFolder);
     } else {
-      // 🟢 Case C: absolute new record registration
-      final newParent = _ensureFolderExists(newFolderPath, eventList);
+      final newParent = _ensureFolderExists(newFolderPath, emit: emit);
       final file = TreeContentFile(newRecord);
       file.setLocalRecord(newRecord);
       node = TreeNode(file);
@@ -307,10 +287,9 @@ class RecordTree extends TreeNode {
       isNew = true;
     }
 
-    reminderTree.upsertRecord(newRecord);
-    eventList.add(
-      RecordEvent(RecordEvent.typeUpsertRecord, value1: newRecord.local.path, value2: newRecord.local.uuid),
-    );
+    if (emit) {
+      _emit(RecordEvent(RecordEvent.typeUpsertRecord, value1: newRecord.local.path, value2: newRecord.local.uuid));
+    }
     return (node, isNew);
   }
 
@@ -320,129 +299,83 @@ class RecordTree extends TreeNode {
         _clearFolder(f as TreeNode);
         _foldersMap.remove(f.content.key);
       } else {
+        final file = f.content as TreeContentFile;
         _filesMap.remove(f.content.key);
         _conflictMap.remove(f.content.key);
+        _emit(RecordEvent(RecordEvent.typeDeleteRecord, value1: file.path, value2: file.uuid));
       }
     }
     node.children.clear();
   }
 
-  void _notifyEvents(List<RecordEvent> eventList) {
-    if (eventList.isEmpty) return;
-    for (final event in eventList) {
-      AppLogger.i("_notifyEvent ${event.type}");
-      final uuid = event.value2;
-      if (uuid == null) continue;
-      switch (event.type) {
-        case RecordEvent.typeUpsertRecord:
-          final node = _filesMap[uuid];
-          if (node != null) {
-            tagTree.upsert((node.content as TreeContentFile).record);
-          }
-          break;
-        case RecordEvent.typeDeleteRecord:
-          tagTree.remove(uuid);
-          break;
-      }
-    }
-    // Directly use event list as value, listeners can filter by uuid accordingly
-    refreshNotifier.value = List.unmodifiable(eventList);
-    countNotifier.value = _filesMap.length;
-  }
-
   void insertRecord(RecordEntry newRecord) {
-    List<RecordEvent> eventList = [];
-    final (node, isNew) = _insertRecord(newRecord, eventList);
+    final (node, isNew) = _insertRecord(newRecord);
     if (node != null && isNew) {
       _sortedFiles.add(node.content as TreeContentFile);
     }
     _sortedFiles.sort();
-    _notifyEvents(eventList);
   }
 
   void deleteRecord(String recordUuid) {
-    List<RecordEvent> eventList = [];
-    _deleteRecord(recordUuid, eventList);
+    _deleteRecord(recordUuid);
     _sortedFiles.delete(recordUuid);
-    _notifyEvents(eventList);
   }
 
   void batchUpdateRecords(List<String> deleteUUids, List<RecordEntry> records) {
-    List<RecordEvent> eventList = [];
     for (final uuid in deleteUUids) {
-      _deleteRecord(uuid, eventList);
+      _deleteRecord(uuid);
     }
     _sortedFiles.deleteSome(deleteUUids);
     for (final record in records) {
-      final (node, isNew) = _insertRecord(record, eventList);
+      final (node, isNew) = _insertRecord(record);
       if (node != null && isNew) {
         _sortedFiles.add(node.content as TreeContentFile);
       }
     }
     _sortedFiles.sort();
-    _notifyEvents(eventList);
   }
 
   void deleteFolder(String folderPath) {
     folderPath = normalizePath(folderPath);
     final folder = _foldersMap[folderPath];
     if (folder == null) return;
-    List<RecordEvent> eventList = [];
     _clearFolder(folder);
-    _checkAndPurgeEmptyFolder(folderPath, eventList);
+    _checkAndPurgeEmptyFolder(folderPath);
     _sortedFiles.deleteByPath(folderPath);
-    _notifyEvents(eventList);
   }
 
-  /// 👑 Main entry point for folder rename (perfectly adapts to virtual file structure)
   void renameFolder(String oldFolderPath, String newFolderPath, int time) {
-    // 1. Force-format and clean input paths
     final oldPath = normalizePath(oldFolderPath);
     final newPath = normalizePath(newFolderPath);
 
-    // Defense: if paths are exactly same, or attempting to rename root directory, reject directly
     if (oldPath == newPath || oldPath == '/') return;
 
-    List<RecordEvent> eventList = [];
-
-    // 2. Find the target source folder object to be renamed
     final sourceFolder = findFolder(oldPath);
-    if (sourceFolder == null) return; // Old folder not found, safe exit
+    if (sourceFolder == null) return;
     final sourceParent = findFolder(dirname(sourceFolder.content.path));
-    if (sourceParent == null) return; // Old folder's parent not found, also safe exit
+    if (sourceParent == null) return;
     sourceParent.removeChild(sourceFolder.content.key);
 
-    // _ensureFolderExists already guarantees newPath node exists (creates if missing),
-    // therefore target must not be null; uniformly use merge logic: transfer source's descendants to target
-    _ensureFolderExists(newPath, eventList);
+    _ensureFolderExists(newPath);
     final targetFolder = findFolder(newPath)!;
     _mergeVirtualFolders(sourceFolder, targetFolder, time);
 
-    _checkAndPurgeEmptyFolder(sourceParent.content.path, eventList);
+    _checkAndPurgeEmptyFolder(sourceParent.content.path);
 
-    // Folder modification does not involve content object add/delete, only update sortedFiles
     _sortedFiles.sort();
 
-    // 4. Notify of state change
-    eventList.add(RecordEvent(RecordEvent.typeRenameFolder, value1: oldPath, value2: newPath));
-    _notifyEvents(eventList);
+    _emit(RecordEvent(RecordEvent.typeRenameFolder, value1: oldPath, value2: newPath));
   }
 
-  /// 🧬 Merge same-named purely virtual structures
-  /// Transfer all descendant nodes in [source] to [target] in original condition, completely discard [source] container
   void _mergeVirtualFolders(TreeNode source, TreeNode target, int time) {
-    // 1. First completely unbind old source folder from its original parent and global Map (unbind old container)
     TreeNode? sourceParent = _foldersMap[source.content.dir];
     sourceParent?.removeChild(source.content.path);
     _foldersMap.remove(source.content.key);
 
-    // 2. Virtual file move: directly batch inject into new folder's files container
     for (final child in source.children) {
       if (child.content is TreeContentFile) {
         final file = child.content as TreeContentFile;
         _filesMap.remove(file.key);
-        // Use setLocalRecord to also update _record.path / _record.editAt,
-        // avoid only changing _path causing record.path to return stale value during window
         file.setLocalRecord(RecordEntry(file.record.local.copyWith(path: target.content.path, editAt: time)));
         TreeNode fileNode = TreeNode(file);
         target.insertChild(fileNode);
@@ -454,46 +387,30 @@ class RecordTree extends TreeNode {
           children: child.children,
         );
         _updateDescendantsPath(folderNode, source.content.path, target.content.path, time);
-        // After path correction, must attach under target, otherwise this subfolder only exists in _foldersMap,
-        // missing this entire layer when UI tree traverses target.children
         target.insertChild(folderNode);
       }
     }
     source.children.clear();
   }
 
-  /// 🧠 Full-scope cascade path correction algorithm (absolute reference anchor version)
-  /// Responsible for replacing the virtual path of [currentFolder] and all its descendants (files and folders)
-  /// from [oldPrefix] with [newPrefix] as a whole shift
   void _updateDescendantsPath(TreeNode currentFolder, String oldPrefix, String newPrefix, int time) {
-    // 1. First remove self from global old map cache
     final oldFolderPath = currentFolder.content.path;
     _foldersMap.remove(oldFolderPath);
 
-    // 2. Precisely compute current folder's absolute virtual path in new environment
-    // e.g.: oldPrefix is "/work/", newPrefix is "/job/"
-    // Current node is "/work/flutter/" → cut prefix to get "flutter/" → prepend new prefix to get "/job/flutter/"
     final relativePath = oldFolderPath.substring(oldPrefix.length);
     final updatedFolderPath = newPrefix + relativePath;
 
-    // 3. Correct content's path/name in place and re-index.
-    // Cannot replace with new TreeNode: parent's children still hold the old node,
-    // which would cause _foldersMap to be inconsistent with real tree structure references
     final content = currentFolder.content;
     content._path = updatedFolderPath;
-    content._name = basename(updatedFolderPath); // Ensure virtual name updates synchronously with path
+    content._name = basename(updatedFolderPath);
     _foldersMap[updatedFolderPath] = currentFolder;
 
-    // 4. 📝 Batch correct virtual path of files directly under current folder
     for (final node in currentFolder.children) {
       if (node.content is TreeContentFile) {
         final file = node.content as TreeContentFile;
         final fileRelativePath = file.path.substring(oldPrefix.length);
-        // Use setLocalRecord to update _record synchronously, avoid dirty reads during record.path window
         file.setLocalRecord(RecordEntry(file.record.local.copyWith(path: newPrefix + fileRelativePath, editAt: time)));
       } else {
-        // 5. 🌊 Recurse downward: correct all subfolders
-        // Core closure: when passing downward, oldPrefix and newPrefix as absolute references remain unchanged!
         _updateDescendantsPath(node as TreeNode, oldPrefix, newPrefix, time);
       }
     }
@@ -504,8 +421,8 @@ class RecordTree extends TreeNode {
   }
 
   void createFolder(String path) {
-    _ensureFolderExists(path, []);
-    _notifyEvents([RecordEvent(RecordEvent.typeCreateFolder, value1: path)]);
+    _ensureFolderExists(path);
+    _emit(RecordEvent(RecordEvent.typeCreateFolder, value1: path));
   }
 }
 
