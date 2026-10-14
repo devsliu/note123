@@ -16,7 +16,10 @@ class ReminderPanel extends StatefulWidget {
   /// Whether tasks can be edited/added/deleted.
   final bool editable;
 
-  const ReminderPanel({super.key, required this.uuid, this.maxLines = 10, this.editable = true});
+  /// Optional subtitle shown at the top (e.g. record path).
+  final String? subtitle;
+
+  const ReminderPanel({super.key, required this.uuid, this.maxLines = 10, this.editable = true, this.subtitle});
 
   @override
   State<ReminderPanel> createState() => ReminderPanelState();
@@ -96,8 +99,8 @@ class ReminderPanelState extends State<ReminderPanel> {
   Widget build(BuildContext context) {
     if (_tasks.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
-    final itemHeight = 32.0;
-    final maxHeight = widget.maxLines * itemHeight + 4 + 32; // +32: header row scrolls with the items
+    final itemHeight = 40.0;
+    final maxHeight = widget.maxLines * itemHeight + 60; // +32: header row scrolls with the items
 
     final rows = <Widget>[];
     for (var i = 0; i < _tasks.length; i++) {
@@ -112,45 +115,59 @@ class ReminderPanelState extends State<ReminderPanel> {
         ),
       );
     }
-    final header = Padding(
-      padding: const EdgeInsets.only(bottom: 2),
-      child: Row(
-        children: [
-          Icon(Icons.notifications_active_outlined, size: 14, color: theme.colorScheme.primary),
-          const SizedBox(width: 4),
-          Text(
-            l10n.reminderTasks,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+    final header = Row(
+      children: [
+        const SizedBox(width: 8),
+        Icon(Icons.notifications_active_outlined, size: 18, color: theme.colorScheme.primary),
+        const SizedBox(width: 4),
+        Text(
+          l10n.reminderTasks,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+        ),
+        const Spacer(),
+        if (widget.editable)
+          IconButton(
+            icon: Icon(Icons.add, size: 18, color: theme.colorScheme.primary),
+            onPressed: showAddDialog,
+            tooltip: l10n.addReminder,
+            style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
           ),
-          const Spacer(),
-          if (widget.editable)
-            IconButton(
-              icon: Icon(Icons.add, size: 16, color: theme.colorScheme.primary),
-              onPressed: showAddDialog,
-              padding: EdgeInsets.zero,
-              constraints: const BoxConstraints(minWidth: 30, minHeight: 30),
-              style: IconButton.styleFrom(tapTargetSize: MaterialTapTargetSize.shrinkWrap),
-              tooltip: l10n.addReminder,
-            ),
-        ],
-      ),
+      ],
     );
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(top: BorderSide(color: theme.colorScheme.outline.withAlpha(100))),
-      ),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [header, ...rows],
+    final subtitle = widget.subtitle != null
+        ? Padding(
+            padding: const EdgeInsets.only(left: 12, bottom: 4),
+            child: Text(
+              widget.subtitle!,
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface),
+            ),
+          )
+        : null;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxHeight),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [header, ?subtitle]),
           ),
-        ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: rows,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -175,7 +192,7 @@ class _TaskRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final timeStr = Utils.reminderTimeStr(task);
-    final nameColor = task.done ? theme.colorScheme.onSurface.withAlpha(120) : theme.colorScheme.onSurface;
+    final nameColor = theme.colorScheme.onSurface;
     return SizedBox(
       height: 34,
       child: Row(
@@ -194,7 +211,7 @@ class _TaskRow extends StatelessWidget {
             child: Text(
               task.name.isEmpty ? l10n.unnamedTask : task.name,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 14,
                 decoration: task.done ? TextDecoration.lineThrough : null,
                 color: nameColor,
               ),

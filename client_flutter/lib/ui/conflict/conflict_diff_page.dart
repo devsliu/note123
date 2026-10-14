@@ -15,7 +15,7 @@ import 'package:note123/utils/app_logger.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/utils/object_ref.dart';
 import 'package:note123/utils/utils.dart';
-import 'package:note123/ui/editor/reminder_panel.dart';
+import 'package:note123/ui/calendar/reminder_panel.dart';
 
 /// Single-side editor panel
 /// - Receives file path, auto reads from disk + unlocks (if locked != 0)

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/filesync/record_ext.dart';
@@ -7,8 +9,9 @@ import 'package:note123/filesync/repository.dart';
 /// pipe-separated format `|a|b|`.
 class TagEditor extends StatefulWidget {
   final String uuid;
+  final String? subtitle;
 
-  const TagEditor({super.key, required this.uuid});
+  const TagEditor({super.key, required this.uuid, this.subtitle});
 
   @override
   State<TagEditor> createState() => _TagEditorState();
@@ -17,7 +20,6 @@ class TagEditor extends StatefulWidget {
 class _TagEditorState extends State<TagEditor> {
   final TextEditingController _controller = TextEditingController();
   List<String> _tags = [];
-  bool _loaded = false;
 
   @override
   void initState() {
@@ -31,12 +33,11 @@ class _TagEditorState extends State<TagEditor> {
     super.dispose();
   }
 
-  Future<void> _loadTags() async {
-    final record = await Repository.get().db?.getRecord(widget.uuid);
+  void _loadTags() {
+    final record = Repository.get().recordTree.findFile(widget.uuid)?.record;
     if (record == null || !mounted) return;
     setState(() {
       _tags = List<String>.from(record.tags);
-      _loaded = true;
     });
   }
 
@@ -67,61 +68,99 @@ class _TagEditorState extends State<TagEditor> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.editTags, style: theme.textTheme.titleLarge),
-              const SizedBox(height: 12),
-              if (!_loaded)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else ...[
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: _tags.map((tag) {
-                    return Chip(
-                      label: Text(tag, style: const TextStyle(fontSize: 13)),
-                      deleteIcon: const Icon(Icons.close, size: 16),
-                      onDeleted: () => _removeTag(tag),
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: const VisualDensity(horizontal: -4, vertical: -4),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _controller,
-                        decoration: InputDecoration(
-                          hintText: l10n.tagName,
-                          isDense: true,
-                          border: const OutlineInputBorder(),
-                        ),
-                        onSubmitted: (_) => _addTag(),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(icon: const Icon(Icons.add), onPressed: _addTag, tooltip: l10n.addTag),
-                  ],
-                ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final maxWidth = math.min(400.0, screenWidth * 0.85);
+    final title = Text(l10n.editTags);
+    return AlertDialog(
+      title: widget.subtitle != null
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                title,
+                const SizedBox(height: 2),
+                Text(widget.subtitle!, style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface)),
               ],
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.done)),
-              ),
+            )
+          : title,
+      content: SizedBox(
+        width: maxWidth,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 4,
+              runSpacing: 4,
+              children: _tags.map((tag) {
+                final onSurface = theme.colorScheme.primary;
+                final hoverColor = theme.colorScheme.primary.withAlpha(40);
+                return _TagChip(
+                  tag: tag,
+                  textStyle: TextStyle(fontSize: 12, color: onSurface),
+                  hoverColor: hoverColor,
+                  onDeleted: () => _removeTag(tag),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 9),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    decoration: InputDecoration(hintText: l10n.tagName, isDense: true),
+                    onSubmitted: (_) => _addTag(),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                IconButton(icon: const Icon(Icons.add), onPressed: _addTag, tooltip: l10n.addTag),
+              ],
+            ),
+          ],
+        ),
+      ),
+      actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: Text(l10n.done))],
+    );
+  }
+}
+
+class _TagChip extends StatefulWidget {
+  final String tag;
+  final TextStyle textStyle;
+  final Color hoverColor;
+  final VoidCallback onDeleted;
+
+  const _TagChip({required this.tag, required this.textStyle, required this.hoverColor, required this.onDeleted});
+
+  @override
+  State<_TagChip> createState() => _TagChipState();
+}
+
+class _TagChipState extends State<_TagChip> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: GestureDetector(
+        onTap: widget.onDeleted,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: _hover ? widget.hoverColor : Colors.transparent,
+            border: Border.all(color: widget.textStyle.color ?? Colors.transparent, width: 0.5),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(widget.tag, style: widget.textStyle),
+              Icon(Icons.close, size: 12, color: widget.textStyle.color),
             ],
           ),
         ),

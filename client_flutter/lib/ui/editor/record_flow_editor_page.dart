@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/record_ext.dart';
+import 'package:note123/filesync/reminder_tree.dart';
+import 'package:note123/ui/calendar/reminder_task_editor.dart';
 import 'package:note123/model/record_utils.dart';
 import 'package:note123/ui/editor/flow_editor/flow_fixed_toolbar.dart';
 import 'package:note123/ui/editor/base_record_edit_page.dart';
@@ -17,9 +19,9 @@ import 'package:note123/utils/utils.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_component.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_toolbar_item.dart';
 import 'package:note123/ui/editor/flow_editor/code_block_newline.dart';
-import 'package:note123/ui/editor/reminder_panel.dart';
+import 'package:note123/ui/editor/reminder_bar.dart';
 import 'package:note123/ui/editor/tag_editor.dart';
-import 'package:note123/ui/editor/tag_panel.dart';
+import 'package:note123/ui/editor/tag_bar.dart';
 
 /// Shared text style configuration (edit page + diff page).
 TextStyleConfiguration buildEditorTextStyle(ThemeData theme) {
@@ -106,7 +108,6 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
   EditorScrollController? editorScrollController;
   Selection? _savedSelection;
   final recordTree = Repository.get().recordTree;
-  final GlobalKey<ReminderPanelState> _reminderPanelKey = GlobalKey<ReminderPanelState>();
 
   StreamSubscription<EditorTransactionValue>? _subscription;
 
@@ -179,13 +180,28 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
           isHighlight: false,
           highlightColor: highlightColor,
           iconColor: iconColor,
-          onPressed: () => _reminderPanelKey.currentState?.showAddDialog(),
+          onPressed: () => _addReminder(),
         );
         if (tooltipBuilder != null) {
           return tooltipBuilder(context, 'editor.reminder', l10n.addReminder, child);
         }
         return child;
       },
+    );
+  }
+
+  Future<void> _addReminder() async {
+    final task = ReminderTask(id: DateTime.now().millisecondsSinceEpoch.toString(), name: '');
+    final updated = await showReminderTaskEditor(context, task: task);
+    if (updated == null) return;
+    final recordEntry = Repository.get().recordTree.findFile(record.uuid)?.record;
+    if (recordEntry == null) return;
+    final tasks = ReminderTask.fromJsonString(recordEntry.local.reminder)..add(updated);
+    await Repository.get().editRecord(
+      record.uuid,
+      false,
+      DateTime.now().millisecondsSinceEpoch,
+      reminder: ReminderTask.toJsonString(tasks),
     );
   }
 
@@ -344,8 +360,8 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
         ),
         Divider(height: 1, color: theme.colorScheme.outline.withAlpha(50)),
         Expanded(child: _buildEditorWidget(theme, _blockComponentBuilders, _textStyleConfiguration)),
-        TagPanel(uuid: record.uuid),
-        ReminderPanel(key: _reminderPanelKey, uuid: record.uuid, maxLines: 3),
+        TagBar(uuid: record.uuid),
+        ReminderBar(uuid: record.uuid),
         _LastModifyTimeWidget(uuid: record.uuid),
       ],
     );
@@ -487,9 +503,14 @@ class _LastModifyTimeWidgetState extends State<_LastModifyTimeWidget> {
     final version = record.version != record.remoteVersion
         ? 'v${record.version}->v${record.remoteVersion}'
         : 'v${record.version}';
-    return Text(
-      " $version $conflictLabel ${l10n.lastModify}: ${Utils.formatTime(record.editAt)}",
-      style: TextStyle(fontSize: 12, color: color),
+    //Text加个padding，
+
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 8),
+      child: Text(
+        " $version $conflictLabel ${l10n.lastModify}: ${Utils.formatTime(record.editAt)}",
+        style: TextStyle(fontSize: 12, color: color),
+      ),
     );
   }
 }
