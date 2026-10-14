@@ -101,7 +101,9 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
         content: file,
         isSelected: RecordOpenedState.get().openedFile?.key == file.key,
         onClickCallback: (f) {
-          onClickFile(context, (f as TreeContentFile).record);
+          Future.delayed(const Duration(milliseconds: 120), () {
+            if (context.mounted) onClickFile(context, (f as TreeContentFile).record);
+          });
         },
       );
     } else {
@@ -112,7 +114,9 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
         node: node,
         isSelected: false,
         onClickCallback: (f) {
-          onClickFolder(index, f as TreeContentFolder);
+          Future.delayed(const Duration(milliseconds: 120), () {
+            if (context.mounted) onClickFolder(index, f as TreeContentFolder);
+          });
         },
         onCreateRecord: (r) {
           onClickFile(context, r);
