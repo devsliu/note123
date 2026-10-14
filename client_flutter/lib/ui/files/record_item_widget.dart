@@ -35,6 +35,8 @@ abstract class _BaseItemWidget extends StatelessWidget {
 
   Widget buildContentWidget(BuildContext context);
 
+  String get name => content.name;
+
   @override
   Widget build(BuildContext context) {
     final TreeContent file = content;
@@ -103,7 +105,7 @@ class FolderWidget extends _BaseItemWidget {
       const SizedBox(width: 3.0),
       Expanded(
         child: Text(
-          content.name,
+          name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(fontSize: nameSize, textBaseline: TextBaseline.ideographic),
@@ -131,6 +133,12 @@ class TreeFolderWidget extends FolderWidget {
     super.folderIcon,
   });
 
+  double get intent {
+    int depth = node.depth ?? 0;
+    double intent = depth * iconSize;
+    return intent;
+  }
+
   @override
   Widget buildContentWidget(BuildContext context) {
     final folderWidgets = buildFolderWidgets(node);
@@ -147,8 +155,6 @@ class TreeFolderWidget extends FolderWidget {
         ),
       ),
     );
-    int depth = node.depth ?? 0;
-    double intent = depth * iconSize;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -188,7 +194,7 @@ class FileWidget extends _BaseItemWidget {
       if (showIcon) const SizedBox(width: 2.0),
       Expanded(
         child: Text(
-          file.name,
+          name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(fontSize: nameSize, textBaseline: TextBaseline.ideographic),
@@ -234,12 +240,15 @@ class TreeFileWidget extends FileWidget {
     required super.showIcon,
   }) : super(content: node.content);
 
+  double get intent {
+    int depth = node.depth ?? 0;
+    double intent = depth * iconSize + arrowSize;
+    return intent;
+  }
+
   @override
   Widget buildContentWidget(BuildContext context) {
     final widgets = buildFileWidgets(content as TreeContentFile, showIcon);
-    int depth = node.depth ?? 0;
-    double intent = depth * iconSize + arrowSize;
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [

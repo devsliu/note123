@@ -144,30 +144,8 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
     // copyToolbarItem,
     // cutToolbarItem,
     // pasteToolbarItem,
-    _buildTagToolbarItem(),
     createInfoToolbarItem(record.uuid),
   ];
-
-  ToolbarItem _buildTagToolbarItem() {
-    return ToolbarItem(
-      id: 'editor.tags',
-      group: 0,
-      isActive: (_) => true,
-      builder: (context, editorState, highlightColor, iconColor, tooltipBuilder) {
-        final child = SVGIconItemWidget(
-          iconBuilder: (_) => Icon(Icons.label_outline, color: iconColor, size: 18),
-          isHighlight: false,
-          highlightColor: highlightColor,
-          iconColor: iconColor,
-          onPressed: () => showTagEditor(context, uuid: record.uuid),
-        );
-        if (tooltipBuilder != null) {
-          return tooltipBuilder(context, 'editor.tags', l10n.editTags, child);
-        }
-        return child;
-      },
-    );
-  }
 
   ToolbarItem _buildReminderToolbarItem() {
     return ToolbarItem(

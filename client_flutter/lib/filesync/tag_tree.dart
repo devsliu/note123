@@ -68,6 +68,13 @@ class TagTree {
   bool _sortedDirty = true;
   List<Tag> _sortedTags = const [];
 
+  /// Unbind from RecordTree and close event streams.
+  void dispose() {
+    _recordSub?.cancel();
+    _eventController.close();
+    tagCountNotifier.dispose();
+  }
+
   /// Look up expanded state for a tag by name. Defaults to true if the tag
   /// exists but has never been toggled. Returns false if the tag is unknown.
   bool isExpanded(String name) => _tagsMap[name]?.expanded ?? false;
@@ -81,6 +88,7 @@ class TagTree {
   void rebuild(List<RecordEntry> records) {
     _recordTags.clear();
     _tagsMap.clear();
+    _sortedDirty = true;
     for (final record in records) {
       _upsertInternal(record);
     }
@@ -111,16 +119,23 @@ class TagTree {
     _eventController.add(TagTreeEvent(TagTreeEvent.typeRemove, uuid));
   }
 
-  /// Returns true iff the tag structure actually changed.
+  /// Returns true iff the record's tag set OR its RecordEntry reference
+  /// changed (so callers should refresh their UI).
   bool _upsertInternal(RecordEntry record) {
     final uuid = record.uuid;
     final newNames = record.tags;
     final oldTags = _recordTags.remove(uuid) ?? const [];
 
-    // Fast path: identical tag set, no change at all
+    // Tags identical — still refresh the RecordEntry reference inside each
+    // Tag.records (the entry's other fields like editAt may have changed).
     if (_tagSetsEqual(oldTags.map((t) => t.name).toList(), newNames)) {
-      _recordTags[uuid] = oldTags;
-      return false;
+      for (final t in oldTags) {
+        t.records
+          ..removeWhere((r) => r.uuid == uuid)
+          ..add(record);
+      }
+      if (oldTags.isNotEmpty) _recordTags[uuid] = oldTags;
+      return oldTags.isNotEmpty;
     }
 
     final oldMap = <String, Tag>{for (final t in oldTags) t.name: t};
@@ -154,10 +169,7 @@ class TagTree {
 
   bool _tagSetsEqual(List<String> a, List<String> b) {
     if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
-    }
-    return true;
+    return a.toSet().containsAll(b);
   }
 
   void _recomputeSorted() {

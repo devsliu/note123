@@ -54,19 +54,7 @@ class _TagFileWidget extends TreeFileWidget {
   });
 
   @override
-  Widget buildContentWidget(BuildContext context) {
-    final widgets = buildFileWidgets(content as TreeContentFile, showIcon);
-    int depth = node.depth ?? 0;
-    double intent = depth * iconSize; // no extra arrowSize, matches TreeFolderWidget
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        SizedBox(width: intent),
-        ...widgets,
-      ],
-    );
-  }
+  double get intent => (arrowSize + 4.0);
 }
 
 class _TagFilesControlState extends State<TagFilesControl> {
@@ -207,7 +195,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
             if (isFile) {
               child = _TagFileWidget(
                 node: node,
-                showIcon: true,
+                showIcon: false,
                 leftPadding: 8.0,
                 rightPadding: 12.0,
                 verticalPadding: verticalPadding,

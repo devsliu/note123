@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:note123/config/language_manager.dart';
 
 Future<String?> showInputDialog(BuildContext context, String title, String text, bool pass) async {
-  final controller = TextEditingController(text: text);
-  var result = await showDialog<String>(
+  return showDialog<String>(
     context: context,
     builder: (context) {
+      final controller = TextEditingController(text: text);
       return AlertDialog(
         title: Text(title),
         content: TextField(
@@ -22,6 +22,4 @@ Future<String?> showInputDialog(BuildContext context, String title, String text,
       );
     },
   );
-  controller.dispose();
-  return result;
 }
