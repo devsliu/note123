@@ -171,7 +171,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
 
   @override
   void openRecord(BuildContext context, String uuid) {
-    final name = Repository.get().recordTree.findFile(uuid)?.name ?? '';
+    final name = Repository.get().recordTree.findRecord(uuid)?.local.name ?? '';
     detailKey.currentState?.openTab(EditorTab(id: uuid, title: name, uuid: uuid));
   }
 

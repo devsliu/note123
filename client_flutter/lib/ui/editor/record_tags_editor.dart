@@ -34,7 +34,7 @@ class _TagEditorState extends State<TagEditor> {
   }
 
   void _loadTags() {
-    final record = Repository.get().recordTree.findFile(widget.uuid)?.record;
+    final record = Repository.get().recordTree.findRecord(widget.uuid);
     if (record == null || !mounted) return;
     setState(() {
       _tags = List<String>.from(record.tags);

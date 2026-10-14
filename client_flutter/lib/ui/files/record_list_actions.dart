@@ -185,10 +185,8 @@ class RecordListActions {
   static Future<void> clickOnCreateRecordButton(
     BuildContext context,
     String folder,
-    ValueCallback<TreeContentFile> onContentPressed,
+    ValueCallback<RecordEntry> onContentPressed,
   ) async {
-    RecordTree recordTree = Repository.get().recordTree;
-
     RecordEntry? record = await Repository.get().createRecord(folder, RecordUtils.generateRecordName(), true, 0);
     if (record == null) {
       if (context.mounted) {
@@ -197,8 +195,7 @@ class RecordListActions {
       return;
     }
 
-    TreeContentFile? file = recordTree.findFile(record.uuid);
-    if (file != null && context.mounted) onContentPressed(file);
+    if (context.mounted) onContentPressed(record);
   }
 
   static void clickOnCreateFolderButton(BuildContext context, String path) async {
@@ -281,7 +278,7 @@ class RecordListActions {
   static Widget newRecordButton(
     BuildContext context,
     ReturnCallback<String> getFolder,
-    ValueCallback<TreeContentFile> onContentPressed,
+    ValueCallback<RecordEntry> onContentPressed,
   ) {
     return IconButton(
       onPressed: () async {

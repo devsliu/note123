@@ -177,8 +177,8 @@ class RecordTree extends TreeNode {
     _sortedFiles.sort();
   }
 
-  TreeContentFile? findFile(String uuid) {
-    return _filesMap[uuid]?.content as TreeContentFile?;
+  RecordEntry? findRecord(String uuid) {
+    return (_filesMap[uuid]?.content as TreeContentFile?)?._entry;
   }
 
   TreeNode? findFileNode(String uuid) {

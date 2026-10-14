@@ -143,7 +143,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
     // copyToolbarItem,
     // cutToolbarItem,
     // pasteToolbarItem,
-    createInfoToolbarItem(record.uuid),
+    createInfoToolbarItem(mRecord.uuid),
   ];
 
   ToolbarItem _buildReminderToolbarItem() {
@@ -171,11 +171,11 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
     final task = ReminderTask(id: DateTime.now().millisecondsSinceEpoch.toString(), name: '');
     final updated = await showReminderTaskEditor(context, task: task);
     if (updated == null) return;
-    final recordEntry = Repository.get().recordTree.findFile(record.uuid)?.record;
+    final recordEntry = Repository.get().recordTree.findRecord(mRecord.uuid);
     if (recordEntry == null) return;
     final tasks = ReminderTask.fromJsonString(recordEntry.local.reminder)..add(updated);
     await Repository.get().editRecord(
-      record.uuid,
+      mRecord.uuid,
       false,
       DateTime.now().millisecondsSinceEpoch,
       reminder: ReminderTask.toJsonString(tasks),
@@ -198,7 +198,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
 
     bool isNewRecord = plaintext.isEmpty;
     if (isNewRecord) {
-      final title = record.local.name.isNotEmpty ? record.local.name : RecordUtils.generateRecordName();
+      final title = mRecord.local.name.isNotEmpty ? mRecord.local.name : RecordUtils.generateRecordName();
 
       document = Document.blank()
         ..root.insert(headingNode(level: 1, delta: Delta()..insert(title)), index: 0)
@@ -337,9 +337,9 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
         ),
         Divider(height: 1, color: theme.colorScheme.outline.withAlpha(50)),
         Expanded(child: _buildEditorWidget(theme, _blockComponentBuilders, _textStyleConfiguration)),
-        TagBar(uuid: record.uuid),
-        ReminderBar(uuid: record.uuid),
-        RecordModifyTimeBar(uuid: record.uuid),
+        TagBar(uuid: mRecord.uuid),
+        ReminderBar(uuid: mRecord.uuid),
+        RecordModifyTimeBar(uuid: mRecord.uuid),
       ],
     );
   }

@@ -43,20 +43,20 @@ class _RecordModifyTimeBarState extends State<RecordModifyTimeBar> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final fileNode = Repository.get().recordTree.findFile(widget.uuid);
-    if (fileNode == null) return const SizedBox.shrink();
-    final record = fileNode.record.local;
-    final hasConflict = record.syncConflict;
+    final record = Repository.get().recordTree.findRecord(widget.uuid);
+    if (record == null) return const SizedBox.shrink();
+    final local = record.local;
+    final hasConflict = local.syncConflict;
     final color = hasConflict ? theme.colorScheme.error : theme.colorScheme.onSurface.withAlpha(150);
     final conflictLabel = hasConflict ? "  [${l10n.hasConflict}]" : "";
-    final version = record.version != record.remoteVersion
-        ? 'v${record.version}->v${record.remoteVersion}'
-        : 'v${record.version}';
+    final version = local.version != local.remoteVersion
+        ? 'v${local.version}->v${local.remoteVersion}'
+        : 'v${local.version}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Text(
-        " $version $conflictLabel ${l10n.lastModify}: ${Utils.formatTime(record.editAt)}",
+        " $version $conflictLabel ${l10n.lastModify}: ${Utils.formatTime(local.editAt)}",
         style: TextStyle(fontSize: 12, color: color),
       ),
     );

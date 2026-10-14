@@ -49,7 +49,7 @@ class TagTree {
         case RecordEvent.typeUpsertRecord:
           final uuid = event.value2;
           if (uuid != null) {
-            final entry = recordTree.findFile(uuid)?.record;
+            final entry = recordTree.findRecord(uuid);
             if (entry != null) upsert(entry);
           }
         case RecordEvent.typeDeleteRecord:

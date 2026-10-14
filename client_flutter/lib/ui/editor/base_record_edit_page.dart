@@ -60,7 +60,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   final ObjectRef<String> _contentMd5 = ObjectRef(""); // Track content md5 for diff comparison
 
   /// Current record — non-final, replaced in _onTreeChanged when sync delivers a new one.
-  late RecordEntry record;
+  late RecordEntry mRecord;
   StreamSubscription<RecordEvent>? _treeSub;
 
   /// Transition to a new page state; buildCount resets to 0 so the next build
@@ -77,13 +77,13 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     WidgetsBinding.instance.addObserver(this);
     EditorSaveCoordinator.register(this);
 
-    record = Repository.get().recordTree.findFile(widget.uuid)!.record;
+    mRecord = Repository.get().recordTree.findRecord(widget.uuid)!;
     _treeSub = Repository.get().recordTree.onEvent.listen(_onTreeChanged);
 
     // loadContent() routes locked records to password mode (sPageModePass)
     loadContent();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      RecordOpenedState.get().openFile(record.uuid);
+      RecordOpenedState.get().openFile(mRecord.uuid);
     });
   }
 
@@ -97,7 +97,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     // on the Dart isolate after dispose; the isolate stays alive until save completes.
     saveRecord();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      RecordOpenedState.get().closeFile(record.uuid);
+      RecordOpenedState.get().closeFile(mRecord.uuid);
     });
     super.dispose();
   }
@@ -119,10 +119,10 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     final fileStore = Repository.get().fileStore;
     if (fileStore == null) return;
     final tree = Repository.get().recordTree;
-    final current = tree.findFile(myUuid);
+    final newRecord = tree.findRecord(myUuid);
 
     // Record has been deleted
-    if (current == null) {
+    if (newRecord == null) {
       if (isContentChanged) return; // Has unsaved edits, don't close
       if (widget.closePageCallback != null) {
         widget.closePageCallback!();
@@ -132,9 +132,8 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
       return;
     }
 
-    final newRecord = current.record;
-    final oldRecord = record;
-    record = newRecord;
+    final oldRecord = mRecord;
+    mRecord = newRecord;
 
     // Title change: always update (doesn't affect editing content)
     if (oldRecord.local.name != newRecord.local.name) {
@@ -244,10 +243,10 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   Future<void> loadContent() async {
     // 先等该 uuid 的在飞保存链写完: 关闭后快速重开同一笔记时, 旧页面的 dispose
     // 已发起保存但尚未落盘, 新页面实例的 _saveFuture 是 null, 必须按 uuid 全局等待
-    await EditorSaveCoordinator.waitPending(record.uuid);
+    await EditorSaveCoordinator.waitPending(mRecord.uuid);
     setStateMode(PageState.modeLoad);
 
-    RecordEntry entry = record;
+    RecordEntry entry = mRecord;
     FileStore? fileStore = Repository.get().fileStore;
     if (fileStore == null) {
       return;
@@ -334,11 +333,11 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     late Future<void> chain;
     chain =
         saveWorkFile(
-              uuid: record.uuid,
-              path: record.local.path,
+              uuid: mRecord.uuid,
+              path: mRecord.local.path,
               name: name,
               content: content,
-              locked: record.local.locked,
+              locked: mRecord.local.locked,
               password: _password,
               md5Ref: _contentMd5,
             )
@@ -351,7 +350,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
             .whenComplete(() {
               _saveFuture = null;
             });
-    chain = EditorSaveCoordinator.trackSave(chain, record.uuid);
+    chain = EditorSaveCoordinator.trackSave(chain, mRecord.uuid);
     _saveFuture = chain;
     return chain;
   }

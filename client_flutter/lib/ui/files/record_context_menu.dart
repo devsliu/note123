@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:note123/filesync/file_store.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/ui/common/input_dialog.dart';
@@ -16,7 +17,7 @@ Future<void> showRecordContextMenu(
   BuildContext context,
   TreeContent file,
   Offset position,
-  ValueCallback<TreeContentFile> onContentPressed,
+  ValueCallback<RecordEntry> onContentPressed,
 ) async {
   final isFile = file is TreeContentFile;
   final isFolder = file is TreeContentFolder;

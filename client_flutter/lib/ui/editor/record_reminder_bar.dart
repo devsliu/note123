@@ -12,7 +12,7 @@ import 'package:note123/utils/utils.dart';
 /// Show a dialog with the full [ReminderPanel] for a record, including
 /// a title bar with filename + path.
 void showReminderDialog(BuildContext context, String uuid) {
-  final file = Repository.get().recordTree.findFile(uuid);
+  final record = Repository.get().recordTree.findRecord(uuid);
   final screenWidth = MediaQuery.of(context).size.width;
   showDialog(
     context: context,
@@ -20,7 +20,7 @@ void showReminderDialog(BuildContext context, String uuid) {
       contentPadding: EdgeInsets.zero,
       content: SizedBox(
         width: math.min(400, screenWidth * 0.85),
-        child: ReminderPanel(uuid: uuid, subtitle: file?.path, maxLines: 5),
+        child: ReminderPanel(uuid: uuid, subtitle: record?.local.path, maxLines: 5),
       ),
       actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.done))],
     ),
@@ -59,7 +59,7 @@ class _ReminderBarState extends State<ReminderBar> {
 
   @override
   Widget build(BuildContext context) {
-    final record = Repository.get().recordTree.findFile(widget.uuid)?.record;
+    final record = Repository.get().recordTree.findRecord(widget.uuid);
     final tasks = record == null ? const <ReminderTask>[] : ReminderTask.fromJsonString(record.local.reminder);
     if (tasks.isEmpty) return const SizedBox.shrink();
 

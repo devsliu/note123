@@ -123,6 +123,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
     for (final entry in tag.records) {
       tagChildren.add(TreeNode(TreeContentFile(entry)));
     }
+    tagChildren.sort((a, b) => a.content.name.compareTo(b.content.name));
     return TreeViewNode<TreeContent>(
       TreeContentFolder('tag:${tag.name}/', tag.name),
       children: tagChildren,
@@ -143,9 +144,29 @@ class _TagFilesControlState extends State<TagFilesControl> {
         // back to Tag for consistency.
         final expanded = existing.isExpanded;
         Repository.get().tagTree.setExpanded(tag.name, expanded);
+        // Incremental sync: reuse existing child nodes by uuid, create new ones,
+        // drop removed ones.
+        final childByUuid = <String, TreeViewNode<TreeContent>>{};
+        for (final child in existing.children) {
+          final content = child.content;
+          if (content is TreeContentFile) {
+            childByUuid[content.uuid] = child;
+          }
+        }
+        final newChildren = <TreeViewNode<TreeContent>>[];
+        for (final entry in tag.records) {
+          final uuid = entry.local.uuid;
+          final existingChild = childByUuid.remove(uuid);
+          if (existingChild != null) {
+            newChildren.add(existingChild);
+          } else {
+            newChildren.add(TreeNode(TreeContentFile(entry)));
+          }
+        }
+        newChildren.sort((a, b) => a.content.name.compareTo(b.content.name));
         existing.children
           ..clear()
-          ..addAll(_buildTagNode(tag, expanded: expanded).children);
+          ..addAll(newChildren);
       } else {
         final node = _buildTagNode(tag, expanded: tag.expanded);
         _nodeByName[tag.name] = node;

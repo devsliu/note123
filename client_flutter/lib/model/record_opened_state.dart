@@ -54,7 +54,7 @@ class RecordOpenedState {
             setOpenedFolder("/");
           }
           final currentUuid = openedFileNotifier.value;
-          if (currentUuid.isNotEmpty && tree.findFile(currentUuid) == null) {
+          if (currentUuid.isNotEmpty && tree.findRecord(currentUuid) == null) {
             closeFile(currentUuid);
           }
         }
@@ -103,9 +103,9 @@ class RecordOpenedState {
     final uuid = openedUuids.isNotEmpty ? openedUuids.last : "";
     openedFileNotifier.value = uuid;
     if (uuid.isNotEmpty) {
-      final file = _tree?.findFileNode(uuid)?.content as TreeContentFile?;
-      if (file != null) {
-        openedFolderNotifier.value = file.path;
+      final record = _tree?.findRecord(uuid);
+      if (record != null) {
+        openedFolderNotifier.value = record.local.path;
       }
     }
   }

@@ -52,7 +52,7 @@ class PhoneRecordDetailPage extends RecordFlowEditorPage {
 class PhoneRecordDetailPageState<T extends PhoneRecordDetailPage> extends RecordFlowEditorPageState<T> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: buildAppBar(context, record, this), body: super.build(context));
+    return Scaffold(appBar: buildAppBar(context, mRecord, this), body: super.build(context));
   }
 
   AppBar buildAppBar(BuildContext context, RecordEntry record, RecordFlowEditorPageState state) {

@@ -8,10 +8,10 @@ import 'package:note123/ui/editor/record_tags_editor.dart';
 
 /// Show the tag editor dialog with a title bar (same pattern as [showReminderDialog]).
 void showTagDialog(BuildContext context, String uuid) {
-  final file = Repository.get().recordTree.findFile(uuid);
+  final record = Repository.get().recordTree.findRecord(uuid);
   showDialog(
     context: context,
-    builder: (_) => TagEditor(uuid: uuid, subtitle: file?.path),
+    builder: (_) => TagEditor(uuid: uuid, subtitle: record?.local.path),
   );
 }
 
@@ -47,9 +47,9 @@ class _TagBarState extends State<TagBar> {
 
   @override
   Widget build(BuildContext context) {
-    final file = Repository.get().recordTree.findFile(widget.uuid);
+    final record = Repository.get().recordTree.findRecord(widget.uuid);
     final theme = Theme.of(context);
-    final tags = file?.record.tags ?? const <String>[];
+    final tags = record?.tags ?? const <String>[];
     final hasTags = tags.isNotEmpty;
 
     return Material(

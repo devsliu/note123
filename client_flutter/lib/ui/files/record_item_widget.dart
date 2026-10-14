@@ -25,7 +25,7 @@ abstract class _BaseItemWidget extends StatelessWidget {
 
   void onLongPressFile(BuildContext context, TreeContent file, Offset position) async {
     // Preserve mobile long-press behavior
-    await showRecordContextMenu(context, file, position, onContentPressed);
+    await showRecordContextMenu(context, file, position, (record) => onContentPressed(TreeContentFile(record)));
   }
 
   final arrowSize = 12.0;
