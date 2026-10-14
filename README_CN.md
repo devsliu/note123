@@ -58,11 +58,16 @@
 
 | 特性 | 说明 |
 |---|---|
-| 平台 | Windows, macOS, Linux, Android, iOS（一套代码） |
+| 平台 | Windows, macOS, Linux, Android, iOS（一套代码），响应式布局 |
 | 编辑器 | AppFlowy Editor（自定义 fork）— 块级富文本：段落、标题、列表、代码块（自动识别语言）、待办、链接、图片 |
 | Markdown 导入 | 批量导入 `.md` / `.txt` 文件 — 标题、列表、链接、代码围栏（语言识别）转为原生块 |
-| 离线可用 | 本地优先 — 完整 Drift (SQLite) 缓存，无网络可读写，重连自动同步（需先登录） |
-| 冲突 UI | 自动检测，Diff 视图，手动解决 |
+| 离线可用 | 本地优先 — 完整 Drift (SQLite) 缓存，无网络可读写，重连自动同步 |
+| 标签 | 每条笔记独立标签；虚拟标签文件夹视图；按标签过滤；标签编辑器；标签改动自动同步 |
+| 提醒 | 一次性 / 每周 / 每月 / 每年四种重复模式，支持农历日期；日历视图；今日未完成数量徽章 |
+| 回收站 | 软删除 → 恢复 → 彻底清空；删除时自动捕获回收站条目，恢复保留原 uuid |
+| 笔记信息 | 元数据弹窗：uuid、路径、版本、时间戳、冲突、加密状态 |
+| 冲突 UI | 自动检测，Diff 视图，手动解决（保留本地 / 保留远端） |
+| 加密 | 按笔记 AES-256 加密 — 可选，零密钥存储，丢密码即丢数据 |
 | 本地存储 | Drift (SQLite) — DB 本身就是 outbox，不需要额外队列表 |
 | 文件缓存 | work/ + base/ 双文件 — work 放编辑稿，base 放下载原件 |
 | 鉴权持久化 | SharedPreferences 存 userId / token / 密码 |
@@ -106,7 +111,7 @@ NOTE_MAX_FILE_SIZE = 100
 - `NOTE_ADMIN_USER` / `NOTE_ADMIN_PASS`: 管理界面登录凭据
 - `NOTE_PORT`: HTTP 监听端口（默认 10001）
 - `NOTE_DATA_DIR`: 数据目录，存放 SQLite 和上传文件
-- `NOTE_VERSION_DIR`: 客户端升级包目录，存放各平台安装包和 `versions.json`（默认 `./version`）
+- `NOTE_VERSION_DIR`: 客户端升级包根目录，存放所有版本子目录 + `version.ini`（默认 `./version`）
 - `NOTE_MAX_DEVICES`: 同账号最多保留的活跃 token 数，超出后自动踢掉最老的 token
 - `NOTE_MAX_FILE_SIZE`: 单条目最大上传文件大小，单位 MB（默认 100）
 - 同名环境变量优先于 config.ini（以设置了 `NOTE_ADMIN_USER` 为准）
@@ -151,72 +156,85 @@ services:
 
 ### 检查与下载接口
 
-- `GET /upgrade/check?platform=android` — 查询指定平台的最新版本（无需鉴权）
-- `GET /upgrade/download/<file>` — 下载安装包（无需鉴权）
+- `GET /upgrade/check?platform=android` — 查询指定平台的最新版本（无需鉴权），返回完整下载 URL
+- `GET /upgrade/download/{version}/{file}` — 下载安装包（无需鉴权，静态文件服务）
 
-`platform` 取值：`windows`、`linux`、`android`、`ios`。
+`platform` 取值：`windows`、`linux`、`macos`、`android`、`ios`。
 
 ### 目录结构
 
+每个版本独立子目录。服务端先读根目录 `version.ini` 取最新版本名，再进 `{version}/` 读各平台元数据。
+
 ```
 version/
-├── versions.json                              # 版本清单
-├── note123-client-windows-x64.zip             # Windows 安装包
-├── note123-client-linux-x64-v1.0.1.tar.gz     # Linux 安装包
-└── note123-android-arm64-v8a.apk              # Android APK
+├── version.ini                                    # latest=1.1.2
+├── 1.1.2/
+│   ├── version.json                               # 各平台 md5 + 文件名
+│   ├── changelog.txt                              # 纯文本发布说明
+│   ├── note123-client-windows-x64-v1.1.2.zip
+│   ├── note123-client-macos-silicon-v1.1.2.zip
+│   ├── note123-client-linux-x64-v1.1.2.tar.gz
+│   └── note123-android-arm64-v8a-v1.1.2.apk
+└── 1.1.1/
+    └── ...
 ```
 
-- Windows：下载 zip 解压覆盖原目录后自动重启
-- Android：下载 APK 后调起系统安装
-- iOS：不走服务端下载，需通过 App Store 更新
-- 目录里没有的平台不会出现在检查结果中
+- `version.ini` — 一行 `latest=X.Y.Z`，服务端首先读它决定最新版本
+- `{version}/version.json` — 各平台 `{md5, file}` 条目，带顶层 `updatedAt`
+- `{version}/changelog.txt` — 可选纯文本更新说明，check 接口原样返回
+- macOS 平台键是 `macos`，和其它平台一样走同一套流程
+- iOS 平台键被接受但构建脚本不会产出 iOS 安装包
 
-### versions.json 格式
+### version.ini 和 version.json 格式
 
-顶层 `versions` 数组存放所有版本共用的更新日志（取第 0 条），其余键名与 `platform` 一一对应，只存放该平台安装包信息：
+**version.ini** — 一行：
+```ini
+latest=1.1.2
+```
 
+**版本子目录内的 version.json：**
 ```json
 {
-  "versions": [
-    {
-      "version": "v1.0.1",
-      "versionCode": 2,
-      "changelog": "- feat: 新增布局模式切换\n- fix: 修复同步问题",
-      "updatedAt": "2026-10-09T12:00:00Z"
-    }
-  ],
+  "updatedAt": "2026-10-12T21:49:26Z",
   "windows": {
-    "version": "v1.0.1",
-    "versionCode": 2,
-    "md5": "9E107D9D372BB6826BD81D3542A419D6",
-    "file": "note123-client-windows-x64.zip",
-    "updatedAt": "2026-10-09T12:00:00Z"
+    "md5": "0AB9CC48BB1777B9657F245D67ECA0AF",
+    "file": "note123-client-windows-x64-v1.1.2.zip"
   },
   "linux": {
-    "version": "v1.0.1",
-    "versionCode": 2,
-    "md5": "...",
-    "file": "note123-client-linux-x64-v1.0.1.tar.gz",
-    "updatedAt": "2026-10-09T12:00:00Z"
+    "md5": "476123BE55F4B5C9E2B8E47FED54A6B5",
+    "file": "note123-client-linux-x64-v1.1.2.tar.gz"
   },
   "android": {
-    "version": "v1.0.1",
-    "versionCode": 2,
-    "md5": "...",
-    "file": "note123-android-arm64-v8a.apk",
-    "updatedAt": "2026-10-09T12:00:00Z"
+    "md5": "7CFD9EF9F65F301AA20DED96EDD72BE3",
+    "file": "note123-android-arm64-v8a-v1.1.2.apk"
+  },
+  "macos": {
+    "md5": "EC4492A621F29E00CA04138F3CC1E4FE",
+    "file": "note123-client-macos-silicon-v1.1.2.zip"
   }
 }
 ```
 
 字段说明：
+- `md5`：安装包大写 MD5，客户端完整性校验用
+- `file`：版本子目录下的文件名，也是 check 接口构造下载 URL 的依据
+- `updatedAt`：服务端不消费，仅作记录
 
-- `versionCode`：整数构建号，客户端用它比较大小，必须随版本递增
-- `md5`：安装包 MD5（大写），供完整性校验
-- `file`：`NOTE_VERSION_DIR` 下的文件名，也是下载路径的一部分
-- 发布新版本只需替换安装包、更新（或新增）对应平台条目，无需重启服务端
+### 发布新版本
 
-Windows 上可用 `pack/build_*.bat` 构建、`pack/update_versions_json.ps1` 自动生成/更新 `versions.json`。
+执行 `pack/publish_release.ps1`，传 git tag 和服务端版本目录：
+```powershell
+powershell -ExecutionPolicy Bypass -File pack\publish_release.ps1 -Version 1.1.2 -ServerVersionDir 'Y:\note123\version'
+```
+
+脚本流程：
+1. 打 tag 推送 → GitHub Actions 构建全平台产物
+2. 等 CI 结束，下载产物到 `pack/build/{version}/`
+3. 从 GitHub Release body 生成 `version.json` + `changelog.txt`
+4. 写 `version.ini`（`latest={version}`）
+5. 复制整个版本子目录 + 最新 `version.ini` 到服务端
+
+复制完无需重启服务端 —— 下次客户端 check 直接读新的 `version.ini`，进新版本子目录取元数据。
 
 ---
 
@@ -235,7 +253,7 @@ Windows 上可用 `pack/build_*.bat` 构建、`pack/update_versions_json.ps1` �
 | POST | `/record/clear` | 清空当前用户所有条目 | 是 |
 | GET | `/api_stat/list` | 查询 API 调用统计 | 是 |
 | GET | `/upgrade/check` | 检查客户端更新（参数 `platform`） | 否 |
-| GET | `/upgrade/download/{file}` | 下载安装包 | 否 |
+| GET | `/upgrade/download/{version}/{file}` | 下载安装包（静态文件） | 否 |
 | POST | `/admin/login` | 管理端登录 | 否 |
 | GET | `/admin` | 管理界面 | 否 (session cookie) |
 

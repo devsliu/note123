@@ -58,11 +58,16 @@ Core design:
 
 | Feature | Detail |
 |---|---|
-| Platform | Windows, macOS, Linux, Android, iOS (one codebase) |
+| Platform | Windows, macOS, Linux, Android, iOS (one codebase), responsive layout |
 | Editor | AppFlowy Editor (custom fork) — block-based rich text: paragraphs, headings, lists, code blocks (with language detection), todos, links, images |
 | Markdown Import | Batch import `.md` / `.txt` files — headings, lists, links, code fences (language-aware) converted to native blocks |
 | Offline-first | Full local Drift (SQLite) cache — read/write without server, sync on reconnect |
-| Conflict UI | Auto-detect, diff view, manual resolve |
+| Tags | Per-record tags, virtual tag folders, filter by tag, tag editor dialog, auto-sync with tag edits |
+| Reminders | Tasks with repeat modes (once / weekly / monthly / yearly), lunar calendar support, calendar view, today badge count |
+| Recycle Bin | Soft delete → restore → permanently purge; capture into bin on delete, restore keeps uuid |
+| Note Info | Metadata dialog: uuid, path, version, timestamps, conflict, lock status |
+| Conflict UI | Auto-detect, diff view, manual resolve (keep local / keep remote) |
+| Encryption | Per-note AES-256 encryption — optional, zero key storage, lost password means lost data |
 | Local Storage | Drift (SQLite) — DB itself is the outbox, no separate queue table needed |
 | File Cache | work/base dual files — work for edits, base for downloaded originals |
 | Auth Storage | SharedPreferences stores userId / token / password |
@@ -151,72 +156,85 @@ Clients check for and download updates from **Settings → Version**. Update fil
 
 ### Check and download endpoints
 
-- `GET /upgrade/check?platform=android` — query the latest version for a platform (no auth)
-- `GET /upgrade/download/<file>` — download an install package (no auth)
+- `GET /upgrade/check?platform=android` — query the latest version for a platform (no auth). Returns the full download URL.
+- `GET /upgrade/download/{version}/{file}` — download an install package (no auth, static file serve).
 
-`platform` values: `windows`, `linux`, `android`, `ios`.
+`platform` values: `windows`, `linux`, `macos`, `android`, `ios`.
 
 ### Directory layout
 
+Each release goes into its own subdirectory. The server determines the latest version by reading the root `version.ini`, then looks inside `{version}/` for platform info.
+
 ```
 version/
-├── versions.json                              # version manifest
-├── note123-client-windows-x64.zip             # Windows package
-├── note123-client-linux-x64-v1.0.1.tar.gz     # Linux package
-└── note123-android-arm64-v8a.apk              # Android APK
+├── version.ini                                    # latest=1.1.2
+├── 1.1.2/
+│   ├── version.json                               # per-platform md5 + filename
+│   ├── changelog.txt                              # plain-text release notes
+│   ├── note123-client-windows-x64-v1.1.2.zip
+│   ├── note123-client-macos-silicon-v1.1.2.zip
+│   ├── note123-client-linux-x64-v1.1.2.tar.gz
+│   └── note123-android-arm64-v8a-v1.1.2.apk
+└── 1.1.1/
+    └── ...
 ```
 
-- Windows: downloads the zip, extracts it over the install directory, then restarts automatically
-- Android: downloads the APK and opens the system installer
-- iOS: not served here; updates go through the App Store
-- Platforms missing from the directory are simply absent from check results
+- `version.ini` — single line `latest=X.Y.Z`, server reads this first.
+- `{version}/version.json` — per-platform `{md5, file}` entries, plus top-level `updatedAt`.
+- `{version}/changelog.txt` — optional plain-text release notes, returned verbatim in the check response.
+- macOS platform key is `macos` (not `darwin`); server handles it the same as the others.
+- iOS is accepted as a platform key but no macOS/iOS package is produced by the build scripts.
 
-### versions.json format
+### version.ini and version.json format
 
-The top-level `versions` array holds changelog shared across platforms (entry 0 is used). Other keys match `platform` values and hold per-platform package info:
+**version.ini** — one line:
+```ini
+latest=1.1.2
+```
 
+**version.json** inside a version subdirectory:
 ```json
 {
-  "versions": [
-    {
-      "version": "v1.0.1",
-      "versionCode": 2,
-      "changelog": "- feat: add layout mode switch\n- fix: sync issue",
-      "updatedAt": "2026-10-09T12:00:00Z"
-    }
-  ],
+  "updatedAt": "2026-10-12T21:49:26Z",
   "windows": {
-    "version": "v1.0.1",
-    "versionCode": 2,
-    "md5": "9E107D9D372BB6826BD81D3542A419D6",
-    "file": "note123-client-windows-x64.zip",
-    "updatedAt": "2026-10-09T12:00:00Z"
+    "md5": "0AB9CC48BB1777B9657F245D67ECA0AF",
+    "file": "note123-client-windows-x64-v1.1.2.zip"
   },
   "linux": {
-    "version": "v1.0.1",
-    "versionCode": 2,
-    "md5": "...",
-    "file": "note123-client-linux-x64-v1.0.1.tar.gz",
-    "updatedAt": "2026-10-09T12:00:00Z"
+    "md5": "476123BE55F4B5C9E2B8E47FED54A6B5",
+    "file": "note123-client-linux-x64-v1.1.2.tar.gz"
   },
   "android": {
-    "version": "v1.0.1",
-    "versionCode": 2,
-    "md5": "...",
-    "file": "note123-android-arm64-v8a.apk",
-    "updatedAt": "2026-10-09T12:00:00Z"
+    "md5": "7CFD9EF9F65F301AA20DED96EDD72BE3",
+    "file": "note123-android-arm64-v8a-v1.1.2.apk"
+  },
+  "macos": {
+    "md5": "EC4492A621F29E00CA04138F3CC1E4FE",
+    "file": "note123-client-macos-silicon-v1.1.2.zip"
   }
 }
 ```
 
-Field notes:
+Notes:
+- `md5`: uppercase MD5 of the install package, returned to the client for integrity checks.
+- `file`: filename inside the version subdirectory; the server builds the download URL as `/upgrade/download/{version}/{file}`.
+- `updatedAt`: optional metadata field, the server doesn't consume it.
 
-- `versionCode`: integer build number used for comparison, must increase with every release
-- `md5`: package MD5 (uppercase) for integrity checks
-- `file`: filename inside `NOTE_VERSION_DIR`, also used as the download path
-- Shipping a new release only requires replacing the package and updating/adding the platform entry — no server restart needed
+### Publishing a new release
 
-On Windows, build with `pack/build_*.bat` and generate/update `versions.json` with `pack/update_versions_json.ps1`.
+Run `pack/publish_release.ps1` with a git tag and the server's version directory:
+```powershell
+powershell -ExecutionPolicy Bypass -File pack\publish_release.ps1 -Version 1.1.2 -ServerVersionDir 'Y:\note123\version'
+```
+
+The script:
+1. Tags the repo and pushes → GitHub Actions builds all packages.
+2. Waits for CI, downloads artifacts to `pack/build/{version}/`.
+3. Generates `version.json` + `changelog.txt` from the GitHub Release body.
+4. Writes `version.ini` (`latest={version}`).
+5. Copies the whole release directory plus the updated `version.ini` to the server.
+
+No server restart is needed after copying — the next client check picks up the new `version.ini` and reads the new subdirectory automatically.
 
 ---
 
@@ -235,7 +253,7 @@ Auth-required APIs need headers: `X-User-Id` + `X-Token`.
 | POST | `/record/clear` | Clear all records for current user | Yes |
 | GET | `/api_stat/list` | Query API call statistics | Yes |
 | GET | `/upgrade/check` | Check for client updates (`platform` param) | No |
-| GET | `/upgrade/download/{file}` | Download install package | No |
+| GET | `/upgrade/download/{version}/{file}` | Download install package (static file) | No |
 | POST | `/admin/login` | Admin login | No |
 | GET | `/admin` | Admin UI | No (session cookie) |
 

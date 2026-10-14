@@ -12,7 +12,8 @@ import (
 
 // ---- Upgrade / version.ini + vX.Y.Z/version.json ----
 
-// versionPlatform 是 version.json 里一个平台的信息（update_versions_json.ps1 写入）
+// versionPlatform is a single platform entry in {version}/version.json
+// (written by pack/publish_release.ps1)
 type versionPlatform struct {
 	Md5  string `json:"md5"`
 	File string `json:"file"`
