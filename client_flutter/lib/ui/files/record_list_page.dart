@@ -150,7 +150,10 @@ class _RecordListPageState extends State<RecordListPage> {
           return;
         }
         final state = RecordOpenedState.get();
-        if (state.openedFolder.path == "/" || RecordListWidgetType.notifier.value != RecordListWidgetType.sFlatFolder) {
+        final bool onTagsTab = ListActiveTab.notifier.value == ListActiveTab.tags;
+        if (onTagsTab ||
+            state.openedFolder.path == "/" ||
+            RecordListWidgetType.notifier.value != RecordListWidgetType.sFlatFolder) {
           if (!Navigator.canPop(context)) {
             SystemNavigator.pop();
           } else {
