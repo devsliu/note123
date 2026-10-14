@@ -7,38 +7,38 @@ import 'package:window_manager/window_manager.dart';
 
 import 'package:note123/ui/files/record_list_page.dart';
 
+import '../../filesync/repository.dart';
 import 'desktop_tabs_page.dart';
 import '../../config/prefs.dart';
-import '../../filesync/record_tree.dart';
 import '../../model/record_opened_state.dart';
 import '../calendar/calendar_page.dart';
 import '../files/recycler_page.dart';
 import '../editor/record_flow_editor_page.dart';
 
 class EditorTab extends DesktopTab {
-  final TreeContentFile record;
+  final String uuid;
   @override
   final String title;
-  EditorTab({required super.id, required this.title, required this.record});
+  EditorTab({required super.id, required this.title, required this.uuid});
 
   @override
   void select() {
-    RecordOpenedState.get().openFile(record.uuid);
+    RecordOpenedState.get().openFile(uuid);
   }
 
   @override
   void close() {
-    RecordOpenedState.get().closeFile(record.uuid);
+    RecordOpenedState.get().closeFile(uuid);
   }
 
   @override
   Widget buildPage(GlobalKey key, VoidCallback closePageCallback) {
-    return RecordFlowEditorPage(record: record, key: key, closePageCallback: closePageCallback);
+    return RecordFlowEditorPage(uuid: uuid, key: key, closePageCallback: closePageCallback);
   }
 }
 
 class CalendarTab extends DesktopTab {
-  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+  final ValueCallback2<BuildContext, String> openRecordCallback;
   CalendarTab({required this.openRecordCallback}) : super(id: '__calendar__');
 
   @override
@@ -170,8 +170,9 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   }
 
   @override
-  void openRecord(BuildContext context, TreeContentFile record) {
-    detailKey.currentState?.openTab(EditorTab(id: record.uuid, title: record.name, record: record));
+  void openRecord(BuildContext context, String uuid) {
+    final name = Repository.get().recordTree.findFile(uuid)?.name ?? '';
+    detailKey.currentState?.openTab(EditorTab(id: uuid, title: name, uuid: uuid));
   }
 
   @override

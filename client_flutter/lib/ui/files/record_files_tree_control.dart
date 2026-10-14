@@ -9,7 +9,7 @@ import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 class RecordFilesTreeControl extends StatefulWidget {
   final bool shrink;
-  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+  final ValueCallback2<BuildContext, String> openRecordCallback;
 
   const RecordFilesTreeControl({super.key, required this.shrink, required this.openRecordCallback});
 
@@ -104,7 +104,7 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
   }
 
   void onClickFile(TreeContentFile record) {
-    widget.openRecordCallback(context, record);
+    widget.openRecordCallback(context, record.uuid);
   }
 
   void onContentPressed(TreeContent content) {

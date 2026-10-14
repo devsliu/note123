@@ -182,6 +182,7 @@
   "addReminder": "Add reminder",
   "weekdays": "Mon|Tue|Wed|Thu|Fri|Sat|Sun",
   "calendarTasks": "Calendar",
+  "calendar": "Calendar",
   "noRemindersToday": "No reminders today",
   "reminder": "Reminder",
   "today": "Today",

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:note123/config/app_config.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:note123/config/language_manager.dart';
-import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/reminder_tree.dart';
 import 'package:note123/ui/desktop/desktop_tabs_page.dart';
@@ -12,7 +11,7 @@ import 'package:note123/utils/lunar.dart';
 
 class CalendarPage extends StatefulWidget {
   final bool showAppBar;
-  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+  final ValueCallback2<BuildContext, String> openRecordCallback;
   final ValueCallback<BuildContext> closeCallback;
 
   const CalendarPage({
@@ -69,9 +68,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
   }
 
   void _openRecord(String uuid) {
-    final record = Repository.get().recordTree.findFile(uuid);
-    if (record == null) return;
-    widget.openRecordCallback(context, record);
+    widget.openRecordCallback(context, uuid);
   }
 
   /// Load the task list of the record that owns [entry], mutate via [update],

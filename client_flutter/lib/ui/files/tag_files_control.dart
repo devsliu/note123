@@ -11,7 +11,7 @@ import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 /// the tag. All tiles are expanded by default.
 class TagFilesControl extends StatefulWidget {
   final bool shrink;
-  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+  final ValueCallback2<BuildContext, String> openRecordCallback;
 
   const TagFilesControl({super.key, required this.shrink, required this.openRecordCallback});
 
@@ -139,7 +139,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
 
   void _onContentPressed(TreeContent content) {
     if (content is TreeContentFile) {
-      widget.openRecordCallback(context, content);
+      widget.openRecordCallback(context, content.uuid);
       return;
     }
     // Tag folder: resolve the actual TreeViewNode from the controller.

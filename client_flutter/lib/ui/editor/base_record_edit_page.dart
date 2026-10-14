@@ -39,11 +39,11 @@ class PageState {
 }
 
 abstract class BaseRecordEditPage extends StatefulWidget {
-  final TreeContentFile record;
+  final String uuid;
   // Callback when record is deleted remotely; desktop uses it to close tab, mobile defaults to Navigator.pop
   final VoidCallback? closePageCallback;
 
-  const BaseRecordEditPage({super.key, required this.record, this.closePageCallback});
+  const BaseRecordEditPage({super.key, required this.uuid, this.closePageCallback});
 }
 
 abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends State<T>
@@ -57,6 +57,9 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   Future<void>? _saveFuture; // Coalesce concurrent save calls
   final ObjectRef<String> _contentMd5 = ObjectRef(""); // Track content md5 for diff comparison
 
+  /// Current record — non-final, replaced in _onTreeChanged when sync delivers a new one.
+  late RecordEntry record;
+
   /// Transition to a new page state; buildCount resets to 0 so the next build
   /// signals a fresh state transition.
   void setStateMode(int mode, [Object? payload]) {
@@ -65,21 +68,18 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     });
   }
 
-  // Track last known LocalRecord (all final, replaced as a whole during sync) for diff comparison
-  RecordEntry? _lastKnownRecord;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    _lastKnownRecord = widget.record.record;
+    record = Repository.get().recordTree.findFile(widget.uuid)!.record;
     Repository.get().recordTree.refreshNotifier.addListener(_onTreeChanged);
 
     // loadContent() routes locked records to password mode (sPageModePass)
     loadContent();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      RecordOpenedState.get().openFile(widget.record.uuid);
+      RecordOpenedState.get().openFile(record.uuid);
     });
   }
 
@@ -92,7 +92,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     // on the Dart isolate after dispose; the isolate stays alive until save completes.
     saveRecord();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      RecordOpenedState.get().closeFile(widget.record.uuid);
+      RecordOpenedState.get().closeFile(record.uuid);
     });
     super.dispose();
   }
@@ -108,7 +108,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     final tree = Repository.get().recordTree;
     // Only process events involving this record's uuid, ignore unrelated changes directly
     final events = tree.refreshNotifier.value;
-    final myUuid = widget.record.uuid;
+    final myUuid = widget.uuid;
     final hit = events.any(
       (e) => (e.type == RecordEvent.typeDeleteRecord || e.type == RecordEvent.typeUpsertRecord) && e.value2 == myUuid,
     );
@@ -128,13 +128,11 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     }
 
     final newRecord = current.record;
-    final oldRecord = _lastKnownRecord;
-    // record reference unchanged means this record wasn't updated, no need to handle
-    if (identical(oldRecord, newRecord)) return;
-    _lastKnownRecord = newRecord;
+    final oldRecord = record;
+    record = newRecord;
 
     // Title change: always update (doesn't affect editing content)
-    if (oldRecord?.local.name != newRecord.local.name) {
+    if (oldRecord.local.name != newRecord.local.name) {
       if (mounted) setState(() {});
     }
 
@@ -241,21 +239,21 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
   Future<void> loadContent() async {
     setStateMode(PageState.modeLoad);
 
-    RecordEntry record = widget.record.record;
+    RecordEntry entry = record;
     FileStore? fileStore = Repository.get().fileStore;
     if (fileStore == null) {
       return;
     }
 
-    File file = File(fileStore.getWorkFile(record.uuid));
-    if (record.local.remoteFileVersion > 0 && !file.existsSync()) {
-      file = File(fileStore.getBaseFile(record.uuid));
-      if (!file.existsSync()) {
-        await fileStore.downloadBaseFile(record.uuid);
+    File file = File(fileStore.getWorkFile(entry.uuid));
+    if (entry.local.remoteFileVersion > 0 && !file.existsSync()) {
+      file = File(fileStore.getBaseFile(entry.uuid));
+      if (!file.existsSync() || entry.remote.fileVersion > entry.local.baseFileVersion) {
+        await fileStore.downloadBaseFile(entry.uuid);
       }
     }
     if (!file.existsSync()) {
-      file = File(fileStore.getWorkFile(record.uuid));
+      file = File(fileStore.getWorkFile(entry.uuid));
     }
     String content = "";
     if (file.existsSync()) {
@@ -268,7 +266,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     }
 
     // If record is locked, unlock via UnlockContentWidget (password input + errors inside widget)
-    if (record.local.locked == 1 && content.isNotEmpty) {
+    if (entry.local.locked == 1 && content.isNotEmpty) {
       // Try saved password first (auto re-unlock after remote refresh)
       if (_password != null) {
         final decrypted = Utils.decryptContent(content, _password!);
@@ -285,7 +283,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
       // Widget decrypts and calls back with plaintext
       setStateMode(PageState.modePass, content);
       return;
-    } else if (record.local.locked != 1) {
+    } else if (entry.local.locked != 1) {
       _password = null; // Password becomes plaintext after version upgrade
     }
 
@@ -315,7 +313,6 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
       return _saveFuture;
     }
 
-    RecordEntry record = widget.record.record;
     var (String content, String name) = formatContent();
 
     if (name.isEmpty) {

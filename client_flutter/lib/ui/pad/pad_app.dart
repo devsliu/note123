@@ -34,9 +34,9 @@ class _PadAppState extends BaseAppState<PadApp> {
   }
 
   @override
-  void openRecord(BuildContext context, TreeContentFile record) {
+  void openRecord(BuildContext context, String uuid) {
     widget.detailBuilder.value = (context) {
-      return PhoneRecordDetailPage(key: Key(record.uuid), record: record, closeCallback: onCloseDetail);
+      return PhoneRecordDetailPage(key: Key(uuid), uuid: uuid, closeCallback: onCloseDetail);
     };
   }
 

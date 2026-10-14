@@ -94,7 +94,7 @@ EditorStyle buildEditorStyle(ThemeData theme, TextStyleConfiguration textStyleCo
 }
 
 class RecordFlowEditorPage extends BaseRecordEditPage {
-  const RecordFlowEditorPage({super.key, required super.record, super.closePageCallback});
+  const RecordFlowEditorPage({super.key, required super.uuid, super.closePageCallback});
 
   @override
   State<RecordFlowEditorPage> createState() => RecordFlowEditorPageState();
@@ -144,7 +144,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
     // cutToolbarItem,
     // pasteToolbarItem,
     _buildTagToolbarItem(),
-    createInfoToolbarItem(widget.record.uuid),
+    createInfoToolbarItem(record.uuid),
   ];
 
   ToolbarItem _buildTagToolbarItem() {
@@ -158,7 +158,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
           isHighlight: false,
           highlightColor: highlightColor,
           iconColor: iconColor,
-          onPressed: () => showTagEditor(context, uuid: widget.record.uuid),
+          onPressed: () => showTagEditor(context, uuid: record.uuid),
         );
         if (tooltipBuilder != null) {
           return tooltipBuilder(context, 'editor.tags', l10n.editTags, child);
@@ -205,7 +205,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
 
     bool isNewRecord = plaintext.isEmpty;
     if (isNewRecord) {
-      final title = widget.record.name.isNotEmpty ? widget.record.name : RecordUtils.generateRecordName();
+      final title = record.local.name.isNotEmpty ? record.local.name : RecordUtils.generateRecordName();
 
       document = Document.blank()
         ..root.insert(headingNode(level: 1, delta: Delta()..insert(title)), index: 0)
@@ -344,9 +344,9 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
         ),
         Divider(height: 1, color: theme.colorScheme.outline.withAlpha(50)),
         Expanded(child: _buildEditorWidget(theme, _blockComponentBuilders, _textStyleConfiguration)),
-        TagPanel(uuid: widget.record.uuid),
-        ReminderPanel(key: _reminderPanelKey, uuid: widget.record.uuid, maxLines: 3),
-        _LastModifyTimeWidget(uuid: widget.record.uuid),
+        TagPanel(uuid: record.uuid),
+        ReminderPanel(key: _reminderPanelKey, uuid: record.uuid, maxLines: 3),
+        _LastModifyTimeWidget(uuid: record.uuid),
       ],
     );
   }

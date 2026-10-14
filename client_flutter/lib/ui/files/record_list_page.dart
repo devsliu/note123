@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/model/record_opened_state.dart';
 import 'package:note123/ui/common/platform_app_bar.dart';
 import 'package:note123/ui/files/record_files_flat_control.dart';
@@ -19,7 +18,7 @@ import 'package:note123/config/app_config.dart';
 import 'sync_button.dart';
 
 class RecordListPage extends StatefulWidget {
-  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+  final ValueCallback2<BuildContext, String> openRecordCallback;
   final ValueCallback<BuildContext> onOpenCalendar;
   final ValueCallback<BuildContext> onOpenRecycler;
 
@@ -66,11 +65,12 @@ class _RecordListPageState extends State<RecordListPage> {
 
   Widget _buildTabBar(BuildContext context) {
     final theme = Theme.of(context);
+    final bool desktop = Utils.isDesktop();
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: desktop ? 4 : 8),
       child: Material(
         color: theme.colorScheme.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
         clipBehavior: Clip.antiAlias,
         child: Row(
           children: [
@@ -102,7 +102,7 @@ class _RecordListPageState extends State<RecordListPage> {
             RecordListActions.newRecordButton(
               context,
               _getFolder,
-              (record) => widget.openRecordCallback(context, record),
+              (record) => widget.openRecordCallback(context, record.uuid),
             ),
             RecordListActions.newFolderButton(context, _getFolder),
           ],

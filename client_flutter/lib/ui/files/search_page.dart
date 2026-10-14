@@ -13,7 +13,7 @@ import 'package:note123/config/app_config.dart';
 class SearchPage extends StatefulWidget {
   final bool shrink;
   final VoidCallback onBack;
-  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+  final ValueCallback2<BuildContext, String> openRecordCallback;
 
   const SearchPage({super.key, required this.shrink, required this.onBack, required this.openRecordCallback});
 
@@ -96,7 +96,7 @@ class _SearchPageState extends State<SearchPage> {
 class RecordSearchResultsControl extends StatefulWidget {
   final String query;
   final bool shrink;
-  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+  final ValueCallback2<BuildContext, String> openRecordCallback;
 
   const RecordSearchResultsControl({
     super.key,
@@ -160,7 +160,7 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
           content: file,
           isSelected: RecordOpenedState.get().openedFile?.key == file.key,
           onContentPressed: (content) {
-            widget.openRecordCallback(context, content as TreeContentFile);
+            widget.openRecordCallback(context, (content as TreeContentFile).uuid);
           },
         );
       },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/ui/base_app.dart';
 import 'package:note123/ui/editor/record_flow_editor_page.dart';
@@ -16,8 +17,8 @@ class PhoneApp extends BaseApp {
 
 class _PhoneAppState extends BaseAppState<PhoneApp> {
   @override
-  void openRecord(BuildContext context, TreeContentFile record) {
-    navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => PhoneRecordDetailPage(record: record)));
+  void openRecord(BuildContext context, String uuid) {
+    navigatorKey.currentState?.push(MaterialPageRoute(builder: (context) => PhoneRecordDetailPage(uuid: uuid)));
   }
 
   @override
@@ -42,7 +43,7 @@ class _PhoneAppState extends BaseAppState<PhoneApp> {
 
 class PhoneRecordDetailPage extends RecordFlowEditorPage {
   final ValueCallback<BuildContext> closeCallback;
-  const PhoneRecordDetailPage({super.key, required super.record, this.closeCallback = Navigator.pop});
+  const PhoneRecordDetailPage({super.key, required super.uuid, this.closeCallback = Navigator.pop});
 
   @override
   State<PhoneRecordDetailPage> createState() => PhoneRecordDetailPageState();
@@ -51,17 +52,17 @@ class PhoneRecordDetailPage extends RecordFlowEditorPage {
 class PhoneRecordDetailPageState<T extends PhoneRecordDetailPage> extends RecordFlowEditorPageState<T> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: buildAppBar(context, widget.record, this), body: super.build(context));
+    return Scaffold(appBar: buildAppBar(context, record, this), body: super.build(context));
   }
 
-  AppBar buildAppBar(BuildContext context, TreeContentFile record, RecordFlowEditorPageState state) {
+  AppBar buildAppBar(BuildContext context, RecordEntry record, RecordFlowEditorPageState state) {
     return AppBar(
       leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.arrow_back)),
       titleSpacing: 0,
       title: ValueListenableBuilder<List<RecordEvent>>(
         valueListenable: recordTree.refreshNotifier,
         builder: (context, value, child) =>
-            Text(record.path + record.name, overflow: TextOverflow.fade, style: TextStyle(fontSize: 16.0)),
+            Text(record.local.path + record.local.name, overflow: TextOverflow.fade, style: TextStyle(fontSize: 16.0)),
       ),
       actions: [
         if (pageState.isNormal) IconButton(onPressed: () => {state.saveRecord()}, icon: Icon(Icons.done_outlined)),

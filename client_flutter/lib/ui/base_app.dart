@@ -31,7 +31,7 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   /// 通知点击时调用，打开对应笔记。
-  void openRecord(BuildContext context, TreeContentFile record);
+  void openRecord(BuildContext context, String uuid);
 
   /// 打开日历页。
   void openCalendar(BuildContext context);
@@ -82,10 +82,7 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
   void _onNotificationTap() {
     final uuid = ReminderNotifier.instance.notificationTapNotifier.value;
     if (uuid == null || uuid.isEmpty) return;
-    final node = Repository.get().recordTree.findFileNode(uuid);
-    if (node == null) return;
-    final file = node.content as TreeContentFile;
-    openRecord(context, file);
+    openRecord(context, uuid);
   }
 
   /// 监听同步状态，出现冲突时自动弹出冲突处理页。

@@ -562,7 +562,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekdays => 'Mon|Tue|Wed|Thu|Fri|Sat|Sun';
 
   @override
-  String get calendar => '日历';
+  String get calendar => 'Calendar';
 
   @override
   String get noRemindersToday => 'No reminders today';

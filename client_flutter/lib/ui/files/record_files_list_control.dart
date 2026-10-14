@@ -8,7 +8,7 @@ import 'package:note123/utils/utils.dart';
 import 'package:note123/config/app_config.dart';
 
 class RecordFilesListControl extends StatefulWidget {
-  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+  final ValueCallback2<BuildContext, String> openRecordCallback;
   final bool showDivider;
   final bool shrink;
 
@@ -63,7 +63,7 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
           content: list[index],
           isSelected: RecordOpenedState.get().openedFile?.key == file.key,
           onContentPressed: (content) {
-            widget.openRecordCallback(context, content as TreeContentFile);
+            widget.openRecordCallback(context, (content as TreeContentFile).uuid);
           },
         );
       },

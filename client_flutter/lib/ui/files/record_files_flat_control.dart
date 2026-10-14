@@ -5,12 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:note123/ui/files/record_item_widget.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/utils/utils.dart';
-import 'package:note123/config/app_config.dart';
 import 'package:note123/ui/common/breadcrumb_bar.dart';
 
 class RecordFilesFlatControl extends StatefulWidget {
   final bool shrink;
-  final ValueCallback2<BuildContext, TreeContentFile> openRecordCallback;
+  final ValueCallback2<BuildContext, String> openRecordCallback;
 
   const RecordFilesFlatControl({super.key, required this.shrink, required this.openRecordCallback});
   @override
@@ -49,7 +48,7 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
   }
 
   void onClickFile(BuildContext context, TreeContentFile record) {
-    widget.openRecordCallback(context, record);
+    widget.openRecordCallback(context, record.uuid);
   }
 
   @override
@@ -70,9 +69,9 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
             shrink: widget.shrink,
           ),
         ),
-        AppConfig.listViewDivider(context),
+        // AppConfig.listViewDivider(context),
         Expanded(
-          child: ListView.separated(
+          child: ListView.builder(
             itemCount: count,
             itemBuilder: (BuildContext context, int index) {
               if (count <= index) {
@@ -80,7 +79,7 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
               }
               return buildItemWidget(context, index, children[index] as TreeNode);
             },
-            separatorBuilder: (_, i) => AppConfig.listViewDivider(context),
+            // separatorBuilder: (_, i) => AppConfig.listViewDivider(context),
           ),
         ),
       ],
