@@ -27,8 +27,8 @@ TextStyleConfiguration buildEditorTextStyle(ThemeData theme) {
   return TextStyleConfiguration(
     text: TextStyle(fontSize: 16, color: theme.colorScheme.onSurface),
     lineHeight: 1,
-    applyHeightToFirstAscent: true,
-    applyHeightToLastDescent: true,
+    applyHeightToFirstAscent: false,
+    applyHeightToLastDescent: false,
     leadingDistribution: TextLeadingDistribution.proportional,
   );
 }
@@ -41,28 +41,6 @@ Map<String, BlockComponentBuilder> buildEditorBlockBuilders(ThemeData theme) {
       configuration: standardBlockComponentConfiguration.copyWith(
         placeholderText: (_) => AppFlowyEditorL10n.current.toDoPlaceholder,
       ),
-      textStyleBuilder: (checked) {
-        final baseColor = theme.colorScheme.onSurface;
-        if (!checked) return TextStyle(color: baseColor);
-        return TextStyle(decoration: TextDecoration.lineThrough, color: theme.colorScheme.onSurfaceVariant);
-      },
-      iconBuilder: (context, node, onCheck) {
-        final checked = node.attributes[TodoListBlockKeys.checked] ?? false;
-        final iconColor = checked ? theme.colorScheme.primary : theme.colorScheme.onSurface;
-        return Transform.translate(
-          offset: const Offset(0, -3),
-          child: MouseRegion(
-            cursor: SystemMouseCursors.click,
-            child: GestureDetector(
-              onTap: onCheck,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 6),
-                child: Icon(checked ? Icons.check_box : Icons.check_box_outline_blank, size: 22, color: iconColor),
-              ),
-            ),
-          ),
-        );
-      },
       toggleChildrenTriggers: [LogicalKeyboardKey.shift, LogicalKeyboardKey.shiftLeft, LogicalKeyboardKey.shiftRight],
     ),
     ParagraphBlockKeys.type: ParagraphBlockComponentBuilder(
@@ -133,12 +111,14 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
     todoListItem,
     codeBlockItem,
     quoteItem,
+    tableToolbarItem,
     bulletedListItem,
     numberedListItem,
     buildTextColorItem(),
     ...markdownFormatItems,
     ...headingItems,
     linkItem,
+
     // timeToolbarItem,
     // copyToolbarItem,
     // cutToolbarItem,

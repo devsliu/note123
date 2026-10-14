@@ -310,3 +310,45 @@ final ToolbarItem redoToolbarItem = ToolbarItem(
     return child;
   },
 );
+
+final ToolbarItem tableToolbarItem = ToolbarItem(
+  id: 'editor.table',
+  group: 20,
+  isActive: (_) => false,
+  builder: (context, editorState, highlightColor, iconColor, tooltipBuilder) {
+    final child = SVGIconItemWidget(
+      iconBuilder: (_) => Icon(Icons.table_chart, size: 18, color: iconColor),
+      isHighlight: false,
+      highlightColor: highlightColor,
+      iconColor: iconColor,
+      onPressed: () async {
+        final selection = editorState.selection;
+        if (selection == null || !selection.isCollapsed) return;
+        final currentNode = editorState.getNodeAtPath(selection.end.path);
+        if (currentNode == null) return;
+
+        final tableNode = TableNode.fromList([
+          ['', ''],
+          ['', ''],
+        ]);
+
+        final transaction = editorState.transaction;
+        final delta = currentNode.delta;
+        if (delta != null && delta.isEmpty) {
+          transaction
+            ..insertNode(selection.end.path, tableNode.node)
+            ..deleteNode(currentNode);
+          transaction.afterSelection = Selection.collapsed(Position(path: selection.end.path + [0, 0]));
+        } else {
+          transaction.insertNode(selection.end.path.next, tableNode.node);
+          transaction.afterSelection = Selection.collapsed(Position(path: selection.end.path.next + [0, 0]));
+        }
+        await editorState.apply(transaction);
+      },
+    );
+    if (tooltipBuilder != null) {
+      return tooltipBuilder(context, 'editor.table', 'Table', child);
+    }
+    return child;
+  },
+);
