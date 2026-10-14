@@ -317,7 +317,7 @@ final ToolbarItem tableToolbarItem = ToolbarItem(
   isActive: (_) => false,
   builder: (context, editorState, highlightColor, iconColor, tooltipBuilder) {
     final child = SVGIconItemWidget(
-      iconBuilder: (_) => Icon(Icons.table_chart, size: 18, color: iconColor),
+      iconBuilder: (_) => Icon(Icons.table_chart_outlined, size: 18, color: iconColor),
       isHighlight: false,
       highlightColor: highlightColor,
       iconColor: iconColor,
