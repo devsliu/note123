@@ -40,6 +40,35 @@ class _TagFolderWidget extends TreeFolderWidget {
   }
 }
 
+/// Tag file row — same as TreeFileWidget but indent matches TreeFolderWidget
+/// (no extra arrowSize, since TagFolderWidget uses its own # icon).
+class _TagFileWidget extends TreeFileWidget {
+  _TagFileWidget({
+    required super.node,
+    required super.showIcon,
+    required super.leftPadding,
+    required super.rightPadding,
+    required super.verticalPadding,
+    required super.isSelected,
+    required super.onContentPressed,
+  });
+
+  @override
+  Widget buildContentWidget(BuildContext context) {
+    final widgets = buildFileWidgets(content as TreeContentFile, showIcon);
+    int depth = node.depth ?? 0;
+    double intent = depth * iconSize; // no extra arrowSize, matches TreeFolderWidget
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        SizedBox(width: intent),
+        ...widgets,
+      ],
+    );
+  }
+}
+
 class _TagFilesControlState extends State<TagFilesControl> {
   final recordTree = Repository.get().recordTree;
   final TreeViewController _treeController = TreeViewController();
@@ -176,7 +205,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
             final isSelected = RecordOpenedState.get().openedFile?.key == content.key;
             Widget child;
             if (isFile) {
-              child = TreeFileWidget(
+              child = _TagFileWidget(
                 node: node,
                 showIcon: true,
                 leftPadding: 8.0,
