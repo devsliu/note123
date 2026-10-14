@@ -17,7 +17,7 @@ Future<void> showRecordContextMenu(
   BuildContext context,
   TreeContent file,
   Offset position,
-  ValueCallback<RecordEntry> onContentPressed,
+  ValueCallback<RecordEntry> onRecordCreate,
 ) async {
   final isFile = file is TreeContentFile;
   final isFolder = file is TreeContentFolder;
@@ -91,7 +91,7 @@ Future<void> showRecordContextMenu(
       await _lockRecord(context, file, pass, false);
     });
   } else if (result == 'newRecord' && isFolder) {
-    RecordListActions.clickOnCreateRecordButton(context, file.path, onContentPressed);
+    RecordListActions.clickOnCreateRecordButton(context, file.path, onRecordCreate);
   } else if (result == 'newFolder' && isFolder) {
     RecordListActions.clickOnCreateFolderButton(context, file.path);
   } else if (result == 'importDocument' && isFolder) {

@@ -9,23 +9,25 @@ import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 abstract class _BaseItemWidget extends StatelessWidget {
   final TreeContent content;
   final bool isSelected;
-  final ValueCallback<TreeContent> onContentPressed;
   final double leftPadding;
   final double rightPadding;
   final double verticalPadding;
+  final ValueCallback<TreeContent> onClickCallback;
+
   const _BaseItemWidget({
     super.key,
+    required this.onClickCallback,
     required this.content,
     required this.isSelected,
-    required this.onContentPressed,
     required this.leftPadding,
     required this.rightPadding,
     required this.verticalPadding,
   });
 
-  void onLongPressFile(BuildContext context, TreeContent file, Offset position) async {
-    // Preserve mobile long-press behavior
-    await showRecordContextMenu(context, file, position, (record) => onContentPressed(TreeContentFile(record)));
+  void onLongClick(BuildContext context, TreeContent file, Offset position) async {}
+
+  void onClick(BuildContext context, TreeContent file) async {
+    onClickCallback(file);
   }
 
   final arrowSize = 12.0;
@@ -51,19 +53,19 @@ abstract class _BaseItemWidget extends StatelessWidget {
         // Execute click event with 200ms delay
         if (file is TreeContentFolder) {
           Future.delayed(const Duration(milliseconds: 180), () {
-            onContentPressed(file);
+            if (context.mounted) onClick(context, file);
           });
         } else {
-          onContentPressed(file);
+          onClick(context, file);
         }
       },
       // Use onSecondaryTap to respond to right mouse button clicks
       onSecondaryTapDown: (details) {
-        onLongPressFile(context, file, details.globalPosition);
+        onLongClick(context, file, details.globalPosition);
       },
       // Also trigger on mobile long-press
       onLongPress: () {
-        onLongPressFile(context, file, lastTapPosition ?? Offset.zero);
+        onLongClick(context, file, lastTapPosition ?? Offset.zero);
       },
       hoverColor: theme.colorScheme.primary.withAlpha(50),
       child: Container(
@@ -79,6 +81,8 @@ abstract class _BaseItemWidget extends StatelessWidget {
 class FolderWidget extends _BaseItemWidget {
   final TreeViewNode<TreeContent> node;
 
+  final ValueCallback<RecordEntry> onCreateRecord;
+
   /// Override the folder icon with a fixed widget. When null, uses the
   /// default folder_open/folder_outlined pair that reacts to expand state.
   final Widget? folderIcon;
@@ -86,13 +90,19 @@ class FolderWidget extends _BaseItemWidget {
   FolderWidget({
     super.key,
     required super.isSelected,
-    required super.onContentPressed,
     required this.node,
+    required super.onClickCallback,
     required super.leftPadding,
     required super.rightPadding,
     required super.verticalPadding,
+    required this.onCreateRecord,
     this.folderIcon,
   }) : super(content: node.content);
+
+  @override
+  void onLongClick(BuildContext context, TreeContent file, Offset position) async {
+    showRecordContextMenu(context, file, position, onCreateRecord);
+  }
 
   @override
   Widget buildContentWidget(BuildContext context) {
@@ -125,12 +135,13 @@ class TreeFolderWidget extends FolderWidget {
   TreeFolderWidget({
     super.key,
     required super.isSelected,
-    required super.onContentPressed,
     required super.node,
     required super.leftPadding,
     required super.rightPadding,
     required super.verticalPadding,
     super.folderIcon,
+    required super.onClickCallback,
+    required super.onCreateRecord,
   });
 
   double get intent {
@@ -173,12 +184,17 @@ class FileWidget extends _BaseItemWidget {
     super.key,
     required this.showIcon,
     required super.isSelected,
-    required super.onContentPressed,
+    required super.onClickCallback,
     required super.leftPadding,
     required super.rightPadding,
     required super.verticalPadding,
     required super.content,
   });
+
+  @override
+  void onLongClick(BuildContext context, TreeContent file, Offset position) {
+    showRecordContextMenu(context, file, position, (_) => {});
+  }
 
   @override
   Widget buildContentWidget(BuildContext context) {
@@ -232,7 +248,7 @@ class TreeFileWidget extends FileWidget {
   TreeFileWidget({
     super.key,
     required super.isSelected,
-    required super.onContentPressed,
+    required super.onClickCallback,
     required super.leftPadding,
     required super.rightPadding,
     required super.verticalPadding,

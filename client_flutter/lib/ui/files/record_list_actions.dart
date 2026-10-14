@@ -185,7 +185,7 @@ class RecordListActions {
   static Future<void> clickOnCreateRecordButton(
     BuildContext context,
     String folder,
-    ValueCallback<RecordEntry> onContentPressed,
+    ValueCallback<RecordEntry> onRecordCreate,
   ) async {
     RecordEntry? record = await Repository.get().createRecord(folder, RecordUtils.generateRecordName(), true, 0);
     if (record == null) {
@@ -195,7 +195,7 @@ class RecordListActions {
       return;
     }
 
-    if (context.mounted) onContentPressed(record);
+    if (context.mounted) onRecordCreate(record);
   }
 
   static void clickOnCreateFolderButton(BuildContext context, String path) async {

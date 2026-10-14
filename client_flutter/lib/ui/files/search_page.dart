@@ -161,8 +161,8 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
           verticalPadding: widget.shrink ? 4.0 : 10.0,
           content: file,
           isSelected: RecordOpenedState.get().openedFile?.key == file.key,
-          onContentPressed: (content) {
-            widget.openRecordCallback(context, (content as TreeContentFile).uuid);
+          onClickCallback: (f) {
+            widget.openRecordCallback(context, (f as TreeContentFile).uuid);
           },
         );
       },

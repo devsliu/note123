@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/model/record_opened_state.dart';
@@ -94,28 +95,20 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
     );
   }
 
-  void onClickFolder(TreeContentFolder node) {
-    final treeViewNode = _treeController.getNodeFor(node);
+  void onClickFolder(TreeContentFolder folder) {
+    final treeViewNode = _treeController.getNodeFor(folder);
     if (treeViewNode != null) {
       _treeController.toggleNode(treeViewNode);
       if (!treeViewNode.isExpanded) {
-        RecordOpenedState.get().setOpenedFolder(node.dir);
+        RecordOpenedState.get().setOpenedFolder(folder.dir);
       } else {
-        RecordOpenedState.get().setOpenedFolder(node.path);
+        RecordOpenedState.get().setOpenedFolder(folder.path);
       }
     }
   }
 
-  void onClickFile(TreeContentFile record) {
+  void onClickFile(RecordEntry record) {
     widget.openRecordCallback(context, record.uuid);
-  }
-
-  void onContentPressed(TreeContent content) {
-    if (content is TreeContentFile) {
-      onClickFile(content);
-    } else {
-      onClickFolder(content as TreeContentFolder);
-    }
   }
 
   Widget buildItemWidget(BuildContext context, TreeViewNode<TreeContent> node, double width) {
@@ -129,7 +122,7 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
             verticalPadding: widget.verticalPadding2,
             showIcon: true,
             isSelected: isSelected,
-            onContentPressed: onContentPressed,
+            onClickCallback: (f) => onClickFile((f as TreeContentFile).record),
           )
         : TreeFolderWidget(
             node: node,
@@ -137,7 +130,8 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
             rightPadding: 12.0,
             verticalPadding: widget.verticalPadding2,
             isSelected: isSelected,
-            onContentPressed: onContentPressed,
+            onClickCallback: (f) => onClickFolder(f as TreeContentFolder),
+            onCreateRecord: (r) => onClickFile(r),
           ); // 👈 Don't forget to add semicolon at the end!
 
     return SizedBox(

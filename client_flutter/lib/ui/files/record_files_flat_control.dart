@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/model/record_opened_state.dart';
@@ -50,7 +51,7 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
     RecordOpenedState.get().setOpenedFolder(folder.path);
   }
 
-  void onClickFile(BuildContext context, TreeContentFile record) {
+  void onClickFile(BuildContext context, RecordEntry record) {
     widget.openRecordCallback(context, record.uuid);
   }
 
@@ -99,8 +100,8 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
         verticalPadding: widget.shrink ? 4.0 : 12.0,
         content: file,
         isSelected: RecordOpenedState.get().openedFile?.key == file.key,
-        onContentPressed: (content) {
-          onClickFile(context, content as TreeContentFile);
+        onClickCallback: (f) {
+          onClickFile(context, (f as TreeContentFile).record);
         },
       );
     } else {
@@ -110,8 +111,11 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
         verticalPadding: widget.shrink ? 4.0 : 12.0,
         node: node,
         isSelected: false,
-        onContentPressed: (content) {
-          onClickFolder(index, content as TreeContentFolder);
+        onClickCallback: (f) {
+          onClickFolder(index, f as TreeContentFolder);
+        },
+        onCreateRecord: (r) {
+          onClickFile(context, r);
         },
       );
     }

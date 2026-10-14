@@ -65,8 +65,8 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
           verticalPadding: widget.shrink ? 4.0 : 10.0,
           content: list[index],
           isSelected: RecordOpenedState.get().openedFile?.key == file.key,
-          onContentPressed: (content) {
-            widget.openRecordCallback(context, (content as TreeContentFile).uuid);
+          onClickCallback: (file) {
+            widget.openRecordCallback(context, (file as TreeContentFile).uuid);
           },
         );
       },

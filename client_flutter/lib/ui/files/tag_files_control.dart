@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/filesync/tag_tree.dart';
@@ -30,27 +31,27 @@ class _TagFolderWidget extends TreeFolderWidget {
     required super.rightPadding,
     required super.verticalPadding,
     required super.isSelected,
-    required super.onContentPressed,
+    required super.onClickCallback,
+    required super.onCreateRecord,
     super.folderIcon,
   });
 
   @override
-  void onLongPressFile(BuildContext context, TreeContent file, Offset position) {
-    // Tag folders don't have context menus.
-  }
+  void onLongClick(BuildContext context, TreeContent file, Offset position) {}
 }
 
 /// Tag file row — same as TreeFileWidget but indent matches TreeFolderWidget
 /// (no extra arrowSize, since TagFolderWidget uses its own # icon).
 class _TagFileWidget extends TreeFileWidget {
   _TagFileWidget({
+    super.key,
     required super.node,
     required super.showIcon,
     required super.leftPadding,
     required super.rightPadding,
     required super.verticalPadding,
     required super.isSelected,
-    required super.onContentPressed,
+    required super.onClickCallback,
   });
 
   @override
@@ -158,6 +159,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
           final uuid = entry.local.uuid;
           final existingChild = childByUuid.remove(uuid);
           if (existingChild != null) {
+            (existingChild.content as TreeContentFile).setLocalRecord(entry);
             newChildren.add(existingChild);
           } else {
             newChildren.add(TreeNode(TreeContentFile(entry)));
@@ -183,17 +185,15 @@ class _TagFilesControlState extends State<TagFilesControl> {
     });
   }
 
-  void _onContentPressed(TreeContent content) {
-    if (content is TreeContentFile) {
-      widget.openRecordCallback(context, content.uuid);
-      return;
-    }
-    // Tag folder: resolve the actual TreeViewNode from the controller.
-    final node = _treeController.getNodeFor(content);
+  void onClickFile(RecordEntry record) {
+    widget.openRecordCallback(context, record.uuid);
+  }
+
+  void onClickFolder(TreeContent tag) {
+    final node = _treeController.getNodeFor(tag);
     if (node != null) {
       _treeController.toggleNode(node);
-      // Persist expanded state back to TagTree so it survives tab switches.
-      Repository.get().tagTree.setExpanded(content.name, node.isExpanded);
+      Repository.get().tagTree.setExpanded(tag.name, node.isExpanded);
     }
   }
 
@@ -214,14 +214,16 @@ class _TagFilesControlState extends State<TagFilesControl> {
             final isSelected = RecordOpenedState.get().openedFile?.key == content.key;
             Widget child;
             if (isFile) {
+              final tagName = (node.parent?.content as TreeContentFolder?)?.name ?? '';
               child = _TagFileWidget(
+                key: ValueKey('tag:$tagName:${content.key}'),
                 node: node,
                 showIcon: false,
                 leftPadding: 8.0,
                 rightPadding: 12.0,
                 verticalPadding: verticalPadding,
                 isSelected: isSelected,
-                onContentPressed: _onContentPressed,
+                onClickCallback: (f) => onClickFile((f as TreeContentFile).record),
               );
             } else {
               child = _TagFolderWidget(
@@ -230,7 +232,8 @@ class _TagFilesControlState extends State<TagFilesControl> {
                 rightPadding: 12.0,
                 verticalPadding: verticalPadding,
                 isSelected: false,
-                onContentPressed: _onContentPressed,
+                onClickCallback: (t) => onClickFolder(t),
+                onCreateRecord: (record) => onClickFile(record),
                 folderIcon: Text('#', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
               );
             }
