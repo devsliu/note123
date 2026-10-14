@@ -36,13 +36,14 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
 
   void onFolderChanged() {
     final folder = RecordOpenedState.get().openedFolder;
-    final treeViewNode = _treeController.getNodeFor(folder);
-    if (treeViewNode != null) {
+    var treeViewNode = _treeController.getNodeFor(folder);
+    if (treeViewNode == null) return;
+    // Expand this folder and all ancestors up to root.
+    while (treeViewNode != null) {
       if (!_treeController.isExpanded(treeViewNode) && _treeController.isActive(treeViewNode)) {
-        //isActive prevents expanding child nodes when parent isn't expanded
         _treeController.expandNode(treeViewNode);
-        AppLogger.i('expand folder: $folder');
       }
+      treeViewNode = treeViewNode.parent;
     }
   }
 
