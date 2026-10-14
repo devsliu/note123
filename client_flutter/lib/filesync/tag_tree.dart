@@ -24,7 +24,7 @@ class TagTreeEvent {
 /// carry it.
 class Tag {
   final String name;
-  bool expanded = true;
+  bool expanded = false;
   final List<RecordEntry> records = [];
 
   Tag(this.name);
