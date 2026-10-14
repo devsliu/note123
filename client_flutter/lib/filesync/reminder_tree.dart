@@ -390,10 +390,14 @@ class ReminderTree {
 
     final added = _addRecord(record);
 
-    // Only sort and notify when something actually changed.
     if (old != null || added) {
       _sort();
-      _notify(ReminderEvent(ReminderEvent.typeUpsertRecord, recordUuid: record.uuid));
+      if (added) {
+        _notify(ReminderEvent(ReminderEvent.typeUpsertRecord, recordUuid: record.uuid));
+      } else {
+        // Reminders existed before but now the record has none → treat as delete.
+        _notify(ReminderEvent(ReminderEvent.typeDeleteRecord, recordUuid: record.uuid));
+      }
     }
   }
 
@@ -421,7 +425,9 @@ class ReminderTree {
   }
 
   void _recalcCount() {
-    countNotifier.value = _entries.length;
+    final today = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
+    final count = _entries.where((e) => !e.task.done && reminderOccursOnDay(e.task, today)).length;
+    countNotifier.value = count;
   }
 
   /// Adds a record's reminders. Returns true if any entries were added.

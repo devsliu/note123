@@ -356,6 +356,11 @@ class RecordTree extends TreeNode {
     if (sourceFolder == null) return;
     final sourceParent = findFolder(dirname(sourceFolder.content.path));
     if (sourceParent == null) return;
+
+    // Collect affected file uuids BEFORE merge (merge moves/recreates nodes).
+    final affectedUuids = <String>[];
+    _collectFileUuids(sourceFolder, affectedUuids);
+
     sourceParent.removeChild(sourceFolder.content.key);
 
     _ensureFolderExists(newPath);
@@ -366,7 +371,23 @@ class RecordTree extends TreeNode {
 
     _sortedFiles.sort();
 
+    // Emit upsert for each moved file so listeners (TagTree, ReminderTree,
+    // bars) refresh their cached RecordEntry references.
+    for (final uuid in affectedUuids) {
+      _emit(RecordEvent(RecordEvent.typeUpsertRecord, value1: newPath, value2: uuid));
+    }
     _emit(RecordEvent(RecordEvent.typeRenameFolder, value1: oldPath, value2: newPath));
+  }
+
+  /// Collect uuids of all TreeContentFile descendants under [node].
+  void _collectFileUuids(TreeNode node, List<String> out) {
+    for (final child in node.children) {
+      if (child.content is TreeContentFile) {
+        out.add((child.content as TreeContentFile).uuid);
+      } else {
+        _collectFileUuids(child as TreeNode, out);
+      }
+    }
   }
 
   void _mergeVirtualFolders(TreeNode source, TreeNode target, int time) {
