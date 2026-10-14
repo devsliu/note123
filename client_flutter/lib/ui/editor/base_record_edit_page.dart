@@ -249,7 +249,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     File file = File(fileStore.getWorkFile(entry.uuid));
     if (entry.local.remoteFileVersion > 0 && !file.existsSync()) {
       file = File(fileStore.getBaseFile(entry.uuid));
-      if (!file.existsSync() || entry.remote.fileVersion > entry.local.baseFileVersion) {
+      if (!file.existsSync() || entry.local.remoteFileVersion > entry.local.baseFileVersion) {
         await fileStore.downloadBaseFile(entry.uuid);
       }
     }

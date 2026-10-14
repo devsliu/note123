@@ -6,11 +6,9 @@ import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/record_tree.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/model/record_opened_state.dart';
-import 'package:note123/filesync/user.dart';
 import 'package:note123/model/record_utils.dart';
 import 'package:note123/ui/common/input_dialog.dart';
 import 'package:note123/ui/files/record_export_dialog.dart';
-import 'package:note123/ui/settings/login_dialog.dart';
 import 'package:note123/ui/settings/theme_selector_dialog.dart';
 import 'package:note123/config/language_manager.dart';
 import 'package:note123/config/layout_mode.dart';
@@ -189,10 +187,6 @@ class RecordListActions {
     String folder,
     ValueCallback<TreeContentFile> onContentPressed,
   ) async {
-    if (!User.instance.isLogin.value) {
-      final result = await LoginDialog.show(context);
-      if (result != true) return;
-    }
     RecordTree recordTree = Repository.get().recordTree;
 
     RecordEntry? record = await Repository.get().createRecord(folder, RecordUtils.generateRecordName(), true, 0);
@@ -208,10 +202,6 @@ class RecordListActions {
   }
 
   static void clickOnCreateFolderButton(BuildContext context, String path) async {
-    if (!User.instance.isLogin.value) {
-      final result = await LoginDialog.show(context);
-      if (result != true) return;
-    }
     if (!context.mounted) return;
     String? folder = await showInputDialog(context, l10n.newFolder, "", false);
     if (folder == null) return;
@@ -248,10 +238,6 @@ class RecordListActions {
   }
 
   static void clickOnImportDocuments(BuildContext context, String path) async {
-    if (!User.instance.isLogin.value) {
-      final result = await LoginDialog.show(context);
-      if (result != true) return;
-    }
     if (!context.mounted) return;
     int importCount = 0;
     try {

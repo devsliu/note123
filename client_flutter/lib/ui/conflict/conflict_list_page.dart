@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:note123/filesync/database.dart';
 import 'package:note123/filesync/record_ext.dart';
 import 'package:note123/filesync/repository.dart';
 import 'package:note123/ui/common/platform_app_bar.dart';
