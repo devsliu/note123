@@ -49,15 +49,7 @@ abstract class _BaseItemWidget extends StatelessWidget {
         lastTapPosition = details.globalPosition;
       },
       onTap: () {
-        // Handle tap selection logic
-        // Execute click event with 200ms delay
-        if (file is TreeContentFolder) {
-          Future.delayed(const Duration(milliseconds: 180), () {
-            if (context.mounted) onClick(context, file);
-          });
-        } else {
-          onClick(context, file);
-        }
+        onClick(context, file);
       },
       // Use onSecondaryTap to respond to right mouse button clicks
       onSecondaryTapDown: (details) {

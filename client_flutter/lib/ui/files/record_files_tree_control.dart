@@ -6,7 +6,6 @@ import 'package:note123/filesync/repository.dart';
 import 'package:note123/model/record_opened_state.dart';
 import 'package:flutter/material.dart';
 import 'package:note123/ui/files/record_item_widget.dart';
-import 'package:note123/utils/app_logger.dart';
 import 'package:note123/utils/utils.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
