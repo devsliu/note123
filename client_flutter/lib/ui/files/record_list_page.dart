@@ -1,0 +1,229 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:notee/filesync/repository.dart';
+import 'package:notee/model/record_opened_state.dart';
+import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/base_app.dart';
+import 'package:notee/ui/files/record_files_flat_control.dart';
+import 'package:notee/ui/files/record_files_list_control.dart';
+import 'package:notee/ui/files/record_files_tree_control.dart';
+import 'package:notee/ui/files/record_multi_select.dart';
+import 'package:notee/ui/files/tag_files_control.dart';
+import 'package:notee/ui/files/record_search_page.dart';
+import 'package:notee/ui/files/record_list_actions.dart';
+import 'package:notee/ui/desktop/desktop_title_bar.dart';
+import 'package:notee/ui/settings/settings_button.dart';
+import 'package:notee/config/language_manager.dart';
+import 'package:notee/config/layout_mode.dart';
+import 'package:notee/config/theme.dart';
+import 'package:notee/utils/utils.dart';
+import 'package:notee/config/app_config.dart';
+
+import 'sync_button.dart';
+
+/// App bar that swaps to the multi-select action bar while selection mode is active.
+class _AppBarSwitcher extends StatelessWidget implements PreferredSizeWidget {
+  final PreferredSizeWidget Function(BuildContext context) buildTitleBar;
+
+  const _AppBarSwitcher({required this.buildTitleBar});
+
+  @override
+  Size get preferredSize =>
+      Utils.isDesktop() ? Size.fromHeight(windowTitleBarHeight) : const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: MultiSelectState.instance,
+      builder: (context, _) {
+        return MultiSelectState.instance.active ? buildMultiSelectAppBar(context) : buildTitleBar(context);
+      },
+    );
+  }
+}
+
+class RecordListPage extends StatefulWidget {
+  const RecordListPage({super.key});
+
+  @override
+  State<RecordListPage> createState() => _RecordListPageState();
+}
+
+class _RecordListPageState extends State<RecordListPage> {
+  bool _showSearch = false;
+
+  String _getFolder() {
+    if (ListPageType.value.listType == ListPageType.typeTree) {
+      return "/";
+    }
+    return RecordOpenedState.get().openedFolder.path;
+  }
+
+  PreferredSizeWidget _buildTitleBar(BuildContext context) {
+    final bool desktop = Utils.isDesktop();
+    return createPlatformAppBar(
+      automaticallyImplyLeading: false,
+      titleSpacing: 12,
+      showWindowButtons: false,
+      title: AppConfig.appTitle,
+      actions: [
+        SyncButton(),
+        IconButton(
+          onPressed: () => setState(() => _showSearch = true),
+          icon: const Icon(Icons.search),
+          tooltip: l10n.searchRecords,
+        ),
+        SettingsButton(),
+        SizedBox(width: desktop ? 4 : AppConfig.pageHorizontalPadding),
+      ],
+    );
+  }
+
+  Widget _buildTabBar(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      child: Material(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(4),
+        clipBehavior: Clip.antiAlias,
+        child: Row(
+          children: [
+            Expanded(child: RecordListActions.allRecordsButton(context)),
+            Expanded(child: RecordListActions.tagsButton(context)),
+            Expanded(child: RecordListActions.calendarButton(context)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final bool desktop = Utils.isDesktop();
+    return Container(
+      color: theme.appBarBackgroundColor,
+      padding: EdgeInsets.symmetric(horizontal: desktop ? 4 : AppConfig.pageHorizontalPadding, vertical: 2.0),
+      child: IconButtonTheme(
+        data: theme.appBarIconButtonTheme,
+        child: Row(
+          spacing: 4,
+          children: [
+            RecordListActions.themeButton(context),
+            RecordListActions.importExportButton(context, _getFolder),
+            RecordListActions.recyclerButton(context),
+            RecordListActions.viewToggleButton(context),
+            Spacer(),
+            RecordListActions.newRecordButton(
+              context,
+              _getFolder,
+              (record) => AppNavigator.of(context).navigate(AppNavigator.uriRecord, record.uuid),
+            ),
+            RecordListActions.newFolderButton(context, _getFolder),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Empty library: replace the list control with a create-hint state.
+  Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.note_alt_outlined, size: 48, color: theme.colorScheme.onSurface.withAlpha(100)),
+          const SizedBox(height: 12),
+          Text(
+            l10n.emptyRecordsHint,
+            style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withAlpha(150)),
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => RecordListActions.clickOnCreateRecordButton(
+              context,
+              '/',
+              (record) => AppNavigator.of(context).navigate(AppNavigator.uriRecord, record.uuid),
+            ),
+            icon: const Icon(Icons.add, size: 18),
+            label: Text(l10n.newRecord),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    final bool desktop = Utils.isDesktop();
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        ListPageType.notifier,
+        Repository.get().userSwitchingNotifier,
+        Repository.get().recordTree.countNotifier,
+      ]),
+      builder: (context, _) {
+        if (Repository.get().userSwitchingNotifier.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (Repository.get().recordTree.countNotifier.value == 0) {
+          return _buildEmptyState(context);
+        }
+        ListPageType typeValue = ListPageType.notifier.value;
+        if (typeValue.tab == ListPageType.tabTag) {
+          return TagFilesControl(shrink: desktop);
+        }
+
+        if (typeValue.listType == ListPageType.typeTree) {
+          return RecordFilesTreeControl(shrink: desktop);
+        } else if (typeValue.listType == ListPageType.typeFlat) {
+          return RecordFilesFlatControl(shrink: desktop);
+        } else {
+          return RecordFilesListControl(showDivider: true, shrink: desktop);
+        }
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (MultiSelectState.instance.active) {
+          MultiSelectState.instance.exit();
+          return;
+        }
+        if (_showSearch) {
+          setState(() => _showSearch = false);
+          return;
+        }
+        final state = RecordOpenedState.get();
+        final bool onTagsTab = ListPageType.value.tab == ListPageType.tabTag;
+        if (onTagsTab || state.openedFolder.path == "/" || ListPageType.value.listType != ListPageType.typeFlat) {
+          if (!Navigator.canPop(context)) {
+            SystemNavigator.pop();
+          } else {
+            Navigator.pop(context);
+          }
+        } else {
+          state.setOpenedFolder(state.openedFolder.dir);
+        }
+      },
+      child: _showSearch
+          ? RecordSearchPage(shrink: Utils.isDesktop(), onBack: () => setState(() => _showSearch = false))
+          : Scaffold(
+              appBar: _AppBarSwitcher(buildTitleBar: _buildTitleBar),
+              body: Column(
+                children: [
+                  _buildTabBar(context),
+                  Expanded(child: _buildContent(context)),
+                  const SyncStateWidget(),
+                  _buildBottomBar(context)
+                ],
+              ),
+            ),
+    );
+  }
+}
