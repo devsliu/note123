@@ -1,11 +1,9 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:notee/config/app_config.dart';
 import 'package:notee/config/language_manager.dart';
-import 'package:notee/config/layout_mode.dart';
-import 'package:notee/config/prefs.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/model/record_opened_state.dart';
 import 'package:notee/utils/app_logger.dart';
@@ -37,11 +35,9 @@ Future<void> main() async {
   AppLogger.i('Main', 'platform: $defaultTargetPlatform');
 
   await AppConfig.init();
-  Prefs.init();
   LanguageManager.init();
   await Repository.init(AppConfig.appRootDir);
-  ListPageType.init();
-  Repository.get().recordTree.setSortListType(ListPageType.value.sortType);
+  Repository.get().recordTree.setSortListType(AppConfig.listPageValue.sortType);
   RecordOpenedState.get().setOpenedFolder("/");
 
   if (Utils.isDesktop()) {
@@ -55,7 +51,7 @@ Future<void> main() async {
 
 Future<void> _initWindows() async {
   await windowManager.ensureInitialized();
-  final p = Prefs.instance;
+  final p = AppConfig.prefs;
   final width = p.getDouble(PrefKeys.windowWidth);
   final height = p.getDouble(PrefKeys.windowHeight);
   final posX = p.getDouble(PrefKeys.windowPosX);
@@ -87,7 +83,7 @@ Future<void> _initWindows() async {
 }
 
 Widget _buildApp() {
-  switch (LayoutMode.resolve()) {
+  switch (AppConfig.getLayoutMode()) {
     case LayoutMode.desktop:
       return DesktopApp();
     case LayoutMode.pad:

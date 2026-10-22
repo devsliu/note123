@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/model/record_opened_state.dart';
@@ -11,9 +11,7 @@ import 'package:notee/ui/files/record_multi_select.dart';
 import 'package:notee/ui/files/tag_files_control.dart';
 import 'package:notee/ui/files/record_search_page.dart';
 import 'package:notee/ui/files/record_list_actions.dart';
-import 'package:notee/ui/desktop/desktop_title_bar.dart';
 import 'package:notee/config/language_manager.dart';
-import 'package:notee/config/layout_mode.dart';
 import 'package:notee/config/theme.dart';
 import 'package:notee/utils/utils.dart';
 import 'package:notee/config/app_config.dart';
@@ -27,10 +25,7 @@ class _AppBarSwitcher extends StatelessWidget implements PreferredSizeWidget {
   const _AppBarSwitcher({required this.buildTitleBar});
 
   @override
-  Size get preferredSize {
-    final useDesktopBar = Utils.isDesktop() && LayoutMode.resolve() == LayoutMode.desktop;
-    return Size.fromHeight(useDesktopBar ? windowTitleBarHeight : kToolbarHeight);
-  }
+  Size get preferredSize => Size.fromHeight(AppConfig.getAppBarHeight());
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +49,7 @@ class _RecordListPageState extends State<RecordListPage> {
   bool _showSearch = false;
 
   String _getFolder() {
-    if (ListPageType.value.listType == ListPageType.typeTree) {
+    if (AppConfig.listPageValue.listFilesType == FilesPanelMode.filesTypeTree) {
       return "/";
     }
     return RecordOpenedState.get().openedFolder.path;
@@ -163,7 +158,7 @@ class _RecordListPageState extends State<RecordListPage> {
     final bool desktop = Utils.isDesktop();
     return ListenableBuilder(
       listenable: Listenable.merge([
-        ListPageType.notifier,
+        AppConfig.filesPanelModeNotifier,
         Repository.get().userSwitchingNotifier,
         Repository.get().recordTree.countNotifier,
       ]),
@@ -174,14 +169,14 @@ class _RecordListPageState extends State<RecordListPage> {
         if (Repository.get().recordTree.countNotifier.value == 0) {
           return _buildEmptyState(context);
         }
-        ListPageType typeValue = ListPageType.notifier.value;
-        if (typeValue.tab == ListPageType.tabTag) {
+        FilesPanelMode typeValue = AppConfig.filesPanelModeNotifier.value;
+        if (typeValue.panelMode == FilesPanelMode.panelModeTag) {
           return TagFilesControl(shrink: desktop);
         }
 
-        if (typeValue.listType == ListPageType.typeTree) {
+        if (typeValue.listFilesType == FilesPanelMode.filesTypeTree) {
           return RecordFilesTreeControl(shrink: desktop);
-        } else if (typeValue.listType == ListPageType.typeFlat) {
+        } else if (typeValue.listFilesType == FilesPanelMode.filesTypeFlat) {
           return RecordFilesFlatControl(shrink: desktop);
         } else {
           return RecordFilesListControl(showDivider: true, shrink: desktop);
@@ -205,8 +200,10 @@ class _RecordListPageState extends State<RecordListPage> {
           return;
         }
         final state = RecordOpenedState.get();
-        final bool onTagsTab = ListPageType.value.tab == ListPageType.tabTag;
-        if (onTagsTab || state.openedFolder.path == "/" || ListPageType.value.listType != ListPageType.typeFlat) {
+        final bool onTagsTab = AppConfig.listPageValue.panelMode == FilesPanelMode.panelModeTag;
+        if (onTagsTab ||
+            state.openedFolder.path == "/" ||
+            AppConfig.listPageValue.listFilesType != FilesPanelMode.filesTypeFlat) {
           if (!Navigator.canPop(context)) {
             SystemNavigator.pop();
           } else {

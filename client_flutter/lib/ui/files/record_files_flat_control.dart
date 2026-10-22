@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/record_tree.dart';
@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/files/record_item_widget.dart';
 import 'package:notee/config/language_manager.dart';
+
 import 'package:notee/ui/common/breadcrumb_bar.dart';
 import 'package:notee/utils/state_ext.dart';
 

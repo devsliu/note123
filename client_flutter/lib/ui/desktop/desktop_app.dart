@@ -1,7 +1,9 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:notee/config/language_manager.dart';
+import 'package:notee/config/app_config.dart';
+
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/desktop/desktop_title_bar.dart';
 import 'package:notee/ui/desktop/window_state.dart';
@@ -12,7 +14,6 @@ import 'package:notee/ui/files/record_list_page.dart';
 
 import '../../filesync/repository.dart';
 import 'desktop_tabs_page.dart';
-import '../../config/prefs.dart';
 import '../../model/record_opened_state.dart';
 import '../calendar/calendar_page.dart';
 import '../common/split_layout.dart';
@@ -116,7 +117,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
 
   void _onRecordTreeCountChanged() {
     if (_tabsRestored) return;
-    if (!(Prefs.instance.getBool(PrefKeys.rememberOpenTabs) ?? true)) {
+    if (!(AppConfig.prefs.getBool(PrefKeys.rememberOpenTabs) ?? true)) {
       _tabsRestored = true;
       return;
     }
@@ -130,21 +131,21 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   }
 
   void _saveTabs() {
-    if (!(Prefs.instance.getBool(PrefKeys.rememberOpenTabs) ?? true)) {
-      Prefs.instance.remove(PrefKeys.openTabs);
+    if (!(AppConfig.prefs.getBool(PrefKeys.rememberOpenTabs) ?? true)) {
+      AppConfig.prefs.remove(PrefKeys.openedTabs);
       return;
     }
     final state = detailKey.currentState;
     if (state == null || state.tabCount == 0) {
-      Prefs.instance.remove(PrefKeys.openTabs);
+      AppConfig.prefs.remove(PrefKeys.openedTabs);
       return;
     }
     final data = {'index': state.currentIndex, 'tabs': state.tabs.map((t) => t.toMap()).toList()};
-    Prefs.instance.setMap(PrefKeys.openTabs, data);
+    AppConfig.prefs.setMap(PrefKeys.openedTabs, data);
   }
 
   void _restoreTabs() {
-    final raw = Prefs.instance.getMap(PrefKeys.openTabs);
+    final raw = AppConfig.prefs.getMap(PrefKeys.openedTabs);
     if (raw == null) return;
     final state = detailKey.currentState;
     if (state == null || !state.mounted) return;
@@ -167,7 +168,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   /// 初始化桌面窗口（大小、标题栏、显示等），仅执行一次。
 
   double loadLeftWidth() {
-    double saved = Prefs.instance.getDouble(PrefKeys.windowLeftWidth) ?? 0;
+    double saved = AppConfig.prefs.getDouble(PrefKeys.windowLeftWidth) ?? 0;
     if (saved == 0) saved = minLeftWidth;
     return saved;
   }
@@ -194,7 +195,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   @override
   void onWindowResized() async {
     final size = await windowManager.getSize();
-    Prefs.instance
+    AppConfig.prefs
       ..setDouble(PrefKeys.windowWidth, size.width)
       ..setDouble(PrefKeys.windowHeight, size.height);
   }
@@ -202,7 +203,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   @override
   void onAppTerminating() {
     _saveTabs();
-    Prefs.instance
+    AppConfig.prefs
       ..setBool(PrefKeys.windowMaximized, isMaximizedNotifier.value)
       ..setDouble(PrefKeys.windowLeftWidth, leftWidth)
       ..save();
@@ -217,7 +218,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   @override
   void onWindowMoved() async {
     final pos = await windowManager.getPosition();
-    Prefs.instance
+    AppConfig.prefs
       ..setDouble(PrefKeys.windowPosX, pos.dx)
       ..setDouble(PrefKeys.windowPosY, pos.dy);
   }
@@ -225,7 +226,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   @override
   void onWindowResize() async {
     final size = await windowManager.getSize();
-    Prefs.instance
+    AppConfig.prefs
       ..setDouble(PrefKeys.windowWidth, size.width)
       ..setDouble(PrefKeys.windowHeight, size.height);
   }
@@ -284,10 +285,10 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
       leftWidth: leftWidth,
       minLeftWidth: minLeftWidth,
       maxLeftWidth: maxLeftWidth,
-      draggerTopOffset: windowTitleBarHeight,
+      draggerTopOffset: kWindowToolbarHeight,
       onLeftWidthChanged: (w) {
         leftWidth = w;
-        Prefs.instance.setDouble(PrefKeys.windowLeftWidth, w);
+        AppConfig.prefs.setDouble(PrefKeys.windowLeftWidth, w);
       },
       leftChild: RecordListPage(),
       rightChild: ScaffoldMessenger(child: DesktopTabsPage(key: detailKey)),

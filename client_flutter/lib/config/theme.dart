@@ -1,8 +1,8 @@
-import 'package:notee/config/prefs.dart';
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:notee/utils/reboot.dart';
 
+import 'app_config.dart';
 import '../l10n/app_localizations.dart';
 
 // primary: primary color (e.g., buttons, AppBar background)
@@ -694,7 +694,7 @@ AppTheme _applyUniversalThemePatch(AppTheme theme) {
 }
 
 AppTheme _getSavedTheme() {
-  final keyStr = Prefs.instance.getString(_kThemeKey) ?? 'light';
+  final keyStr = AppConfig.prefs.getString(_kThemeKey) ?? 'light';
   final theme = appThemes.firstWhere((t) => t.key == keyStr, orElse: () => appThemes[0]);
   return _applyUniversalThemePatch(theme);
 }
@@ -705,7 +705,7 @@ ThemeData get gAppThemeData => _currentTheme.data;
 
 Future<void> switchAppTheme(AppTheme theme) async {
   if (_currentTheme != theme) {
-    Prefs.instance.setString(_kThemeKey, theme.key).save();
+    AppConfig.prefs.setString(_kThemeKey, theme.key).save();
     _currentTheme = _applyUniversalThemePatch(theme);
     // Trigger app reboot
     Reboot.trigger();

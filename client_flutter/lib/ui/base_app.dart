@@ -3,12 +3,13 @@ import 'dart:io';
 
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
-import 'package:notee/config/prefs.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/filesync/sync_engine.dart';
 import 'package:notee/model/reminder_notifier.dart';
 import 'package:notee/config/theme.dart';
+import 'package:notee/config/app_config.dart';
 import 'package:notee/config/language_manager.dart';
+
 import 'package:notee/utils/app_logger.dart';
 
 import '../l10n/app_localizations.dart';
@@ -130,7 +131,6 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
   @override
   void initState() {
     super.initState();
-    LanguageManager.initializeL10n(context);
     ReminderNotifier.instance.init();
     Repository.get().syncRecords(true);
     WidgetsBinding.instance.addObserver(this);
@@ -170,7 +170,7 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
 
   /// 进程即将终止时调用（覆盖以执行额外的持久化）。
   void onAppTerminating() {
-    Prefs.instance.save();
+    AppConfig.prefs.save();
     EditorSaveCoordinator.flushAll();
   }
 
@@ -235,7 +235,8 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
     });
   }
 
-  Widget buildMaterialApp(BuildContext context, Widget home) {
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
       theme: gAppTheme.data,
@@ -251,12 +252,7 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
         // 都能通过 AppNavigator.of(context) 找到导航实例。
         return AppNavigatorScope(navigator: this, child: buildAppWrapper(context, child!));
       },
-      home: home,
+      home: Builder(builder: buildHome),
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return buildMaterialApp(context, buildHome(context));
   }
 }

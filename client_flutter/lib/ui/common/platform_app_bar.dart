@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:notee/config/app_config.dart';
-import 'package:notee/config/layout_mode.dart';
 import 'package:notee/ui/desktop/desktop_title_bar.dart';
 
 import '../../utils/utils.dart';
@@ -18,7 +17,7 @@ PreferredSizeWidget createPlatformAppBar({
   double? titleSpacing,
 }) {
   final isDesktop = Utils.isDesktop();
-  final layoutMode = LayoutMode.resolve();
+  final layoutMode = AppConfig.getLayoutMode();
   final useDesktopBar = isDesktop && layoutMode == LayoutMode.desktop;
 
   Widget effectiveTitle = titleWidget ?? Text(title ?? '');
@@ -38,7 +37,7 @@ PreferredSizeWidget createPlatformAppBar({
     backgroundColor: backgroundColor,
     foregroundColor: foregroundColor,
     titleSpacing: resolvedSpacing,
-    toolbarHeight: useDesktopBar ? windowTitleBarHeight : null,
+    toolbarHeight: AppConfig.getAppBarHeight(),
     elevation: useDesktopBar ? 0 : null,
     scrolledUnderElevation: useDesktopBar ? 0 : null,
     leadingWidth: useDesktopBar && effectiveLeading != null ? 48 : null,

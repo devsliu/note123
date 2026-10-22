@@ -6,9 +6,9 @@ import 'package:window_manager/window_manager.dart';
 import '../../config/language_manager.dart';
 import '../../utils/app_logger.dart';
 
-final double windowTitleBarHeight = 44;
-final double windowButtonHeight = 44;
-final double windowButtonWidth = 44;
+final double kWindowToolbarHeight = 46;
+final double kWindowButtonHeight = 46;
+final double kWindowButtonWidth = 46;
 
 class WindowMoveBar extends StatelessWidget {
   final Color color;
@@ -24,7 +24,7 @@ class WindowMoveBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: titleBarHeight ?? windowTitleBarHeight,
+      height: titleBarHeight ?? kWindowToolbarHeight,
       color: color,
       child: GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -110,8 +110,8 @@ class _WindowControlButtonState extends State<_WindowControlButton> {
         onTapUp: (_) => setState(() => _pressed = false),
         onTapCancel: () => setState(() => _pressed = false),
         child: Container(
-          width: windowButtonWidth,
-          height: windowButtonHeight,
+          width: kWindowButtonWidth,
+          height: kWindowButtonHeight,
           color: bgColor,
           child: Tooltip(
             message: widget.tooltip,

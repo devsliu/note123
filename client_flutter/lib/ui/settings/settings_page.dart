@@ -1,9 +1,8 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:notee/filesync/http_api.dart';
 import 'package:notee/filesync/user.dart';
 import 'package:notee/ui/settings/record_operates_page.dart';
-import 'package:notee/model/reminder_notifier.dart';
 import 'package:notee/ui/common/platform_app_bar.dart';
 import 'package:notee/ui/settings/server_api_stats_page.dart';
 import 'package:notee/ui/settings/record_database_page.dart';
@@ -19,8 +18,6 @@ import 'change_password_dialog.dart';
 import 'upgrade_manager.dart';
 import 'login_users_control.dart';
 import '../../config/language_manager.dart';
-import '../../config/layout_mode.dart';
-import '../../config/prefs.dart';
 import '../../utils/utils.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -174,7 +171,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _onLayoutModeTap() async {
-    final current = LayoutMode.resolve();
+    final current = AppConfig.getLayoutMode();
     final isDesktop = Utils.isDesktop();
     final options = isDesktop
         ? [LayoutMode.desktop, LayoutMode.pad, LayoutMode.phone]
@@ -202,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
 
     if (selected != null && selected != current) {
-      await LayoutMode.setMode(selected);
+      await AppConfig.setLayoutMode(selected);
     }
   }
 
@@ -276,14 +273,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   onTap: _onLayoutModeTap,
                   title: Text(l10n.layoutMode),
-                  subtitle: Text(LayoutMode.getName(LayoutMode.resolve(), l10n)),
+                  subtitle: Text(LayoutMode.getName(AppConfig.getLayoutMode(), l10n)),
                 ),
-                if (LayoutMode.resolve() == LayoutMode.desktop) ...[
+                if (AppConfig.getLayoutMode() == LayoutMode.desktop) ...[
                   divider,
                   SwitchListTile.adaptive(
-                    value: Prefs.instance.getBool(PrefKeys.rememberOpenTabs) ?? true,
+                    value: AppConfig.prefs.getBool(PrefKeys.rememberOpenTabs) ?? true,
                     onChanged: (v) {
-                      Prefs.instance.setBool(PrefKeys.rememberOpenTabs, v).save();
+                      AppConfig.prefs.setBool(PrefKeys.rememberOpenTabs, v).save();
                       setState(() {});
                     },
                     title: Text(l10n.rememberOpenTabs),

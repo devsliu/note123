@@ -1,12 +1,11 @@
-// Global l10n access through LanguageManager
+﻿// Global l10n access through LanguageManager
 import 'package:notee/utils/reboot.dart';
 
 import '../l10n/app_localizations.dart';
 
 import 'package:flutter/material.dart';
 
-import 'prefs.dart';
-
+import 'app_config.dart';
 enum LanguageOption {
   system, // Follow system
   chinese, // Chinese
@@ -27,7 +26,7 @@ class LanguageManager {
 
   static void init() {
     // Read language setting from preferences
-    final languageCode = Prefs.instance.getString(PrefKeys.languageCode);
+    final languageCode = AppConfig.prefs.getString(PrefKeys.languageCode);
     if (languageCode != null) {
       switch (languageCode) {
         case 'system':
@@ -77,7 +76,7 @@ class LanguageManager {
     _locale = locale;
     _l10n = null;
     // Save to preferences
-    Prefs.instance.setString(PrefKeys.languageCode, languageCode).save();
+    AppConfig.prefs.setString(PrefKeys.languageCode, languageCode).save();
 
     Reboot.trigger();
   }

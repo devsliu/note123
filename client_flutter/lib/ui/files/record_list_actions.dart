@@ -1,9 +1,11 @@
-import 'dart:math';
+﻿import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:notee/filesync/record_ext.dart';
+import 'package:notee/config/app_config.dart';
+
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/model/record_opened_state.dart';
 import 'package:notee/model/record_utils.dart';
@@ -12,8 +14,6 @@ import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/files/record_export_dialog.dart';
 import 'package:notee/ui/settings/theme_selector_dialog.dart';
 import 'package:notee/config/language_manager.dart';
-import 'package:notee/config/layout_mode.dart';
-
 import 'package:notee/config/theme.dart';
 
 import '../../utils/utils.dart';
@@ -25,13 +25,14 @@ import 'package:file_picker/file_picker.dart';
 import 'package:charset_converter/charset_converter.dart';
 import 'package:notee/ui/editor/flow_editor/custom_code_block_parser.dart';
 
+
 /// Static action helpers shared by the record list page.
 /// Actions are distributed between the top app bar (title, new note/folder,
 /// parent, collapse) and the left side rail (sort, import/export).
 class RecordListActions {
   static List<PopupMenuEntry<String>> _noteListMenuItems() => [
     PopupMenuItem(
-      value: ListPageType.typeFlat,
+      value: FilesPanelMode.filesTypeFlat,
       child: ListTile(
         leading: const Icon(Icons.folder_outlined),
         title: Text(l10n.sortTypeFlatFolder),
@@ -39,7 +40,7 @@ class RecordListActions {
       ),
     ),
     PopupMenuItem(
-      value: ListPageType.typeTree,
+      value: FilesPanelMode.filesTypeTree,
       child: ListTile(
         leading: const Icon(Icons.account_tree_outlined),
         title: Text(l10n.sortTypeTreeFolder),
@@ -47,7 +48,7 @@ class RecordListActions {
       ),
     ),
     PopupMenuItem(
-      value: ListPageType.typeName,
+      value: FilesPanelMode.filesTypeName,
       child: ListTile(
         leading: const Icon(Icons.sort_by_alpha_outlined),
         title: Text(l10n.sortTypeName),
@@ -55,7 +56,7 @@ class RecordListActions {
       ),
     ),
     PopupMenuItem(
-      value: ListPageType.typeTime,
+      value: FilesPanelMode.filesTypeTime,
       child: ListTile(
         leading: const Icon(Icons.timer_outlined),
         title: Text(l10n.sortTypeTime),
@@ -83,13 +84,13 @@ class RecordListActions {
   static Widget allRecordsButton(BuildContext context) {
     final recordTree = Repository.get().recordTree;
     return ListenableBuilder(
-      listenable: Listenable.merge([recordTree.countNotifier, ListPageType.notifier]),
+      listenable: Listenable.merge([recordTree.countNotifier, AppConfig.filesPanelModeNotifier]),
       builder: (context, _) {
         return _TabButton(
           label: l10n.allRecords,
-          active: ListPageType.value.tab == ListPageType.tabList,
+          active: AppConfig.listPageValue.panelMode == FilesPanelMode.panelModeList,
           count: max(0, recordTree.countNotifier.value),
-          onTap: () => ListPageType.setTab(ListPageType.tabList),
+          onTap: () => AppConfig.setFilesPanelMode(FilesPanelMode.panelModeList),
         );
       },
     );
@@ -99,13 +100,13 @@ class RecordListActions {
   /// count.
   static Widget tagsButton(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([Repository.get().tagTree.tagCountNotifier, ListPageType.notifier]),
+      listenable: Listenable.merge([Repository.get().tagTree.tagCountNotifier, AppConfig.filesPanelModeNotifier]),
       builder: (context, _) {
         return _TabButton(
           label: l10n.tags,
-          active: ListPageType.value.tab == ListPageType.tabTag,
+          active: AppConfig.listPageValue.panelMode == FilesPanelMode.panelModeTag,
           count: Repository.get().tagTree.tagCountNotifier.value,
-          onTap: () => ListPageType.setTab(ListPageType.tabTag),
+          onTap: () => AppConfig.setFilesPanelMode(FilesPanelMode.panelModeTag),
         );
       },
     );
@@ -115,17 +116,17 @@ class RecordListActions {
   /// options when the AllRecords tab is active, or the tags tree/flat toggle
   /// when the Tags tab is active.
   static Widget viewToggleButton(BuildContext context) {
-    return ValueListenableBuilder<ListPageType>(
-      valueListenable: ListPageType.notifier,
+    return ValueListenableBuilder<FilesPanelMode>(
+      valueListenable: AppConfig.filesPanelModeNotifier,
       builder: (context, _, _) {
-        if (ListPageType.value.tab == ListPageType.tabTag) return SizedBox.shrink();
+        if (AppConfig.listPageValue.panelMode == FilesPanelMode.panelModeTag) return SizedBox.shrink();
         return PopupMenuButton<String>(
-          icon: Icon(_listTypeIcon(ListPageType.value.listType)),
+          icon: Icon(_listTypeIcon(AppConfig.listPageValue.listFilesType)),
           iconColor: Theme.of(context).appBarIconColor,
           tooltip: l10n.sortType,
           onSelected: (value) {
-            ListPageType.setListType(value);
-            Repository.get().recordTree.setSortListType(ListPageType.value.sortType);
+            AppConfig.setFilesPanelModeListType(value);
+            Repository.get().recordTree.setSortListType(AppConfig.listPageValue.sortType);
             RecordOpenedState.get().setOpenedFolder("/");
           },
           itemBuilder: (context) => _noteListMenuItems(),
@@ -135,9 +136,9 @@ class RecordListActions {
   }
 
   static IconData _listTypeIcon(String type) {
-    if (type == ListPageType.typeFlat) return Icons.folder_outlined;
-    if (type == ListPageType.typeName) return Icons.sort_by_alpha_outlined;
-    if (type == ListPageType.typeTime) return Icons.timer_outlined;
+    if (type == FilesPanelMode.filesTypeFlat) return Icons.folder_outlined;
+    if (type == FilesPanelMode.filesTypeName) return Icons.sort_by_alpha_outlined;
+    if (type == FilesPanelMode.filesTypeTime) return Icons.timer_outlined;
     return Icons.account_tree_outlined;
   }
 
@@ -282,11 +283,11 @@ class RecordListActions {
   }
 
   static Widget newFolderButton(BuildContext context, ReturnCallback<String> getFolder) {
-    return ValueListenableBuilder<ListPageType>(
-      valueListenable: ListPageType.notifier,
+    return ValueListenableBuilder<FilesPanelMode>(
+      valueListenable: AppConfig.filesPanelModeNotifier,
       builder: (context, _, _) {
-        final type = ListPageType.value.listType;
-        if (type == ListPageType.typeFlat || type == ListPageType.typeTree) {
+        final type = AppConfig.listPageValue.listFilesType;
+        if (type == FilesPanelMode.filesTypeFlat || type == FilesPanelMode.filesTypeTree) {
           return IconButton(
             onPressed: () {
               clickOnCreateFolderButton(context, getFolder());

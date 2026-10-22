@@ -19,7 +19,7 @@ class CalendarPage extends StatefulWidget {
   const CalendarPage({
     super.key,
     this.showAppBar = true,
-    required this.closeCallback,
+    this.closeCallback = Navigator.pop,
   });
 
   @override

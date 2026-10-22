@@ -146,7 +146,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
     if (nowAnimating && !_wasAnimating) {
       final renderBox = context.findRenderObject() as RenderBox?;
       if (renderBox != null && renderBox.hasSize) {
-        _lockedEditorSize = Size(renderBox.size.width, renderBox.size.height - windowTitleBarHeight);
+        _lockedEditorSize = Size(renderBox.size.width, renderBox.size.height - kWindowToolbarHeight);
       }
     }
     _wasAnimating = nowAnimating;
@@ -466,8 +466,8 @@ class _DesktopRightSideAllLayoutDelegate extends MultiChildLayoutDelegate {
 
   @override
   void performLayout(Size size) {
-    final double titleBarHeight = windowTitleBarHeight + 1; //1 for divider
-    final double windowButtonsWidth = windowButtonWidth * 3;
+    final double titleBarHeight = kWindowToolbarHeight + 1; //1 for divider
+    final double windowButtonsWidth = kWindowButtonWidth * 3;
 
     // Actions slot size (computed once below; only reserves space if present)
     Size? actionsSize;
