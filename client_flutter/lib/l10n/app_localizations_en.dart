@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -100,8 +99,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncErrUnknown => 'Sync failed: Unknown error';
 
   @override
-  String get syncErrNetwork =>
-      'Sync failed: Network error, check your connection';
+  String get syncErrNetwork => 'Sync failed: Network error, check your connection';
 
   @override
   String get syncErrTimeout => 'Sync failed: Request timeout, please retry';
@@ -325,12 +323,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get confirmDelete => 'Confirm Delete?';
 
   @override
-  String get confirmDeleteThisRecord =>
-      'Are you sure you want to delete this note?';
+  String get confirmDeleteThisRecord => 'Are you sure you want to delete this note?';
 
   @override
-  String get confirmDeleteThisFolderAndAllRecords =>
-      'Are you sure you want to delete this folder and all its notes?';
+  String get confirmDeleteThisFolderAndAllRecords => 'Are you sure you want to delete this folder and all its notes?';
 
   @override
   String folderDeleted(Object folderPath) {
@@ -510,8 +506,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get metaConflict => 'Meta Conflict';
 
   @override
-  String get recordContentUnchangedMetaConflict =>
-      'Note content unchanged, metadata conflict only. Please choose which side to keep.';
+  String get recordContentUnchangedMetaConflict => 'Note content unchanged, metadata conflict only. Please choose which side to keep.';
 
   @override
   String get conflictRemoteVersion => 'Remote Version';
@@ -724,12 +719,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearRecycler => 'Empty recycle bin';
 
   @override
-  String get confirmClearRecycler =>
-      'Permanently delete all items in the recycle bin?';
+  String get confirmClearRecycler => 'Permanently delete all items in the recycle bin?';
 
   @override
-  String get confirmPurgeRecycler =>
-      'Delete permanently? This cannot be undone.';
+  String get confirmPurgeRecycler => 'Delete permanently? This cannot be undone.';
 
   @override
   String recyclerAutoClearHint(int days) {
@@ -771,8 +764,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get exportEncryptedTitle =>
-      'Encrypted document, please enter password';
+  String get exportEncryptedTitle => 'Encrypted document, please enter password';
 
   @override
   String get exportSkip => 'Skip';
@@ -837,8 +829,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get clearLogs => 'Clear logs';
 
   @override
-  String get confirmClearLogs =>
-      'Are you sure you want to clear all logs? This cannot be undone.';
+  String get confirmClearLogs => 'Are you sure you want to clear all logs? This cannot be undone.';
 
   @override
   String get logsCleared => 'Logs cleared';

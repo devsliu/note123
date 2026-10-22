@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/calendar/calendar_page.dart';
+import 'package:notee/ui/common/platform_app_bar.dart';
 import 'package:notee/ui/common/split_layout.dart';
 import 'package:notee/ui/files/record_recycler_page.dart';
 import 'package:notee/config/theme.dart';
@@ -15,12 +16,12 @@ class PadApp extends BaseApp {
   PadApp({super.key});
 
   static Widget _buildEmptyDetail(BuildContext context) {
-    return Material(
-      color: gAppTheme.data.colorScheme.surface,
-      child: Center(
-        child: Text(
-          l10n.pleaseSelectRecord,
-          style: TextStyle(color: gAppTheme.data.colorScheme.onSurface.withAlpha(180), fontSize: 16),
+    return Scaffold(
+      appBar: createPlatformAppBar(showWindowButtons: false),
+      body: Material(
+        color: gAppTheme.data.colorScheme.surface,
+        child: Center(
+          child: Text(l10n.pleaseSelectRecord, style: TextStyle(color: gAppTheme.data.colorScheme.onSurface)),
         ),
       ),
     );

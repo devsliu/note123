@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/record_tree.dart';
 import 'package:notee/ui/base_app.dart';
+import 'package:notee/ui/common/platform_app_bar.dart';
 import 'package:notee/ui/editor/record_flow_editor_page.dart';
 import 'package:notee/ui/files/record_list_page.dart';
 import 'package:notee/ui/calendar/calendar_page.dart';
@@ -67,11 +68,12 @@ class PhoneRecordDetailPageState<T extends PhoneRecordDetailPage> extends Record
     return Scaffold(appBar: buildAppBar(context, mRecord), body: super.build(context));
   }
 
-  AppBar buildAppBar(BuildContext context, RecordEntry record) {
-    return AppBar(
+  PreferredSizeWidget buildAppBar(BuildContext context, RecordEntry record) {
+    return createPlatformAppBar(
+      showWindowButtons: false,
       leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.arrow_back)),
       titleSpacing: 0,
-      title: StreamBuilder<RecordEvent>(
+      titleWidget: StreamBuilder<RecordEvent>(
         stream: recordTree.onEvent,
         builder: (context, snapshot) =>
             Text(record.local.path + record.local.name, overflow: TextOverflow.fade, style: TextStyle(fontSize: 16.0)),
