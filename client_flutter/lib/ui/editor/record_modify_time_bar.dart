@@ -6,6 +6,7 @@ import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/record_tree.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/utils/utils.dart';
+import 'package:notee/utils/state_ext.dart';
 
 /// A compact footer bar showing the last-modify time, version, and optional
 /// conflict label for the record identified by [uuid]. Automatically
@@ -39,7 +40,7 @@ class _RecordModifyTimeBarState extends State<RecordModifyTimeBar> {
         (event.deleteRecords?.contains(widget.uuid) ?? false) ||
         (event.upsertRecords?.any((r) => r.local.uuid == widget.uuid) ?? false);
     if (!isRebuild && !isMine) return;
-    if (mounted) setState(() {});
+    if (mounted) safeSetState();
   }
 
   @override

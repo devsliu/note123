@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/record_tree.dart';
@@ -9,6 +9,7 @@ import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/files/record_item_widget.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/ui/common/breadcrumb_bar.dart';
+import 'package:notee/utils/state_ext.dart';
 
 class RecordFilesFlatControl extends StatefulWidget {
   final bool shrink;
@@ -24,29 +25,18 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
   @override
   void initState() {
     super.initState();
-    _treeSub = recordTree.onEvent.listen((_) => onRefreshChanged());
-    RecordOpenedState.get().openedFileNotifier.addListener(onRefreshChanged);
-    RecordOpenedState.get().openedFolderNotifier.addListener(onOpenedFolderChanged);
+    _treeSub = recordTree.onEvent.listen((_) => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.addListener(() => safeSetState());
+    RecordOpenedState.get().openedFolderNotifier.addListener(() => safeSetState());
   }
 
   @override
   void dispose() {
     _treeSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(onRefreshChanged);
-    RecordOpenedState.get().openedFolderNotifier.removeListener(onOpenedFolderChanged);
+    RecordOpenedState.get().openedFileNotifier.removeListener(() => safeSetState());
+    RecordOpenedState.get().openedFolderNotifier.removeListener(() => safeSetState());
     super.dispose();
   }
-
-  void _safeSetState() {
-    if (!mounted) return;
-    Timer.run(() {
-      if (mounted) setState(() {});
-    });
-  }
-
-  void onOpenedFolderChanged() => _safeSetState();
-
-  void onRefreshChanged() => _safeSetState();
 
   void onClickFolder(int index, TreeContentFolder folder) {
     RecordOpenedState.get().setOpenedFolder(folder.path);

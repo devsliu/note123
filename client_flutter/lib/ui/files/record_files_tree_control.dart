@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/record_tree.dart';
@@ -7,6 +7,7 @@ import 'package:notee/model/record_opened_state.dart';
 import 'package:flutter/material.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/files/record_item_widget.dart';
+import 'package:notee/utils/state_ext.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 class RecordFilesTreeControl extends StatefulWidget {
@@ -28,28 +29,19 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
 
   /// Convert RecordTree to recursive TreeViewNode structure
 
-  void _safeSetState() {
-    if (!mounted) return;
+  void onFolderChanged() {
     Timer.run(() {
-      if (mounted) setState(() {});
+      final folder = RecordOpenedState.get().openedFolder;
+      var treeViewNode = _treeController.getNodeFor(folder);
+      if (treeViewNode == null) return;
+      while (treeViewNode != null) {
+        if (!_treeController.isExpanded(treeViewNode) && _treeController.isActive(treeViewNode)) {
+          _treeController.expandNode(treeViewNode);
+        }
+        treeViewNode = treeViewNode.parent;
+      }
     });
   }
-
-  void onEventChanged() => _safeSetState();
-
-  void onFolderChanged() {
-    final folder = RecordOpenedState.get().openedFolder;
-    var treeViewNode = _treeController.getNodeFor(folder);
-    if (treeViewNode == null) return;
-    while (treeViewNode != null) {
-      if (!_treeController.isExpanded(treeViewNode) && _treeController.isActive(treeViewNode)) {
-        _treeController.expandNode(treeViewNode);
-      }
-      treeViewNode = treeViewNode.parent;
-    }
-  }
-
-  void onFileChanged() => _safeSetState();
 
   void onCollapseAll() {
     _treeController.collapseAll();
@@ -58,16 +50,16 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
   @override
   void initState() {
     super.initState();
-    _treeSub = recordTree.onEvent.listen((_) => onEventChanged());
+    _treeSub = recordTree.onEvent.listen((_) => safeSetState());
     RecordOpenedState.get().openedFolderNotifier.addListener(onFolderChanged);
-    RecordOpenedState.get().openedFileNotifier.addListener(onFileChanged);
+    RecordOpenedState.get().openedFileNotifier.addListener(() => safeSetState());
   }
 
   @override
   void dispose() {
     _treeSub?.cancel();
     RecordOpenedState.get().openedFolderNotifier.removeListener(onFolderChanged);
-    RecordOpenedState.get().openedFileNotifier.removeListener(onFileChanged);
+    RecordOpenedState.get().openedFileNotifier.removeListener(() => safeSetState());
     super.dispose();
   }
 

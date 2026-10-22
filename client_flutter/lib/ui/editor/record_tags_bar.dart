@@ -1,10 +1,11 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/filesync/tag_tree.dart';
 import 'package:notee/ui/editor/record_tags_editor.dart';
+import 'package:notee/utils/state_ext.dart';
 
 /// Show the tag editor dialog with a title bar (same pattern as [showReminderDialog]).
 void showTagDialog(BuildContext context, String uuid) {
@@ -36,7 +37,7 @@ class _TagBarState extends State<TagBar> {
     super.initState();
     _tagSub = Repository.get().tagTree.onEvent.listen((event) {
       if (event.type == TagTreeEvent.typeRebuild || event.uuid == widget.uuid) {
-        if (mounted) setState(() {});
+        if (mounted) safeSetState();
       }
     });
   }

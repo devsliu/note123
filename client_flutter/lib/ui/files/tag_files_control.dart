@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:notee/filesync/record_ext.dart';
@@ -8,6 +8,7 @@ import 'package:notee/filesync/tag_tree.dart';
 import 'package:notee/model/record_opened_state.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/files/record_item_widget.dart';
+import 'package:notee/utils/state_ext.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 /// Displays tags as expandable tiles, each revealing the records that carry
@@ -76,13 +77,13 @@ class _TagFilesControlState extends State<TagFilesControl> {
     super.initState();
     _buildInitialTree();
     _tagSub = Repository.get().tagTree.onEvent.listen(_onTagEvent);
-    RecordOpenedState.get().openedFileNotifier.addListener(_onFileChanged);
+    RecordOpenedState.get().openedFileNotifier.addListener(() => safeSetState());
   }
 
   @override
   void dispose() {
     _tagSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(_onFileChanged);
+    RecordOpenedState.get().openedFileNotifier.removeListener(() => safeSetState());
     super.dispose();
   }
 
@@ -96,14 +97,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
         _syncChildren();
         break;
     }
-    if (mounted) setState(() {});
-  }
-
-  void _onFileChanged() {
-    if (!mounted) return;
-    Timer.run(() {
-      if (mounted) setState(() {});
-    });
+    if (mounted) safeSetState();
   }
 
   /// Build the tag tree once. Each tag starts at the expanded state stored on

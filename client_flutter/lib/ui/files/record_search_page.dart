@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -11,6 +11,7 @@ import 'package:notee/model/record_opened_state.dart';
 import 'package:notee/ui/common/platform_app_bar.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/config/language_manager.dart';
+import 'package:notee/utils/state_ext.dart';
 
 /// Full-page record search: app bar with a back button and a search input,
 /// body shows FTS5 content matches with title + snippet highlights.
@@ -239,7 +240,7 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
   void initState() {
     super.initState();
     _treeSub = recordTree.onEvent.listen((_) => _runSearch());
-    RecordOpenedState.get().openedFileNotifier.addListener(_refreshSelection);
+    RecordOpenedState.get().openedFileNotifier.addListener(() => safeSetState());
     _runSearch();
   }
 
@@ -252,15 +253,8 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
   @override
   void dispose() {
     _treeSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(_refreshSelection);
+    RecordOpenedState.get().openedFileNotifier.removeListener(() => safeSetState());
     super.dispose();
-  }
-
-  void _refreshSelection() {
-    if (!mounted) return;
-    Timer.run(() {
-      if (mounted) setState(() {});
-    });
   }
 
   Future<void> _runSearch() async {

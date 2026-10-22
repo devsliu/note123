@@ -8,6 +8,7 @@ import 'package:notee/filesync/repository.dart';
 import 'package:notee/filesync/record_tree.dart';
 import 'package:notee/ui/calendar/reminder_panel.dart';
 import 'package:notee/utils/utils.dart';
+import 'package:notee/utils/state_ext.dart';
 
 /// Show a dialog with the full [ReminderPanel] for a record, including
 /// a title bar with filename + path.
@@ -60,7 +61,7 @@ class _ReminderBarState extends State<ReminderBar> {
         (event.deleteRecords?.contains(widget.uuid) ?? false) ||
         (event.upsertRecords?.any((r) => r.local.uuid == widget.uuid) ?? false);
     if (!isRebuild && !isMine) return;
-    if (mounted) setState(() {});
+    if (mounted) safeSetState();
   }
 
   @override

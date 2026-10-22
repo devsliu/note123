@@ -8,6 +8,7 @@ import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/files/record_item_widget.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/config/app_config.dart';
+import 'package:notee/utils/state_ext.dart';
 
 class RecordFilesListControl extends StatefulWidget {
   final bool showDivider;
@@ -28,22 +29,15 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
   @override
   void initState() {
     super.initState();
-    _treeSub = recordTree.onEvent.listen((_) => onRefreshChanged());
-    RecordOpenedState.get().openedFileNotifier.addListener(onRefreshChanged);
+    _treeSub = recordTree.onEvent.listen((_) => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.addListener(() => safeSetState());
   }
 
   @override
   void dispose() {
     _treeSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(onRefreshChanged);
+    RecordOpenedState.get().openedFileNotifier.removeListener(() => safeSetState());
     super.dispose();
-  }
-
-  void onRefreshChanged() {
-    if (!mounted) return;
-    Timer.run(() {
-      if (mounted) setState(() {});
-    });
   }
 
   @override

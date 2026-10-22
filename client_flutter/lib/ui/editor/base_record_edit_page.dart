@@ -16,6 +16,7 @@ import 'package:notee/utils/object_ref.dart';
 import 'package:notee/ui/desktop/desktop_tabs_page.dart';
 
 import 'editor_save_coordinator.dart';
+import '../../utils/state_ext.dart';
 
 /// Unified page state: mode + payload + buildCount.
 /// buildCount is reset to 0 by setStateMode on every state transition, then incremented
@@ -133,7 +134,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
 
     // Title change: always update (doesn't affect editing content)
     if (oldRecord.local.name != newRecord.local.name) {
-      if (mounted) setState(() {});
+      if (mounted) safeSetState();
     }
 
     if (isContentChanged) return;
