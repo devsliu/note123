@@ -232,7 +232,9 @@ class _SettingsPageState extends State<SettingsPage> {
     final theme = Theme.of(context);
     final divider = Divider(height: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(80));
     return Scaffold(
-      appBar: widget.showAppBar ? createPlatformAppBar(title: l10n.settings, showWindowButtons: false) : null,
+      appBar: widget.showAppBar
+          ? createPlatformAppBar(title: l10n.settings, showWindowButtons: false, onBack: () => Navigator.pop(context))
+          : null,
       backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppConfig.pageHorizontalPadding),

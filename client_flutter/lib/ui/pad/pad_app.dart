@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/calendar/calendar_page.dart';
+import 'package:notee/ui/common/empty_detail_placeholder.dart';
 import 'package:notee/ui/common/platform_app_bar.dart';
 import 'package:notee/ui/common/split_layout.dart';
 import 'package:notee/ui/files/record_recycler_page.dart';
-import 'package:notee/config/theme.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/config/prefs.dart';
 import 'package:notee/ui/files/record_list_page.dart';
@@ -18,12 +18,7 @@ class PadApp extends BaseApp {
   static Widget _buildEmptyDetail(BuildContext context) {
     return Scaffold(
       appBar: createPlatformAppBar(showWindowButtons: false),
-      body: Material(
-        color: gAppTheme.data.colorScheme.surface,
-        child: Center(
-          child: Text(l10n.pleaseSelectRecord, style: TextStyle(color: gAppTheme.data.colorScheme.onSurface)),
-        ),
-      ),
+      body: EmptyDetailPlaceholder(title: l10n.pleaseSelectRecord),
     );
   }
 

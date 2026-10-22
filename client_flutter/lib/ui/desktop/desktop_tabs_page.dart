@@ -7,6 +7,7 @@ import 'package:notee/config/app_config.dart';
 import 'package:notee/ui/desktop/window_state.dart';
 import 'package:flutter/material.dart';
 import 'package:notee/ui/desktop/desktop_tabbar.dart';
+import 'package:notee/ui/common/empty_detail_placeholder.dart';
 import 'package:notee/utils/utils.dart';
 
 import 'desktop_title_bar.dart';
@@ -352,11 +353,7 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
           LayoutId(
             id: 'editorStack',
             child: _tabs.isEmpty
-                ? Container(
-                    color: theme.colorScheme.surface,
-                    alignment: Alignment.center,
-                    child: Text(l10n.noOpenRecords),
-                  )
+                ? EmptyDetailPlaceholder(title: l10n.pleaseSelectRecord)
                 : IndexedStack(index: currentIndex, children: _tabs.map((impl) => impl.page!).toList()),
           ),
         ],
