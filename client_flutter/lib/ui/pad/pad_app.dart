@@ -49,22 +49,24 @@ class _PadAppState extends BaseAppState<PadApp> {
     if (settings.name == _rootRoute) {
       return MaterialPageRoute(builder: (_) => _buildEmptyDetail(), settings: settings);
     }
-    final parsed = AppNavigatorUri.parse(settings.name!);
+    final uri = settings.name!;
+    final parsed = AppNavigatorUri.parse(uri);
+    final key = settings.arguments as GlobalKey;
     Widget page;
     switch (parsed.uri) {
       case AppNavigator.uriRecord:
         final uuid = parsed.firstPath ?? '';
         final keyword = parsed.queryParam('keyword');
-        page = PhoneRecordDetailPage(key: Key(uuid), uuid: uuid, keyword: keyword);
+        page = PhoneRecordDetailPage(key: key, uuid: uuid, keyword: keyword);
         break;
       case AppNavigator.uriCalendar:
-        page = CalendarPage(showAppBar: true);
+        page = CalendarPage(key: key, showAppBar: true);
         break;
       case AppNavigator.uriRecycler:
-        page = RecordRecyclerPage(showAppBar: true);
+        page = RecordRecyclerPage(key: key, showAppBar: true);
         break;
       case AppNavigator.uriSettings:
-        page = SettingsPage(showAppBar: true);
+        page = SettingsPage(key: key, showAppBar: true);
         break;
       default:
         return null;
@@ -83,13 +85,16 @@ class _PadAppState extends BaseAppState<PadApp> {
       final p = AppNavigatorUri.parse(name);
       return p.uri == parsed.uri && p.firstPath == parsed.firstPath;
     });
+    GlobalKey? reuseKey;
     if (existing != null) {
+      reuseKey = existing.settings.arguments as GlobalKey?;
       nav.removeRoute(existing);
     }
+    reuseKey ??= GlobalKey(); 
     while (_observer.history.length > _maxRoutes) {
       nav.removeRoute(_observer.history[1]);
     }
-    nav.pushNamed(uri);
+    nav.pushNamed(uri, arguments: reuseKey);
   }
 
   @override
