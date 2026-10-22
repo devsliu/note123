@@ -23,8 +23,10 @@ class _PadAppState extends BaseAppState<PadApp> {
   static const double minLeftWidth = 300;
   static const double maxLeftWidth = 500;
   static const String _rootRoute = '/';
+  static const int _maxRoutes = 5;
   double leftWidth = minLeftWidth;
   final GlobalKey<NavigatorState> _rightNavKey = GlobalKey();
+  final _RouteObserver _observer = _RouteObserver();
 
   Widget _buildEmptyDetail() {
     return Scaffold(
@@ -74,7 +76,20 @@ class _PadAppState extends BaseAppState<PadApp> {
   void navigate(String uri) {
     final nav = _rightNavKey.currentState;
     if (nav == null) return;
-    nav.pushNamedAndRemoveUntil(uri, (route) => route.settings.name == _rootRoute);
+    final parsed = AppNavigatorUri.parse(uri);
+    final existing = _observer.findWhere((r) {
+      final name = r.settings.name;
+      if (name == null) return false;
+      final p = AppNavigatorUri.parse(name);
+      return p.uri == parsed.uri && p.firstPath == parsed.firstPath;
+    });
+    if (existing != null) {
+      nav.removeRoute(existing);
+    }
+    while (_observer.history.length > _maxRoutes) {
+      nav.removeRoute(_observer.history[1]);
+    }
+    nav.pushNamed(uri);
   }
 
   @override
@@ -90,9 +105,36 @@ class _PadAppState extends BaseAppState<PadApp> {
       },
       leftChild: RecordListPage(),
       rightChild: ScaffoldMessenger(
-        child: Navigator(key: _rightNavKey, initialRoute: _rootRoute, onGenerateRoute: _generateRoute,
+        child: Navigator(
+          key: _rightNavKey,
+          initialRoute: _rootRoute,
+          onGenerateRoute: _generateRoute,
+          observers: [_observer],
         ),
       ),
     );
+  }
+}
+
+class _RouteObserver extends NavigatorObserver {
+  final List<Route> history = [];
+
+  Route? findWhere(bool Function(Route) test) {
+    for (final r in history.reversed) {
+      if (test(r)) return r;
+    }
+    return null;
+  }
+
+  @override
+  void didPush(Route route, Route? previousRoute) => history.add(route);
+  @override
+  void didPop(Route route, Route? previousRoute) => history.remove(route);
+  @override
+  void didRemove(Route route, Route? previousRoute) => history.remove(route);
+  @override
+  void didReplace({Route? newRoute, Route? oldRoute}) {
+    if (oldRoute != null) history.remove(oldRoute);
+    if (newRoute != null) history.add(newRoute);
   }
 }
