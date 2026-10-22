@@ -21,11 +21,9 @@ PreferredSizeWidget createPlatformAppBar({
   final layoutMode = LayoutMode.resolve();
   final useDesktopBar = isDesktop && layoutMode == LayoutMode.desktop;
 
-  Widget? effectiveTitle = titleWidget;
-  if (effectiveTitle == null && isDesktop) {
-    // Text glyphs absorb hit tests and would block the flexibleSpace
-    // drag detector below them, so the plain title joins the drag area.
-    effectiveTitle = WindowMoveBar(child: Text(title ?? ''));
+  Widget effectiveTitle = titleWidget ?? Text(title ?? '');
+  if (isDesktop) {
+    effectiveTitle = WindowMoveBar(child: effectiveTitle);
   }
 
   final effectiveLeading =
@@ -33,7 +31,7 @@ PreferredSizeWidget createPlatformAppBar({
   final resolvedSpacing = titleSpacing ?? AppConfig.pageHorizontalPadding;
 
   return AppBar(
-    title: effectiveTitle ?? Text(title ?? ''),
+    title: effectiveTitle,
     leading: effectiveLeading,
     automaticallyImplyLeading: automaticallyImplyLeading && effectiveLeading == null,
     actions: [...?actions, if (isDesktop && showWindowButtons) const WindowManagerButtons()],
