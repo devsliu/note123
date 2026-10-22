@@ -1,0 +1,550 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:appflowy_editor/appflowy_editor.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:notee/filesync/repository.dart';
+import 'package:notee/filesync/reminder_tree.dart';
+import 'package:notee/ui/calendar/reminder_task_editor.dart';
+import 'package:notee/model/record_utils.dart';
+import 'package:notee/ui/editor/flow_editor/flow_fixed_toolbar.dart';
+import 'package:notee/ui/editor/base_record_edit_page.dart';
+import 'package:notee/ui/editor/flow_editor/flow_context_menu.dart';
+import 'package:notee/utils/app_logger.dart';
+import 'package:notee/config/language_manager.dart';
+import 'package:notee/utils/utils.dart';
+import 'package:notee/ui/editor/flow_editor/code_block_component.dart';
+import 'package:notee/ui/editor/flow_editor/code_block_toolbar_item.dart';
+import 'package:notee/ui/editor/flow_editor/code_block_newline.dart';
+import 'package:notee/ui/editor/flow_editor/find_replace_bar.dart';
+import 'package:notee/ui/editor/record_outline_panel.dart';
+import 'package:notee/ui/editor/record_info_dialog.dart';
+import 'package:notee/ui/editor/share_record_dialog.dart';
+import 'package:notee/ui/editor/record_modify_time_bar.dart';
+import 'package:notee/ui/editor/record_reminder_bar.dart';
+import 'package:notee/ui/editor/record_tags_bar.dart';
+
+/// Shared text style configuration (edit page + diff page).
+TextStyleConfiguration buildEditorTextStyle(ThemeData theme) {
+  return TextStyleConfiguration(
+    text: TextStyle(fontSize: 16, color: theme.colorScheme.onSurface),
+    lineHeight: 1,
+    applyHeightToFirstAscent: false,
+    applyHeightToLastDescent: false,
+    leadingDistribution: TextLeadingDistribution.proportional,
+  );
+}
+
+/// Shared block component builders — paragraph padding zeroed, todo with custom icon, code block.
+Map<String, BlockComponentBuilder> buildEditorBlockBuilders(ThemeData theme) {
+  return <String, BlockComponentBuilder>{
+    ...standardBlockComponentBuilderMap,
+    TodoListBlockKeys.type: TodoListBlockComponentBuilder(
+      configuration: standardBlockComponentConfiguration.copyWith(
+        placeholderText: (_) => AppFlowyEditorL10n.current.toDoPlaceholder,
+      ),
+      toggleChildrenTriggers: [LogicalKeyboardKey.shift, LogicalKeyboardKey.shiftLeft, LogicalKeyboardKey.shiftRight],
+    ),
+    ParagraphBlockKeys.type: ParagraphBlockComponentBuilder(
+      configuration: BlockComponentConfiguration(padding: (_) => EdgeInsets.zero),
+    ),
+    DividerBlockKeys.type: DividerBlockComponentBuilder(
+      height: 6,
+      configuration: standardBlockComponentConfiguration.copyWith(
+        padding: (node) => const EdgeInsets.symmetric(vertical: 4.0),
+      ),
+    ),
+    CodeBlockKeys.type: CodeBlockComponentBuilder(),
+  };
+}
+
+/// Shared editor style (desktop/mobile switch + dark-mode-aware selection color).
+EditorStyle buildEditorStyle(ThemeData theme, TextStyleConfiguration textStyleConfiguration) {
+  final isDesktop = Utils.isDesktop();
+  final isDark = theme.brightness == Brightness.dark;
+  final selectionColor = isDark
+      ? theme.colorScheme.onSurfaceVariant.withAlpha(200)
+      : theme.colorScheme.primary.withAlpha(100);
+  return isDesktop
+      ? EditorStyle.desktop(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          cursorColor: theme.colorScheme.primary,
+          selectionColor: selectionColor,
+          textStyleConfiguration: textStyleConfiguration,
+        )
+      : EditorStyle.mobile(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          cursorColor: theme.colorScheme.primary,
+          selectionColor: selectionColor,
+          textStyleConfiguration: textStyleConfiguration,
+        );
+}
+
+class RecordFlowEditorPage extends BaseRecordEditPage {
+  /// 搜索关键字：打开笔记后自动跳转并选中首次匹配位置。
+  final String? keyword;
+
+  const RecordFlowEditorPage({super.key, required super.uuid, this.keyword, super.closePageCallback});
+
+  @override
+  State<RecordFlowEditorPage> createState() => RecordFlowEditorPageState();
+}
+
+class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseRecordEditPageState<T> {
+  EditorState editorState = EditorState.blank();
+  final FocusNode _focusNode = FocusNode();
+  EditorScrollController? editorScrollController;
+  Selection? _savedSelection;
+  final recordTree = Repository.get().recordTree;
+
+  StreamSubscription<EditorTransactionValue>? _subscription;
+
+  // Find & replace bar state
+  bool _showFindBar = false;
+  bool _findBarWithReplace = false;
+
+  bool _showOutline = false;
+
+  // 是否已执行过搜索关键字跳转（防止重载时重复跳转）
+  bool _keywordJumped = false;
+
+  @override
+  void didUpdateWidget(covariant T oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Desktop 重开同 uuid tab 但关键字变化时：重置跳转标志，重新定位
+    if (widget.keyword != oldWidget.keyword && widget.keyword != null && widget.keyword!.isNotEmpty) {
+      _keywordJumped = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final kw = widget.keyword;
+        if (kw == null || kw.isEmpty || _keywordJumped) return;
+        _keywordJumped = true;
+        final service = SearchServiceV3(editorState: editorState, jumpInterceptor: (_) => false);
+        service.findAndHighlight(kw);
+        service.dispose();
+      });
+    }
+  }
+
+  /// 公开动作：查找替换栏（[withReplace] = true 则打开替换模式）。
+  void openFindBar({bool withReplace = false}) {
+    setState(() {
+      _showFindBar = true;
+      _findBarWithReplace = withReplace;
+    });
+  }
+
+  void toggleOutline() {
+    setState(() => _showOutline = !_showOutline);
+  }
+
+  /// 公开动作：添加提醒。
+  Future<void> addReminder() => _addReminder();
+
+  /// 公开动作：显示笔记信息对话框。
+  Future<void> showRecordInfo() async {
+    await showRecordInfoDialog(
+      context,
+      mRecord.uuid,
+      wordCount: RecordUtils.getDocumentCharCount(editorState.document),
+    );
+  }
+
+  /// 公开动作：分享当前笔记。
+  void shareRecord() {
+    ShareRecordDialog.show(
+      context,
+      uuid: mRecord.uuid,
+      markdown: documentToMarkdown(editorState.document),
+      title: mRecord.local.name,
+      pathName: '${mRecord.local.path}${mRecord.local.name}',
+    );
+  }
+
+  /// 公开动作：撤销。
+  void undo() {
+    editorState.undoManager.undo();
+  }
+
+  /// 公开动作：重做。
+  void redo() {
+    editorState.undoManager.redo();
+  }
+
+  /// 是否可以撤销/重做（供外部菜单判断按钮启用状态）。
+  bool get canUndo => editorState.undoManager.undoStack.isNonEmpty;
+  bool get canRedo => editorState.undoManager.redoStack.isNonEmpty;
+
+  /// 大纲面板是否打开（供外部菜单显示勾选态）。
+  bool get showOutline => _showOutline;
+
+  /// 页面级溢出菜单项（查找 / 大纲 / 提醒 / 分享 / 信息），三端共用。
+  List<PopupMenuEntry<int>> buildOverflowMenuItems(BuildContext context) {
+    return [
+        PopupMenuItem(
+          value: 0,
+          child: ListTile(leading: Icon(Icons.search), title: Text(AppFlowyEditorL10n.current.find)),
+        ),
+        PopupMenuItem(
+          value: 1,
+          child: ListTile(
+            leading: Icon(Icons.format_list_bulleted, color: _showOutline ? Colors.blue : null),
+            title: Text(l10n.outline),
+          ),
+        ),
+        PopupMenuItem(
+          value: 2,
+          child: ListTile(leading: Icon(Icons.notifications_active_outlined), title: Text(l10n.addReminder)),
+        ),
+        PopupMenuItem(
+          value: 3,
+          child: ListTile(leading: Icon(Icons.share_outlined), title: Text(l10n.share)),
+        ),
+        PopupMenuItem(
+          value: 4,
+          child: ListTile(leading: Icon(Icons.info_outlined), title: Text(l10n.recordInfo)),
+        ),
+    ];
+  }
+
+  void onOverflowMenuSelect(int value) {
+    switch (value) {
+      case 0:
+        openFindBar();
+        break;
+      case 1:
+        toggleOutline();
+        break;
+      case 2:
+        addReminder();
+        break;
+      case 3:
+        shareRecord();
+        break;
+      case 4:
+        showRecordInfo();
+        break;
+    }
+  }
+
+  @override
+  Map<ShortcutActivator, VoidCallback> shortcutBindings() => {
+    const SingleActivator(LogicalKeyboardKey.keyF, control: true): () => openFindBar(),
+    const SingleActivator(LogicalKeyboardKey.keyH, control: true): () => openFindBar(withReplace: true),
+    const SingleActivator(LogicalKeyboardKey.keyR, control: true): () => openFindBar(withReplace: true),
+  };
+
+  // Style caches (theme-dependent; rebuilt when theme changes via didChangeDependencies)
+  late TextStyleConfiguration _textStyleConfiguration;
+  late Map<String, BlockComponentBuilder> _blockComponentBuilders;
+
+  void _rebuildStyleCache() {
+    final theme = Theme.of(context);
+    _textStyleConfiguration = buildEditorTextStyle(theme);
+    _blockComponentBuilders = buildEditorBlockBuilders(theme);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _rebuildStyleCache();
+  }
+
+  List<ToolbarItem> get _toolbarItems => [
+    undoToolbarItem,
+    redoToolbarItem,
+    todoListItem,
+    codeBlockItem,
+    quoteItem,
+    tableToolbarItem,
+    bulletedListItem,
+    numberedListItem,
+    buildTextColorItem(),
+    ...markdownFormatItems,
+    ...headingItems,
+    linkItem,
+  ];
+
+  Future<void> _addReminder() async {
+    final task = ReminderTask(id: DateTime.now().millisecondsSinceEpoch.toString(), name: '');
+    final updated = await showReminderTaskEditor(context, task: task);
+    if (updated == null) return;
+    final recordEntry = Repository.get().recordTree.findRecord(mRecord.uuid);
+    if (recordEntry == null) return;
+    final tasks = ReminderTask.fromJsonString(recordEntry.local.reminder)..add(updated);
+    await Repository.get().editRecord(
+      mRecord.uuid,
+      false,
+      DateTime.now().millisecondsSinceEpoch,
+      reminder: ReminderTask.toJsonString(tasks),
+    );
+  }
+
+  void listenContentChange() {
+    _subscription?.cancel();
+    _subscription = editorState.transactionStream.listen((event) {
+      final (time, transaction, options) = event;
+      if (time != TransactionTime.after) return;
+      if (transaction.operations.isEmpty) return;
+      if (options.resolvedSource == TransactionSource.none) return;
+      isContentChanged = true;
+    });
+  }
+
+  void _initDocumentFromContent(String plaintext) {
+    Document? document;
+
+    bool isNewRecord = plaintext.isEmpty;
+    if (isNewRecord) {
+      final title = mRecord.local.name.isNotEmpty ? mRecord.local.name : RecordUtils.generateRecordName();
+
+      document = Document.blank()
+        ..root.insert(headingNode(level: 1, delta: Delta()..insert(title)), index: 0)
+        ..root.insert(dividerNode(), index: 1)
+        ..root.insert(paragraphNode(), index: 3);
+    } else {
+      final trimmed = plaintext.trim();
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        try {
+          final map = jsonDecode(trimmed) as Map<String, dynamic>;
+          document = Document.fromJson(map);
+        } catch (e) {
+          AppLogger.e('Editor', "Failed to parse JSON: $e");
+        }
+      }
+
+      document ??= Document.blank()..root.insert(paragraphNode(delta: Delta()..insert(plaintext)), index: 0);
+    }
+
+    // Preserve selection across document reload (e.g. remote sync refresh)
+    final savedSelection = editorState.selection;
+
+    editorState.dispose();
+    editorState = EditorState(document: document);
+    editorScrollController?.dispose();
+    editorScrollController = EditorScrollController(editorState: editorState);
+    listenContentChange();
+
+    if (isNewRecord) {
+      // New document: place cursor at heading end
+      final nodes = document.root.children;
+      if (nodes.isNotEmpty) {
+        final node = nodes.first;
+        final delta = node.delta;
+        final len = delta?.toPlainText().length ?? 0;
+        editorState.updateSelectionWithReason(
+          Selection(
+            start: Position(path: [0], offset: len),
+            end: Position(path: [0], offset: len),
+          ),
+        );
+      }
+      _focusNode.requestFocus();
+    } else if (savedSelection != null) {
+      // Existing document: restore previous cursor position (clamped to valid range)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        editorState.updateSelectionWithReason(savedSelection);
+      });
+      if (Utils.isDesktop()) {
+        _focusNode.requestFocus();
+      }
+    }
+
+    // 搜索结果跳转：关键字非空且尚未跳转时定位到首次匹配位置
+    final keyword = widget.keyword;
+    if (keyword != null && keyword.isNotEmpty && !_keywordJumped) {
+      _keywordJumped = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final service = SearchServiceV3(editorState: editorState, jumpInterceptor: (_) => false);
+        service.findAndHighlight(keyword);
+        service.dispose();
+      });
+    }
+  }
+
+  @override
+  void onPageFocusChanged(bool hasFocus) {
+    super.onPageFocusChanged(hasFocus);
+    if (hasFocus) {
+      // Mobile: don't auto-focus when document has content (user taps to edit); empty doc or desktop focuses.
+      final hasContent = editorState.document.root.children.any((node) => (node.delta?.toPlainText().length ?? 0) > 0);
+      if (Utils.isDesktop() || !hasContent) {
+        _focusNode.requestFocus();
+      }
+      _restoreSelection();
+    } else {
+      _saveSelection();
+    }
+  }
+
+  void _saveSelection() {
+    final selection = editorState.selection;
+    if (selection != null) {
+      _savedSelection = selection;
+    }
+  }
+
+  void _restoreSelection() {
+    if (_savedSelection == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (editorState.selection == null) {
+        editorState.updateSelectionWithReason(_savedSelection!);
+      }
+    });
+  }
+
+  void _onFocusChange() {
+    if (_focusNode.hasFocus) {
+      _restoreSelection();
+    } else {
+      _saveSelection();
+    }
+  }
+
+  @override
+  (String content, String name) formatContent() {
+    final docJson = editorState.document.toJson();
+    final String jsonString = jsonEncode(docJson);
+    String name = RecordUtils.getDocumentTitle(editorState.document);
+    if (name.isEmpty) {
+      name = RecordUtils.generateRecordName();
+    }
+    return (jsonString, name);
+  }
+
+  /// 统一的大纲面板外形：240 宽 + 圆角 4 + 边框。
+  /// 两端调用方只负责决定摆放位置（桌面 Row 并排 / 手机 Stack 浮层）。
+  Widget _buildOutlinePanelWrapper(ThemeData theme) {
+    return Container(
+      width: 240,
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: theme.colorScheme.outlineVariant),
+      ),
+      child: RecordOutlinePanel(
+        editorState: editorState,
+        editorScrollController: editorScrollController,
+        onClose: () => setState(() => _showOutline = false),
+      ),
+    );
+  }
+
+  @override
+  Widget buildContentWidget(String plaintext, bool reload) {
+    // First build after state change → (re)initialize document with fresh plaintext
+    if (reload) {
+      _initDocumentFromContent(plaintext);
+    }
+
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        FixedToolbar(
+          scrollable: true,
+          items: _toolbarItems,
+          editorState: editorState,
+          toolbarHeight: 30,
+          iconColor: theme.colorScheme.onSurface,
+          activeColor: theme.colorScheme.primary,
+          backgroundColor: theme.colorScheme.surface,
+          tooltipBuilder: (context, id, message, child) => Tooltip(message: message, child: child),
+        ),
+        if (_showFindBar)
+          EditorFindReplaceBar(
+            key: ValueKey(_findBarWithReplace),
+            editorState: editorState,
+            initialShowReplace: _findBarWithReplace,
+            onClose: () => setState(() => _showFindBar = false),
+          ),
+        Expanded(
+          child: Utils.isDesktop()
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (_showOutline)
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: _buildOutlinePanelWrapper(theme),
+                      ),
+                    Expanded(child: _buildEditorWidget(theme, _blockComponentBuilders, _textStyleConfiguration)),
+                  ],
+                )
+              : Stack(
+                  children: [
+                    _buildEditorWidget(theme, _blockComponentBuilders, _textStyleConfiguration),
+                    if (_showOutline)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        bottom: 8,
+                        child: _buildOutlinePanelWrapper(theme),
+                      ),
+                  ],
+                ),
+        ),
+        TagBar(uuid: mRecord.uuid),
+        ReminderBar(uuid: mRecord.uuid),
+      ],
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
+    _subscription?.cancel();
+    editorScrollController?.dispose();
+    super.dispose();
+    editorState.dispose();
+  }
+
+  Widget _buildEditorWidget(
+    ThemeData theme,
+    Map<String, BlockComponentBuilder> blockComponentBuilders,
+    TextStyleConfiguration textStyleConfiguration,
+  ) {
+    final editor = AppFlowyEditor(
+      editorState: editorState,
+      focusNode: _focusNode,
+      blockComponentBuilders: blockComponentBuilders,
+      characterShortcutEvents: [codeBlockInsertNewLine, ...standardCharacterShortcutEvents],
+      editorScrollController: editorScrollController,
+      // Mobile: disable autoScrollEdgeOffset (set 0). Default 220 is too large on phone screens;
+      // non-drag-selection scenarios (tap/keyboard pop-up) also trigger autoScroll → poor UX.
+      // When actually dragging selection handles, user's finger is already at the edge and can scroll.
+      autoScrollEdgeOffset: Utils.isDesktop() ? 220 : 40,
+      header: RecordModifyTimeBar(uuid: mRecord.uuid),
+      editorStyle: buildEditorStyle(theme, textStyleConfiguration),
+    );
+
+    if (Utils.isDesktop()) {
+      return editor;
+    }
+
+    final scrollController = editorScrollController;
+    if (scrollController == null) {
+      return editor;
+    }
+
+    return MobileFloatingToolbarBuilder.build(
+      context: context,
+      editorState: editorState,
+      editorScrollController: scrollController,
+      editor: editor,
+    );
+  }
+}
+

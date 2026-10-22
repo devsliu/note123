@@ -1,0 +1,362 @@
+import 'dart:async';
+
+import 'package:notee/filesync/http_api.dart';
+import 'package:notee/filesync/user.dart';
+import 'package:notee/ui/settings/record_operates_page.dart';
+import 'package:notee/model/reminder_notifier.dart';
+import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/settings/server_api_stats_page.dart';
+import 'package:notee/ui/settings/record_database_page.dart';
+import 'package:flutter/material.dart';
+import 'package:notee/config/theme.dart';
+import 'package:notee/ui/settings/theme_selector_dialog.dart';
+import 'package:notee/config/app_config.dart';
+import 'package:flutter/services.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
+import 'login_dialog.dart';
+import 'change_password_dialog.dart';
+import 'upgrade_manager.dart';
+import 'login_users_control.dart';
+import '../../config/language_manager.dart';
+import '../../config/layout_mode.dart';
+import '../../config/prefs.dart';
+import '../../utils/utils.dart';
+
+class SettingsPage extends StatefulWidget {
+  final bool showAppBar;
+  const SettingsPage({super.key, this.showAppBar = true});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  String version = "";
+  int _buildNumber = 0;
+
+  // 升级状态
+  bool? _hasUpdate;
+  VersionInfo? _versionInfo;
+  bool _checking = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadVersionInfo();
+    UserManager.stateNotifier.addListener(_onAuthChanged);
+  }
+
+  @override
+  void dispose() {
+    UserManager.stateNotifier.removeListener(_onAuthChanged);
+    super.dispose();
+  }
+
+  void _onAuthChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _onUserTap() async {
+    final savedList = UserManager.getUsers();
+    if (!mounted) return;
+
+    // Nothing to show: no users at all → login dialog
+    if (savedList.isEmpty) {
+      LoginDialog.show(context);
+      return;
+    }
+
+    await showModalBottomSheet(
+      context: context,
+      useRootNavigator: false,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+      builder: (ctx) => LoginUsersControl(
+        savedList: savedList,
+        onChanged: () {
+          if (mounted) setState(() {});
+        },
+      ),
+    );
+  }
+
+  void _onThemeTap() async {
+    await showThemeSelector(context);
+    setState(() {});
+  }
+
+  Future<void> loadVersionInfo() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    if (!mounted) return;
+    setState(() {
+      version = packageInfo.version;
+      _buildNumber = int.tryParse(packageInfo.buildNumber) ?? 0;
+    });
+  }
+
+  Future<void> _checkUpgrade() async {
+    if (_checking) return;
+    setState(() => _checking = true);
+
+    final info = await UpgradeManager.checkUpgrade();
+    if (info != null && mounted) {
+      _versionInfo = info;
+      _hasUpdate = UpgradeManager.isNewerVersion(info.versionName, version);
+      setState(() {});
+    }
+    if (mounted) setState(() => _checking = false);
+  }
+
+  Future<void> _onVersionTap() async {
+    if (_checking) {
+      return;
+    }
+    await _checkUpgrade();
+    if (mounted) {
+      UpgradeManager.showVersionDialog(context, currentVersion: version, versionInfo: _versionInfo);
+    }
+  }
+
+  void _onLanguageTap() async {
+    final currentLanguage = LanguageManager.getCurrentLanguage();
+
+    LanguageOption? selected = await showDialog<LanguageOption>(
+      context: context,
+      useRootNavigator: false,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l10n.selectLanguage),
+        children: [
+          SimpleDialogOption(
+            child: Row(
+              children: [
+                if (currentLanguage == LanguageOption.system) const Icon(Icons.check, size: 16),
+                if (currentLanguage != LanguageOption.system) const SizedBox(width: 16),
+                const SizedBox(width: 8),
+                Text(l10n.followSystem),
+              ],
+            ),
+            onPressed: () => Navigator.pop(ctx, LanguageOption.system),
+          ),
+          SimpleDialogOption(
+            child: Row(
+              children: [
+                if (currentLanguage == LanguageOption.chinese) const Icon(Icons.check, size: 16),
+                if (currentLanguage != LanguageOption.chinese) const SizedBox(width: 16),
+                const SizedBox(width: 8),
+                Text(l10n.chinese),
+              ],
+            ),
+            onPressed: () => Navigator.pop(ctx, LanguageOption.chinese),
+          ),
+          SimpleDialogOption(
+            child: Row(
+              children: [
+                if (currentLanguage == LanguageOption.english) const Icon(Icons.check, size: 16),
+                if (currentLanguage != LanguageOption.english) const SizedBox(width: 16),
+                const SizedBox(width: 8),
+                Text(l10n.english),
+              ],
+            ),
+            onPressed: () => Navigator.pop(ctx, LanguageOption.english),
+          ),
+        ],
+      ),
+    );
+
+    if (selected != null && selected != currentLanguage) {
+      await LanguageManager.setLanguage(selected);
+    }
+  }
+
+  String _getLanguageDisplayName(BuildContext context) {
+    final currentLanguage = LanguageManager.getCurrentLanguage();
+    return LanguageManager.getLanguageDisplayName(currentLanguage, l10n.followSystem, l10n.chinese, l10n.english);
+  }
+
+  void _onLayoutModeTap() async {
+    final current = LayoutMode.resolve();
+    final isDesktop = Utils.isDesktop();
+    final options = isDesktop
+        ? [LayoutMode.desktop, LayoutMode.pad, LayoutMode.phone]
+        : [LayoutMode.pad, LayoutMode.phone];
+
+    String? selected = await showDialog<String>(
+      context: context,
+      useRootNavigator: false,
+      builder: (ctx) => SimpleDialog(
+        title: Text(l10n.layoutMode),
+        children: options.map((mode) {
+          return SimpleDialogOption(
+            child: Row(
+              children: [
+                if (current == mode) const Icon(Icons.check, size: 16),
+                if (current != mode) const SizedBox(width: 16),
+                const SizedBox(width: 8),
+                Text(LayoutMode.getName(mode, l10n)),
+              ],
+            ),
+            onPressed: () => Navigator.pop(ctx, mode),
+          );
+        }).toList(),
+      ),
+    );
+
+    if (selected != null && selected != current) {
+      await LayoutMode.setMode(selected);
+    }
+  }
+
+  Widget _buildCard(BuildContext context, {required List<Widget> children}) {
+    final theme = Theme.of(context);
+    final radius = BorderRadius.circular(8);
+    final cardColor = theme.colorScheme.surface;
+    final borderColor = theme.colorScheme.outline.withAlpha(80);
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        color: cardColor,
+        border: Border.all(color: borderColor, width: 1),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: radius,
+        child: Column(mainAxisSize: MainAxisSize.min, children: children),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = _buildVersionSubtitle();
+    final theme = Theme.of(context);
+    final divider = Divider(height: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(80));
+    return Scaffold(
+      appBar: widget.showAppBar ? createPlatformAppBar(title: l10n.settings, showWindowButtons: false) : null,
+      backgroundColor: theme.colorScheme.surface,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppConfig.pageHorizontalPadding),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildCard(
+              context,
+              children: [
+                ListTile(
+                  onTap: _onUserTap,
+                  title: Text(l10n.syncAccount),
+                  subtitle: Text(
+                    getUserInfo(context, UserManager.current),
+                    style: TextStyle(
+                      color: UserManager.current.isLoggedIn ? null : Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+                ),
+                if (UserManager.current.isLoggedIn) ...[
+                  divider,
+                  ListTile(
+                    onTap: () => ChangePasswordDialog.show(context),
+                    title: Text(l10n.changePassword),
+                    trailing: const Icon(Icons.lock_outline),
+                  ),
+                ],
+                divider,
+                ListTile(onTap: _onAppFolderTap, title: Text(l10n.dataDirectory), subtitle: Text(AppConfig.appRootDir)),
+                divider,
+                ListTile(onTap: _onThemeTap, title: Text(l10n.theme), subtitle: Text(gAppTheme.getName(l10n))),
+                divider,
+                ListTile(
+                  onTap: _onLanguageTap,
+                  title: Text(l10n.language),
+                  subtitle: Text(_getLanguageDisplayName(context)),
+                ),
+                divider,
+                ListTile(
+                  onTap: _onLayoutModeTap,
+                  title: Text(l10n.layoutMode),
+                  subtitle: Text(LayoutMode.getName(LayoutMode.resolve(), l10n)),
+                ),
+                if (LayoutMode.resolve() == LayoutMode.desktop) ...[
+                  divider,
+                  SwitchListTile.adaptive(
+                    value: Prefs.instance.getBool(PrefKeys.rememberOpenTabs) ?? true,
+                    onChanged: (v) {
+                      Prefs.instance.setBool(PrefKeys.rememberOpenTabs, v).save();
+                      setState(() {});
+                    },
+                    title: Text(l10n.rememberOpenTabs),
+                    subtitle: Text(l10n.rememberOpenTabsDesc),
+                  ),
+                ],
+                divider,
+                ListTile(
+                  onTap: _onVersionTap,
+                  title: _buildVersionTitle(),
+                  subtitle: subtitle,
+                  trailing: _hasUpdate == true ? const Icon(Icons.new_releases, color: Colors.orange) : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Text(
+                l10n.debugAndStats,
+                style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.outline),
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildCard(
+              context,
+              children: [
+                ListTile(onTap: _onApiStatTap, title: Text(l10n.apiCallStats)),
+                divider,
+                ListTile(onTap: _onRecordsDbTap, title: Text(l10n.database)),
+                divider,
+                ListTile(onTap: _onOperatesDbTap, title: Text(l10n.operates)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVersionTitle() {
+    if (_checking) return Text('${l10n.version} · ${l10n.upgradeChecking}');
+    if (_hasUpdate == true) {
+      return Text(
+        '${l10n.version} · ${l10n.upgradeAvailable(_versionInfo?.versionName ?? '')}',
+        style: TextStyle(color: Theme.of(context).colorScheme.primary),
+      );
+    }
+    if (_hasUpdate == false) return Text('${l10n.version} · ${l10n.upgradeUpToDate}');
+    return Text(l10n.version);
+  }
+
+  Widget _buildVersionSubtitle() {
+    var current = '$version ($_buildNumber)';
+    if (AppConfig.buildGitCommit.isNotEmpty) current += ' · ${AppConfig.buildGitCommit}';
+    if (AppConfig.buildTime.isNotEmpty) current += ' · ${AppConfig.buildTime}';
+    return Text(current);
+  }
+
+  void _onApiStatTap() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => ServerApiStatsPage()));
+  }
+
+  void _onAppFolderTap() {
+    Clipboard.setData(ClipboardData(text: AppConfig.appRootDir));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${l10n.dataDirCopied}: ${AppConfig.appRootDir}'), duration: const Duration(seconds: 2)),
+    );
+  }
+
+  void _onRecordsDbTap() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => RecordDatabasePage()));
+  }
+
+  void _onOperatesDbTap() {
+    Navigator.push(context, MaterialPageRoute(builder: (context) => const LogsPage()));
+  }
+}
