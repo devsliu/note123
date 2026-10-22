@@ -27,8 +27,10 @@ class _AppBarSwitcher extends StatelessWidget implements PreferredSizeWidget {
   const _AppBarSwitcher({required this.buildTitleBar});
 
   @override
-  Size get preferredSize =>
-      Utils.isDesktop() ? Size.fromHeight(windowTitleBarHeight) : const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize {
+    final useDesktopBar = Utils.isDesktop() && LayoutMode.resolve() == LayoutMode.desktop;
+    return Size.fromHeight(useDesktopBar ? windowTitleBarHeight : kToolbarHeight);
+  }
 
   @override
   Widget build(BuildContext context) {
