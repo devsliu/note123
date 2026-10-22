@@ -193,15 +193,15 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
             title: Text(l10n.outline),
           ),
         ),
-        PopupMenuItem(
+      PopupMenuItem(
+        value: 3,
+        child: ListTile(leading: Icon(Icons.share_outlined), title: Text(l10n.share)),
+      ),
+      PopupMenuItem(
           value: 2,
           child: ListTile(leading: Icon(Icons.notifications_active_outlined), title: Text(l10n.addReminder)),
         ),
-        PopupMenuItem(
-          value: 3,
-          child: ListTile(leading: Icon(Icons.share_outlined), title: Text(l10n.share)),
-        ),
-        PopupMenuItem(
+      PopupMenuItem(
           value: 4,
           child: ListTile(leading: Icon(Icons.info_outlined), title: Text(l10n.recordInfo)),
         ),
