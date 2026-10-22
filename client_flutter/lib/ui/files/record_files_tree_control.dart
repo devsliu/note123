@@ -28,15 +28,19 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
 
   /// Convert RecordTree to recursive TreeViewNode structure
 
-  void onEventChanged() {
-    setState(() {});
+  void _safeSetState() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
+
+  void onEventChanged() => _safeSetState();
 
   void onFolderChanged() {
     final folder = RecordOpenedState.get().openedFolder;
     var treeViewNode = _treeController.getNodeFor(folder);
     if (treeViewNode == null) return;
-    // Expand this folder and all ancestors up to root.
     while (treeViewNode != null) {
       if (!_treeController.isExpanded(treeViewNode) && _treeController.isActive(treeViewNode)) {
         _treeController.expandNode(treeViewNode);
@@ -45,9 +49,7 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
     }
   }
 
-  void onFileChanged() {
-    setState(() {});
-  }
+  void onFileChanged() => _safeSetState();
 
   void onCollapseAll() {
     _treeController.collapseAll();

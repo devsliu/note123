@@ -3,7 +3,6 @@ import 'package:notee/config/language_manager.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/desktop/desktop_title_bar.dart';
 import 'package:notee/ui/desktop/window_state.dart';
-import 'package:notee/ui/editor/editor_save_coordinator.dart';
 import 'package:notee/utils/utils.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -14,6 +13,7 @@ import 'desktop_tabs_page.dart';
 import '../../config/prefs.dart';
 import '../../model/record_opened_state.dart';
 import '../calendar/calendar_page.dart';
+import '../common/split_layout.dart';
 import '../files/record_recycler_page.dart';
 import '../editor/record_flow_editor_page.dart';
 import '../settings/settings_page.dart';
@@ -228,25 +228,6 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
       ..setDouble(PrefKeys.windowHeight, size.height);
   }
 
-  Widget buildLeftSideDragger() {
-    var theme = Theme.of(context);
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onHorizontalDragUpdate: (details) {
-        setState(() {
-          leftWidth += details.delta.dx;
-          if (leftWidth < minLeftWidth) leftWidth = minLeftWidth;
-          if (leftWidth > maxLeftWidth) leftWidth = maxLeftWidth;
-        });
-        Prefs.instance.setDouble(PrefKeys.windowLeftWidth, leftWidth);
-      },
-      child: MouseRegion(
-        cursor: SystemMouseCursors.resizeColumn,
-        child: VerticalDivider(width: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(80)),
-      ),
-    );
-  }
-
   @override
   Widget buildAppWrapper(BuildContext context, Widget child) {
     final virtualWindowFrameBuilder = VirtualWindowFrameInit();
@@ -297,44 +278,18 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
 
   @override
   Widget buildHome(BuildContext context) {
-    return CustomMultiChildLayout(
-      delegate: _DesktopAppLayoutDelegate(leftWidth: leftWidth),
-      children: [
-        LayoutId(id: 'left', child: RecordListPage()),
-        LayoutId(
-          id: 'right',
-          child: ScaffoldMessenger(child: DesktopTabsPage(key: detailKey)),
-        ),
-        LayoutId(id: 'dragger', child: buildLeftSideDragger()),
-      ],
+    return SplitLayout(
+      leftWidth: leftWidth,
+      minLeftWidth: minLeftWidth,
+      maxLeftWidth: maxLeftWidth,
+      draggerTopOffset: windowTitleBarHeight,
+      onLeftWidthChanged: (w) {
+        leftWidth = w;
+        Prefs.instance.setDouble(PrefKeys.windowLeftWidth, w);
+      },
+      leftChild: RecordListPage(),
+      rightChild: ScaffoldMessenger(child: DesktopTabsPage(key: detailKey)),
     );
-  }
-}
-
-class _DesktopAppLayoutDelegate extends MultiChildLayoutDelegate {
-  final double leftWidth;
-
-  _DesktopAppLayoutDelegate({required this.leftWidth});
-
-  @override
-  void performLayout(Size size) {
-    if (hasChild('left')) {
-      layoutChild('left', BoxConstraints.tight(Size(leftWidth, size.height)));
-      positionChild('left', Offset.zero);
-    }
-    if (hasChild('right')) {
-      layoutChild('right', BoxConstraints.tight(Size(size.width - leftWidth, size.height)));
-      positionChild('right', Offset(leftWidth, 0));
-    }
-    if (hasChild('dragger')) {
-      layoutChild('dragger', BoxConstraints.tight(Size(4, size.height - windowTitleBarHeight)));
-      positionChild('dragger', Offset(leftWidth - 2, windowTitleBarHeight));
-    }
-  }
-
-  @override
-  bool shouldRelayout(covariant _DesktopAppLayoutDelegate oldDelegate) {
-    return leftWidth != oldDelegate.leftWidth;
   }
 }
 

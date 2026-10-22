@@ -100,7 +100,10 @@ class _TagFilesControlState extends State<TagFilesControl> {
   }
 
   void _onFileChanged() {
-    if (mounted) setState(() {});
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   /// Build the tag tree once. Each tag starts at the expanded state stored on

@@ -37,14 +37,16 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
     super.dispose();
   }
 
-  void onOpenedFolderChanged() {
-    // Update UI when the opened folder changes
-    setState(() {});
+  void _safeSetState() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() {});
+    });
   }
 
-  void onRefreshChanged() {
-    setState(() {});
-  }
+  void onOpenedFolderChanged() => _safeSetState();
+
+  void onRefreshChanged() => _safeSetState();
 
   void onClickFolder(int index, TreeContentFolder folder) {
     RecordOpenedState.get().setOpenedFolder(folder.path);
