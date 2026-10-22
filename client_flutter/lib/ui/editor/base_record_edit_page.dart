@@ -82,9 +82,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
 
     // loadContent() routes locked records to password mode (sPageModePass)
     loadContent();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      RecordOpenedState.get().openFile(mRecord.uuid);
-    });
+    RecordOpenedState.get().openFile(mRecord.uuid);
   }
 
   @override
@@ -96,9 +94,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
     // gets saved even if a prior save is still in-flight. The returned Future continues
     // on the Dart isolate after dispose; the isolate stays alive until save completes.
     saveRecord();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      RecordOpenedState.get().closeFile(mRecord.uuid);
-    });
+    RecordOpenedState.get().closeFile(mRecord.uuid);
     super.dispose();
   }
 

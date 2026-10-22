@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -103,7 +104,7 @@ class _ExportProgressDialogState extends State<_ExportProgressDialog> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _run());
+    Timer.run(() => _run());
   }
 
   Future<void> _run() async {

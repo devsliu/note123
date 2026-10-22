@@ -101,7 +101,7 @@ class _TagFilesControlState extends State<TagFilesControl> {
 
   void _onFileChanged() {
     if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Timer.run(() {
       if (mounted) setState(() {});
     });
   }

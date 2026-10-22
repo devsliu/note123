@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/desktop/desktop_title_bar.dart';
@@ -124,7 +126,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
     }
     if (Repository.get().recordTree.countNotifier.value <= 0) return;
     _tabsRestored = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _restoreTabs());
+    Timer.run(_restoreTabs);
   }
 
   void _saveTabs() {

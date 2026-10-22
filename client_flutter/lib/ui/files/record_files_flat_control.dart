@@ -39,7 +39,7 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
 
   void _safeSetState() {
     if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Timer.run(() {
       if (mounted) setState(() {});
     });
   }

@@ -258,7 +258,7 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
 
   void _refreshSelection() {
     if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Timer.run(() {
       if (mounted) setState(() {});
     });
   }

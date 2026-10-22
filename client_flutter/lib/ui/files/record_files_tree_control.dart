@@ -30,7 +30,7 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
 
   void _safeSetState() {
     if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Timer.run(() {
       if (mounted) setState(() {});
     });
   }

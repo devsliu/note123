@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:appflowy_editor/appflowy_editor.dart';
@@ -189,7 +190,7 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
     _lastSyncState = state;
     if (!state.isConflict) return;
     if (ConflictListPage.isShowing) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Timer.run(() {
       if (!mounted) return;
       final ctx = navigatorKey.currentContext;
       if (ctx == null) return;
@@ -201,7 +202,7 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
   /// 切换完成自动 pop，期间拦截所有用户操作。
   void _onUserSwitchingChanged() {
     final switching = Repository.get().userSwitchingNotifier.value;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Timer.run(() {
       if (!mounted) return;
       final ctx = navigatorKey.currentContext;
       if (ctx == null) return;

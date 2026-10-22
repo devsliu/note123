@@ -115,7 +115,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
     // Desktop 重开同 uuid tab 但关键字变化时：重置跳转标志，重新定位
     if (widget.keyword != oldWidget.keyword && widget.keyword != null && widget.keyword!.isNotEmpty) {
       _keywordJumped = false;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      Timer.run(() {
         if (!mounted) return;
         final kw = widget.keyword;
         if (kw == null || kw.isEmpty || _keywordJumped) return;
@@ -343,7 +343,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
       _focusNode.requestFocus();
     } else if (savedSelection != null) {
       // Existing document: restore previous cursor position (clamped to valid range)
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      Timer.run(() {
         if (!mounted) return;
         editorState.updateSelectionWithReason(savedSelection);
       });
@@ -356,7 +356,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
     final keyword = widget.keyword;
     if (keyword != null && keyword.isNotEmpty && !_keywordJumped) {
       _keywordJumped = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      Timer.run(() {
         if (!mounted) return;
         final service = SearchServiceV3(editorState: editorState, jumpInterceptor: (_) => false);
         service.findAndHighlight(keyword);
@@ -389,7 +389,7 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
 
   void _restoreSelection() {
     if (_savedSelection == null) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Timer.run(() {
       if (!mounted) return;
       if (editorState.selection == null) {
         editorState.updateSelectionWithReason(_savedSelection!);

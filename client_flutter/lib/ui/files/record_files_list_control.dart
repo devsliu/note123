@@ -41,7 +41,7 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
 
   void onRefreshChanged() {
     if (!mounted) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    Timer.run(() {
       if (mounted) setState(() {});
     });
   }
