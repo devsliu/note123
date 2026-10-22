@@ -689,8 +689,40 @@ AppTheme _applyUniversalThemePatch(AppTheme theme) {
       ),
       popupMenuTheme: data.popupMenuTheme.copyWith(menuPadding: EdgeInsets.zero),
       appBarTheme: data.appBarTheme.copyWith(elevation: 0, scrolledUnderElevation: 0),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _SlidePageTransitionsBuilder(),
+          TargetPlatform.iOS: _SlidePageTransitionsBuilder(),
+          TargetPlatform.macOS: _SlidePageTransitionsBuilder(),
+          TargetPlatform.windows: _SlidePageTransitionsBuilder(),
+          TargetPlatform.linux: _SlidePageTransitionsBuilder(),
+          TargetPlatform.fuchsia: _SlidePageTransitionsBuilder(),
+        },
+      ),
     ),
   );
+}
+
+/// 全局左右滑动转场：新页面从右侧滑入，退出时向右侧滑出。
+class _SlidePageTransitionsBuilder extends PageTransitionsBuilder {
+  const _SlidePageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: const Offset(1.0, 0.0),
+        end: Offset.zero,
+      ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+      child: child,
+    );
+  }
 }
 
 AppTheme _getSavedTheme() {
