@@ -5,6 +5,7 @@ import 'package:notee/filesync/database.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/utils/utils.dart';
+import 'package:notee/utils/state_ext.dart';
 import 'package:notee/ui/desktop/desktop_tabs_page.dart';
 
 typedef _FolderGroup = ({String folderPath, int deleteAt, int count, String groupId});
@@ -18,7 +19,7 @@ class RecordRecyclerPage extends StatefulWidget {
   State<RecordRecyclerPage> createState() => _RecordRecyclerPageState();
 }
 
-class _RecordRecyclerPageState extends State<RecordRecyclerPage> implements DesktopTabPageState {
+class _RecordRecyclerPageState extends BaseState<RecordRecyclerPage> implements DesktopTabPageState {
   List<_FolderGroup> _folders = [];
   List<RecycleRecord> _singles = [];
   bool _loading = true;
@@ -27,12 +28,11 @@ class _RecordRecyclerPageState extends State<RecordRecyclerPage> implements Desk
   void initState() {
     super.initState();
     _load();
-    Repository.get().recyclerCountNotifier.addListener(_load);
+    listen(Repository.get().recyclerCountNotifier, _load);
   }
 
   @override
   void dispose() {
-    Repository.get().recyclerCountNotifier.removeListener(_load);
     super.dispose();
   }
 
@@ -280,17 +280,11 @@ class RecyclerEntryItem extends StatefulWidget {
   State<RecyclerEntryItem> createState() => _RecyclerEntryItemState();
 }
 
-class _RecyclerEntryItemState extends State<RecyclerEntryItem> {
+class _RecyclerEntryItemState extends BaseState<RecyclerEntryItem> {
   @override
   void initState() {
     super.initState();
-    Repository.get().recyclerCountNotifier.addListener(_onCountChanged);
-  }
-
-  @override
-  void dispose() {
-    Repository.get().recyclerCountNotifier.removeListener(_onCountChanged);
-    super.dispose();
+    listen(Repository.get().recyclerCountNotifier, _onCountChanged);
   }
 
   void _onCountChanged() {

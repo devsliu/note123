@@ -21,7 +21,7 @@ class RecordFilesTreeControl extends StatefulWidget {
   double get verticalPadding2 => shrink ? 2.00 : 8.0;
 }
 
-class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
+class _RecordFilesTreeControlState extends BaseState<RecordFilesTreeControl> {
   final RecordTree recordTree = Repository.get().recordTree;
 
   final TreeViewController _treeController = TreeViewController();
@@ -51,15 +51,13 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
   void initState() {
     super.initState();
     _treeSub = recordTree.onEvent.listen((_) => safeSetState());
-    RecordOpenedState.get().openedFolderNotifier.addListener(onFolderChanged);
-    RecordOpenedState.get().openedFileNotifier.addListener(safeSetState);
+    listen(RecordOpenedState.get().openedFolderNotifier, onFolderChanged);
+    listen(RecordOpenedState.get().openedFileNotifier, safeSetState);
   }
 
   @override
   void dispose() {
     _treeSub?.cancel();
-    RecordOpenedState.get().openedFolderNotifier.removeListener(onFolderChanged);
-    RecordOpenedState.get().openedFileNotifier.removeListener(safeSetState);
     super.dispose();
   }
 

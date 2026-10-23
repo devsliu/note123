@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:notee/filesync/record_ext.dart';
@@ -58,7 +58,7 @@ class _TagFileWidget extends TreeFileWidget {
   double get intent => (arrowSize + 4.0);
 }
 
-class _TagFilesControlState extends State<TagFilesControl> {
+class _TagFilesControlState extends BaseState<TagFilesControl> {
   final recordTree = Repository.get().recordTree;
   final TreeViewController _treeController = TreeViewController();
   StreamSubscription<TagTreeEvent>? _tagSub;
@@ -77,13 +77,12 @@ class _TagFilesControlState extends State<TagFilesControl> {
     super.initState();
     _buildInitialTree();
     _tagSub = Repository.get().tagTree.onEvent.listen(_onTagEvent);
-    RecordOpenedState.get().openedFileNotifier.addListener(safeSetState);
+    listen(RecordOpenedState.get().openedFileNotifier, safeSetState);
   }
 
   @override
   void dispose() {
     _tagSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(safeSetState);
     super.dispose();
   }
 

@@ -23,20 +23,19 @@ class RecordFilesListControl extends StatefulWidget {
   State<RecordFilesListControl> createState() => _RecordFilesListControlState();
 }
 
-class _RecordFilesListControlState extends State<RecordFilesListControl> {
+class _RecordFilesListControlState extends BaseState<RecordFilesListControl> {
   final RecordTree recordTree = Repository.get().recordTree;
   StreamSubscription<RecordEvent>? _treeSub;
   @override
   void initState() {
     super.initState();
     _treeSub = recordTree.onEvent.listen((_) => safeSetState());
-    RecordOpenedState.get().openedFileNotifier.addListener(safeSetState);
+    listen(RecordOpenedState.get().openedFileNotifier, safeSetState);
   }
 
   @override
   void dispose() {
     _treeSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(safeSetState);
     super.dispose();
   }
 

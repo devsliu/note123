@@ -29,7 +29,7 @@ class TagBar extends StatefulWidget {
   State<TagBar> createState() => _TagBarState();
 }
 
-class _TagBarState extends State<TagBar> {
+class _TagBarState extends BaseState<TagBar> {
   StreamSubscription<TagTreeEvent>? _tagSub;
 
   @override

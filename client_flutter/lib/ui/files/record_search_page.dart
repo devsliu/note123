@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -228,7 +228,7 @@ class RecordSearchResultsControl extends StatefulWidget {
   State<RecordSearchResultsControl> createState() => _RecordSearchResultsControlState();
 }
 
-class _RecordSearchResultsControlState extends State<RecordSearchResultsControl> {
+class _RecordSearchResultsControlState extends BaseState<RecordSearchResultsControl> {
   final RecordTree recordTree = Repository.get().recordTree;
   SearchIndex? get _searchIndex => Repository.get().searchIndex;
   StreamSubscription<RecordEvent>? _treeSub;
@@ -239,7 +239,7 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
   void initState() {
     super.initState();
     _treeSub = recordTree.onEvent.listen((_) => _runSearch());
-    RecordOpenedState.get().openedFileNotifier.addListener(safeSetState);
+    listen(RecordOpenedState.get().openedFileNotifier, safeSetState);
     _runSearch();
   }
 
@@ -252,7 +252,6 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
   @override
   void dispose() {
     _treeSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(safeSetState);
     super.dispose();
   }
 

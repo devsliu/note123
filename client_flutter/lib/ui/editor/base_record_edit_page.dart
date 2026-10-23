@@ -49,7 +49,7 @@ abstract class BaseRecordEditPage extends StatefulWidget {
   const BaseRecordEditPage({super.key, required this.uuid, this.closePageCallback});
 }
 
-abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends State<T>
+abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends BaseState<T>
     with WidgetsBindingObserver
     implements DesktopTabPageState, SaveFlushTarget {
   PageState pageState = PageState(PageState.modeLoad);

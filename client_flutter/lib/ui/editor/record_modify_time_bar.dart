@@ -19,7 +19,7 @@ class RecordModifyTimeBar extends StatefulWidget {
   State<RecordModifyTimeBar> createState() => _RecordModifyTimeBarState();
 }
 
-class _RecordModifyTimeBarState extends State<RecordModifyTimeBar> {
+class _RecordModifyTimeBarState extends BaseState<RecordModifyTimeBar> {
   StreamSubscription<RecordEvent>? _treeSub;
 
   @override

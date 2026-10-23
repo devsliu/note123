@@ -40,7 +40,7 @@ class ReminderBar extends StatefulWidget {
   State<ReminderBar> createState() => _ReminderBarState();
 }
 
-class _ReminderBarState extends State<ReminderBar> {
+class _ReminderBarState extends BaseState<ReminderBar> {
   StreamSubscription<RecordEvent>? _treeSub;
 
   @override
