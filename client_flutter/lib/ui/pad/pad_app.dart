@@ -65,7 +65,7 @@ class _PadAppState extends BaseAppState<PadApp> {
 
   void _onRecordTreeCountChanged() {
     if (_restored) return;
-    if (DateTime.now().difference(AppEnv.appStartTime).inSeconds > 10) {
+    if (AppEnv.appUptime.inSeconds > 10) {
       _restored = true;
       return;
     }

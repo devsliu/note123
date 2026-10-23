@@ -114,7 +114,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> {
 
   void _onRecordTreeCountChanged() {
     if (_tabsRestored) return;
-    if (DateTime.now().difference(AppEnv.appStartTime).inSeconds > 10) {
+    if (AppEnv.appUptime.inSeconds > 10) {
       _tabsRestored = true;
       return;
     }

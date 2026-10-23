@@ -47,6 +47,9 @@ class AppEnv {
   /// App 启动时间，用于限制 tabs 恢复的等待窗口。
   static final DateTime appStartTime = DateTime.now();
 
+  /// App 已运行时长。
+  static Duration get appUptime => DateTime.now().difference(appStartTime);
+
   /// 保存打开的 tabs：[index] 为当前选中 tab 下标，[tabs] 为 uri 列表。
   /// 当 [tabs] 为 null/空，或 rememberOpenTabs 关闭时清除已保存的 tabs。
   static void setOpenedTabs(int index, List<String>? tabs) {
