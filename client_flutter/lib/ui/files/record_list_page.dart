@@ -14,7 +14,7 @@ import 'package:notee/ui/files/record_list_actions.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/config/theme.dart';
 import 'package:notee/utils/utils.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 
 import 'sync_button.dart';
 
