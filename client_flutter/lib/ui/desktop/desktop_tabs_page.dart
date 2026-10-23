@@ -293,11 +293,13 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
               ValueListenableBuilder<int>(
                 valueListenable: _pageReadyNotifier,
                 builder: (context, readyIndex, _) {
-                  if (_tabs.isEmpty || currentIndex < 0 || currentIndex >= _tabs.length) {
+                  if (_tabs.isEmpty || readyIndex < 0 || readyIndex >= _tabs.length) {
                     return const SizedBox.shrink();
                   }
-                  final actions = _tabs[currentIndex].tab.buildActions(_tabs[currentIndex].key);
-                  if (actions == null || actions.isEmpty) return const SizedBox.shrink();
+                  final actions = _tabs[readyIndex].tab.buildActions(_tabs[readyIndex].key);
+                  if (actions == null || actions.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
                   return IconButtonTheme(
                     data: theme.appBarIconButtonTheme,
                     child: Row(mainAxisSize: MainAxisSize.min, children: actions),
