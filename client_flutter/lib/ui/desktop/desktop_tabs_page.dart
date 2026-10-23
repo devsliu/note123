@@ -1,10 +1,8 @@
 import 'dart:math';
-import 'dart:math' as math;
 
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/config/theme.dart';
 import 'package:notee/config/app_config.dart';
-import 'package:notee/ui/desktop/window_state.dart';
 import 'package:flutter/material.dart';
 import 'package:notee/ui/desktop/desktop_tabbar.dart';
 import 'package:notee/ui/common/empty_detail_placeholder.dart';
@@ -99,6 +97,9 @@ class _DesktopTabImpl {
   Widget? page;
 
   _DesktopTabImpl({required this.tab});
+
+  @override
+  String toString() => tab.toString();
 }
 
 class DesktopTabsPage extends StatefulWidget {
@@ -113,20 +114,16 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
   int get tabCount => _tabs.length;
   int currentIndex = 0;
   final ValueNotifier<int> _pageReadyNotifier = ValueNotifier<int>(-1);
-  Size _lockedEditorSize = Size.zero;
-  bool _wasAnimating = false;
 
   @override
   void initState() {
     super.initState();
-    isWindowAnimatingNotifier.addListener(_onAnimatingChanged);
   }
 
   List<DesktopTab> get tabs => _tabs.map((impl) => impl.tab).toList();
 
   @override
   void dispose() {
-    isWindowAnimatingNotifier.removeListener(_onAnimatingChanged);
     _pageReadyNotifier.dispose();
     // Remove in three segments so the currently selected tab is closed last.
     final idx = currentIndex.clamp(0, max(0, _tabs.length - 1)).toInt();
@@ -134,18 +131,6 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
     removeTabs(0, idx);
     removeTabs(0, 1);
     super.dispose();
-  }
-
-  void _onAnimatingChanged() {
-    final nowAnimating = isWindowAnimatingNotifier.value;
-    if (nowAnimating && !_wasAnimating) {
-      final renderBox = context.findRenderObject() as RenderBox?;
-      if (renderBox != null && renderBox.hasSize) {
-        _lockedEditorSize = Size(renderBox.size.width, renderBox.size.height - kWindowToolbarHeight);
-      }
-    }
-    _wasAnimating = nowAnimating;
-    setState(() {});
   }
 
   /// Open (or focus) [tab]. If an equal tab is already open it is focused
@@ -266,87 +251,86 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final tabCount = _tabs.length;
-    final showDropdown = tabCount > 1;
-    final isAnimating = isWindowAnimatingNotifier.value;
-    if (!isAnimating) {
-      final renderBox = context.findRenderObject() as RenderBox?;
-      if (renderBox != null && renderBox.hasSize) {}
-    }
-    var theme = Theme.of(context);
-    return Material(
-      color: theme.scaffoldBackgroundColor,
-      child: CustomMultiChildLayout(
-        delegate: _DesktopRightSideAllLayoutDelegate(
-          showDropdown: showDropdown,
-          isWindowAnimating: isAnimating,
-          lockedEditorSize: isAnimating ? _lockedEditorSize : null,
-        ),
+  /// 构建顶部工具栏：底层 moveBar 负责窗口拖拽，上层从左到右依次为
+  /// DesktopTabBar（占满剩余空间）、actions 溢出按钮、tabDropdown、windowButtons。
+  Widget buildTabbar(BuildContext context) {
+    final theme = Theme.of(context);
+    final showDropdown = _tabs.length > 1;
+    return SizedBox(
+      height: kWindowToolbarHeight,
+      child: Stack(
         children: [
-          // Title bar
-          LayoutId(
-            id: 'moveBar',
-            child: Column(
-              children: [
-                WindowMoveBar(color: theme.appBarBackgroundColor),
-                Divider(height: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(80)),
-              ],
-            ),
+          // 底层：拖拽区域
+          Positioned.fill(child: WindowMoveBar(color: theme.appBarBackgroundColor)),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Divider(height: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(80)),
           ),
-
-          
-          // Tab bar
-          LayoutId(
-            id: 'tabBar',
-            child: DesktopTabBar(
-              tabs: _tabs.map((impl) => impl.tab).toList(),
-              currentIndex: currentIndex,
-              onSelectTab: selectTab,
-              onCloseTab: closeTab,
-              onCloseOtherTabs: closeOtherTabs,
-              onCloseAllTabs: closeAllTabs,
-              onCloseTabsToRight: closeTabsToRight,
-              onCloseTabsToLeft: closeTabsToLeft,
-            ),
-          ),
-          if (showDropdown)
-            LayoutId(
-              id: 'tabDropdown',
-              child: IconButtonTheme(
-                data: theme.appBarIconButtonTheme,
-                child: _TabDropdown(
-                  tabs: _tabs.map((impl) => impl.tab).toList(),
-                  currentIndex: currentIndex,
-                  onSelect: selectTab,
-                  onCloseTab: closeTab,
+          // 上层：从左到右布局
+          Row(
+            children: [
+              Expanded(
+                child: Align(
+                  alignment: Alignment.bottomLeft,
+                  child: SizedBox(
+                    height: kWindowToolbarHeight - 10,
+                    child: DesktopTabBar(
+                      tabs: _tabs,
+                      currentIndex: currentIndex,
+                      onSelectTab: selectTab,
+                      onCloseTab: closeTab,
+                      onCloseOtherTabs: closeOtherTabs,
+                      onCloseAllTabs: closeAllTabs,
+                      onCloseTabsToRight: closeTabsToRight,
+                      onCloseTabsToLeft: closeTabsToLeft,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          LayoutId(id: 'windowButtons', child: WindowManagerButtons()),
-          // Fixed-width per-tab actions slot (share + ⋯ menu), between tabDropdown and windowButtons.
-          // Only this zone rebuilds when a page finishes mounting, not the whole shell.
-          LayoutId(
-            id: 'actions',
-            child: ValueListenableBuilder<int>(
-              valueListenable: _pageReadyNotifier,
-              builder: (context, readyIndex, _) {
-                if (_tabs.isEmpty || currentIndex < 0 || currentIndex >= _tabs.length) {
-                  return const SizedBox.shrink();
-                }
-                final actions = _tabs[currentIndex].tab.buildActions(_tabs[currentIndex].key);
-                if (actions == null || actions.isEmpty) return const SizedBox.shrink();
-                return IconButtonTheme(
+              // per-tab actions 溢出按钮，仅在页面挂载完成后重建
+              ValueListenableBuilder<int>(
+                valueListenable: _pageReadyNotifier,
+                builder: (context, readyIndex, _) {
+                  if (_tabs.isEmpty || currentIndex < 0 || currentIndex >= _tabs.length) {
+                    return const SizedBox.shrink();
+                  }
+                  final actions = _tabs[currentIndex].tab.buildActions(_tabs[currentIndex].key);
+                  if (actions == null || actions.isEmpty) return const SizedBox.shrink();
+                  return IconButtonTheme(
+                    data: theme.appBarIconButtonTheme,
+                    child: Row(mainAxisSize: MainAxisSize.min, children: actions),
+                  );
+                },
+              ),
+              if (showDropdown)
+                IconButtonTheme(
                   data: theme.appBarIconButtonTheme,
-                  child: Row(mainAxisSize: MainAxisSize.min, children: actions),
-                );
-              },
-            ),
+                  child: _TabDropdown(
+                    tabs: _tabs.map((impl) => impl.tab).toList(),
+                    currentIndex: currentIndex,
+                    onSelect: selectTab,
+                    onCloseTab: closeTab,
+                  ),
+                ),
+              const WindowManagerButtons(),
+            ],
           ),
+        ],
+      ),
+    );
+  }
 
-          LayoutId(
-            id: 'editorStack',
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: theme.scaffoldBackgroundColor,
+      child: Column(
+        children: [
+          buildTabbar(context),
+          Expanded(
             child: _tabs.isEmpty
                 ? EmptyDetailPlaceholder(title: l10n.pleaseSelectRecord)
                 : IndexedStack(index: currentIndex, children: _tabs.map((impl) => impl.page!).toList()),
@@ -444,83 +428,5 @@ class _TabDropdownState extends State<_TabDropdown> {
       tooltip: l10n.showAllTabs,
       onPressed: _showPopupMenu,
     );
-  }
-}
-
-// New CustomMultiChildLayout Delegate, handles overall layout of top bars and editor area
-class _DesktopRightSideAllLayoutDelegate extends MultiChildLayoutDelegate {
-  final bool showDropdown;
-  final bool isWindowAnimating;
-  final Size? lockedEditorSize;
-
-  _DesktopRightSideAllLayoutDelegate({
-    required this.showDropdown,
-    required this.isWindowAnimating,
-    this.lockedEditorSize,
-  });
-
-  @override
-  void performLayout(Size size) {
-    final double titleBarHeight = kWindowToolbarHeight + 1; //1 for divider
-    final double windowButtonsWidth = kWindowButtonWidth * 3;
-
-    // Actions slot size (computed once below; only reserves space if present)
-    Size? actionsSize;
-    Size? dropdownSize;
-
-    if (hasChild('moveBar')) {
-      layoutChild('moveBar', BoxConstraints.tight(Size(size.width, titleBarHeight)));
-      positionChild('moveBar', Offset.zero);
-    }
-    if (hasChild('windowButtons')) {
-      final btnSize = Size(windowButtonsWidth, titleBarHeight);
-      layoutChild('windowButtons', BoxConstraints.tight(btnSize));
-      positionChild('windowButtons', Offset(size.width - btnSize.width, 0));
-    }
-    if (showDropdown && hasChild('tabDropdown')) {
-      dropdownSize = layoutChild('tabDropdown', BoxConstraints.loose(Size(size.width, titleBarHeight)));
-      positionChild(
-        'tabDropdown',
-        Offset(size.width - windowButtonsWidth - dropdownSize.width, (titleBarHeight - dropdownSize.height) / 2),
-      );
-    }
-    if (hasChild('actions')) {
-      double actionsRightEdge = size.width - windowButtonsWidth - (dropdownSize?.width ?? 0);
-      actionsSize = layoutChild('actions', BoxConstraints.loose(Size(size.width, titleBarHeight)));
-        positionChild(
-          'actions',
-          Offset(actionsRightEdge - actionsSize.width, (titleBarHeight - actionsSize.height) / 2),
-        );
-    }
-
-    if (hasChild('tabBar')) {
-      final left = 0.0;
-      final top = 8.0;
-      // Reserve right margin for: actions slot (actual width only if present)
-      // + optional tabDropdown (40 for the button + its left padding) + windowButtons
-      final right =
-          windowButtonsWidth +
-          (actionsSize != null ? actionsSize.width + 4.0 : 0.0) +
-          (dropdownSize != null ? dropdownSize.width + 4.0 : 0.0);
-      final width = math.max(0.0, size.width - left - right);
-      final height = titleBarHeight - top + 0.5; //0.5 for total cover the divider
-      layoutChild('tabBar', BoxConstraints(maxWidth: width, maxHeight: height, minHeight: height));
-      positionChild('tabBar', Offset(left, top));
-    }
-    if (hasChild('editorStack')) {
-      final effectiveEditorSize =
-          (isWindowAnimating && lockedEditorSize != null && lockedEditorSize!.width > 0 && lockedEditorSize!.height > 0)
-          ? lockedEditorSize!
-          : Size(size.width, size.height - titleBarHeight);
-      layoutChild('editorStack', BoxConstraints.tight(effectiveEditorSize));
-      positionChild('editorStack', Offset(0, titleBarHeight));
-    }
-  }
-
-  @override
-  bool shouldRelayout(covariant _DesktopRightSideAllLayoutDelegate oldDelegate) {
-    return showDropdown != oldDelegate.showDropdown ||
-        isWindowAnimating != oldDelegate.isWindowAnimating ||
-        lockedEditorSize != oldDelegate.lockedEditorSize;
   }
 }
