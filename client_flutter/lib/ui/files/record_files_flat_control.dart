@@ -27,15 +27,15 @@ class _RecordFilesFlatControlState extends State<RecordFilesFlatControl> {
   void initState() {
     super.initState();
     _treeSub = recordTree.onEvent.listen((_) => safeSetState());
-    RecordOpenedState.get().openedFileNotifier.addListener(() => safeSetState());
-    RecordOpenedState.get().openedFolderNotifier.addListener(() => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.addListener(safeSetState);
+    RecordOpenedState.get().openedFolderNotifier.addListener(safeSetState);
   }
 
   @override
   void dispose() {
     _treeSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(() => safeSetState());
-    RecordOpenedState.get().openedFolderNotifier.removeListener(() => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.removeListener(safeSetState);
+    RecordOpenedState.get().openedFolderNotifier.removeListener(safeSetState);
     super.dispose();
   }
 

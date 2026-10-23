@@ -77,13 +77,13 @@ class _TagFilesControlState extends State<TagFilesControl> {
     super.initState();
     _buildInitialTree();
     _tagSub = Repository.get().tagTree.onEvent.listen(_onTagEvent);
-    RecordOpenedState.get().openedFileNotifier.addListener(() => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.addListener(safeSetState);
   }
 
   @override
   void dispose() {
     _tagSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(() => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.removeListener(safeSetState);
     super.dispose();
   }
 

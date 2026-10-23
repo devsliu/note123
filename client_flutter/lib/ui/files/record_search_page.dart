@@ -239,7 +239,7 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
   void initState() {
     super.initState();
     _treeSub = recordTree.onEvent.listen((_) => _runSearch());
-    RecordOpenedState.get().openedFileNotifier.addListener(() => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.addListener(safeSetState);
     _runSearch();
   }
 
@@ -252,7 +252,7 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
   @override
   void dispose() {
     _treeSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(() => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.removeListener(safeSetState);
     super.dispose();
   }
 

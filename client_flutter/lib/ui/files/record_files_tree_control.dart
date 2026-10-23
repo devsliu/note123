@@ -52,14 +52,14 @@ class _RecordFilesTreeControlState extends State<RecordFilesTreeControl> {
     super.initState();
     _treeSub = recordTree.onEvent.listen((_) => safeSetState());
     RecordOpenedState.get().openedFolderNotifier.addListener(onFolderChanged);
-    RecordOpenedState.get().openedFileNotifier.addListener(() => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.addListener(safeSetState);
   }
 
   @override
   void dispose() {
     _treeSub?.cancel();
     RecordOpenedState.get().openedFolderNotifier.removeListener(onFolderChanged);
-    RecordOpenedState.get().openedFileNotifier.removeListener(() => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.removeListener(safeSetState);
     super.dispose();
   }
 

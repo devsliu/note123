@@ -30,13 +30,13 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
   void initState() {
     super.initState();
     _treeSub = recordTree.onEvent.listen((_) => safeSetState());
-    RecordOpenedState.get().openedFileNotifier.addListener(() => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.addListener(safeSetState);
   }
 
   @override
   void dispose() {
     _treeSub?.cancel();
-    RecordOpenedState.get().openedFileNotifier.removeListener(() => safeSetState());
+    RecordOpenedState.get().openedFileNotifier.removeListener(safeSetState);
     super.dispose();
   }
 
