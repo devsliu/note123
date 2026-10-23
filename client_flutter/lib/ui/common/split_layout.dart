@@ -70,7 +70,8 @@ class _SplitLayoutState extends State<SplitLayout> {
       },
       child: MouseRegion(
         cursor: SystemMouseCursors.resizeColumn,
-        child: VerticalDivider(width: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(80)),
+        child: Center(
+          child: VerticalDivider(width: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(80))),
       ),
     );
   }
@@ -93,8 +94,9 @@ class _SplitLayoutDelegate extends MultiChildLayoutDelegate {
       positionChild('right', Offset(leftWidth, 0));
     }
     if (hasChild('dragger')) {
-      layoutChild('dragger', BoxConstraints.tight(Size(4, size.height - draggerTopOffset)));
-      positionChild('dragger', Offset(leftWidth - 2, draggerTopOffset));
+      const dragWidth = 16.0;
+      layoutChild('dragger', BoxConstraints.tight(Size(dragWidth, size.height - draggerTopOffset)));
+      positionChild('dragger', Offset(leftWidth - dragWidth / 2, draggerTopOffset));
     }
   }
 

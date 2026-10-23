@@ -44,6 +44,31 @@ class AppConfig {
   /// Persistent preferences store (prefs.json).
   static late final KvStore prefs;
 
+  /// 保存打开的 tabs：[index] 为当前选中 tab 下标，[tabs] 为 uri 列表。
+  /// 当 [tabs] 为 null/空，或 rememberOpenTabs 关闭时清除已保存的 tabs。
+  static void setOpenedTabs(int index, List<String>? tabs) {
+    if (!(prefs.getBool(PrefKeys.rememberOpenTabs) ?? true) || tabs == null || tabs.isEmpty) {
+      prefs.remove(PrefKeys.openedTabs);
+    } else {
+      prefs.setMap(PrefKeys.openedTabs, {'index': index, 'tabs': tabs});
+    }
+  }
+
+  /// 读取打开的 tabs，返回 (当前选中下标, uri 列表)。
+  /// rememberOpenTabs 关闭或无数据时返回 null。
+  static ({int index, List<String> tabs})? getOpenedTabs() {
+    if (!(prefs.getBool(PrefKeys.rememberOpenTabs) ?? true)) return null;
+    final raw = prefs.getMap(PrefKeys.openedTabs);
+    if (raw == null) return null;
+    try {
+      final index = (raw['index'] as int?) ?? 0;
+      final tabs = (raw['tabs'] as List).cast<String>();
+      return (index: index, tabs: tabs);
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// List-page view state notifier (migrated from FilesPanelMode).
   static final ValueNotifier<FilesPanelMode> filesPanelModeNotifier = ValueNotifier(
     FilesPanelMode(FilesPanelMode.panelModeList, FilesPanelMode.filesTypeTree, ''),

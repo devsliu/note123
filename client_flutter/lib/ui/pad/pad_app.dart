@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:notee/filesync/repository.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/calendar/calendar_page.dart';
 import 'package:notee/ui/common/empty_detail_placeholder.dart';
@@ -27,6 +30,8 @@ class _PadAppState extends BaseAppState<PadApp> {
   double leftWidth = minLeftWidth;
   final GlobalKey<NavigatorState> _rightNavKey = GlobalKey();
   final _RouteObserver _observer = _RouteObserver();
+  bool _restored = false;
+  final DateTime _appStartTime = DateTime.now();
 
   Widget _buildEmptyDetail() {
     return Scaffold(
@@ -43,6 +48,56 @@ class _PadAppState extends BaseAppState<PadApp> {
       final w = WidgetsBinding.instance.platformDispatcher.views.first;
       leftWidth = (w.physicalSize.width / w.devicePixelRatio / 3).clamp(minLeftWidth, maxLeftWidth);
     }
+    Repository.get().recordTree.countNotifier.addListener(_onRecordTreeCountChanged);
+    _onRecordTreeCountChanged();
+  }
+
+  @override
+  void dispose() {
+    Repository.get().recordTree.countNotifier.removeListener(_onRecordTreeCountChanged);
+    super.dispose();
+  }
+
+  @override
+  void onAppTerminating() {
+    _saveCurrentRoute();
+    super.onAppTerminating();
+  }
+
+  void _onRecordTreeCountChanged() {
+    if (_restored) return;
+    if (DateTime.now().difference(_appStartTime).inSeconds > 10) {
+      _restored = true;
+      return;
+    }
+    if (Repository.get().recordTree.countNotifier.value <= 0) return;
+    _restored = true;
+    Timer.run(_restoreRoute);
+  }
+
+  void _restoreRoute() {
+    final saved = AppConfig.getOpenedTabs();
+    if (saved == null || saved.tabs.isEmpty) return;
+    try {
+      final uri = saved.tabs.first;
+      final parsed = AppNavigatorUri.parse(uri);
+      if (parsed.uri == AppNavigator.uriRecord) {
+        final uuid = parsed.firstPath ?? '';
+        if (Repository.get().recordTree.findRecord(uuid) == null) return;
+      }
+      navigate(uri);
+    } catch (_) {}
+  }
+
+  void _saveCurrentRoute() {
+    String? topUri;
+    for (final r in _observer.history.reversed) {
+      if (r.settings.name != null && r.settings.name != _rootRoute && r.settings.name!.isNotEmpty) {
+        topUri = r.settings.name!;
+        break;
+      }
+    }
+    AppConfig.setOpenedTabs(0, topUri != null ? [topUri] : null);
   }
 
   Route? _generateRoute(RouteSettings settings) {

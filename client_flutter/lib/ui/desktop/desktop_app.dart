@@ -91,7 +91,7 @@ class DesktopApp extends BaseApp {
   State<DesktopApp> createState() => _DesktopAppState();
 }
 
-class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
+class _DesktopAppState extends BaseAppState<DesktopApp> {
   static const double minLeftWidth = 300;
   static const double maxLeftWidth = 500;
   double leftWidth = minLeftWidth;
@@ -102,7 +102,6 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   @override
   void initState() {
     super.initState();
-    windowManager.addListener(this);
     leftWidth = loadLeftWidth();
     Repository.get().recordTree.countNotifier.addListener(_onRecordTreeCountChanged);
     _onRecordTreeCountChanged(); // 立即检查一次
@@ -111,18 +110,13 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   @override
   void dispose() {
     Repository.get().recordTree.countNotifier.removeListener(_onRecordTreeCountChanged);
-    windowManager.removeListener(this);
     super.dispose();
   }
 
   void _onRecordTreeCountChanged() {
     if (_tabsRestored) return;
-    if (!(AppConfig.prefs.getBool(PrefKeys.rememberOpenTabs) ?? true)) {
-      _tabsRestored = true;
-      return;
-    }
     if (DateTime.now().difference(_appStartTime).inSeconds > 10) {
-      _tabsRestored = true; // 超时不再尝试
+      _tabsRestored = true;
       return;
     }
     if (Repository.get().recordTree.countNotifier.value <= 0) return;
@@ -131,36 +125,26 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   }
 
   void _saveTabs() {
-    if (!(AppConfig.prefs.getBool(PrefKeys.rememberOpenTabs) ?? true)) {
-      AppConfig.prefs.remove(PrefKeys.openedTabs);
-      return;
-    }
     final state = detailKey.currentState;
-    if (state == null || state.tabCount == 0) {
-      AppConfig.prefs.remove(PrefKeys.openedTabs);
-      return;
-    }
-    final data = {'index': state.currentIndex, 'tabs': state.tabs.map((t) => t.toMap()).toList()};
-    AppConfig.prefs.setMap(PrefKeys.openedTabs, data);
+    AppConfig.setOpenedTabs(state?.currentIndex ?? 0, state?.tabs.map((t) => t.uri).toList());
   }
 
   void _restoreTabs() {
-    final raw = AppConfig.prefs.getMap(PrefKeys.openedTabs);
-    if (raw == null) return;
+    final saved = AppConfig.getOpenedTabs();
+    if (saved == null) return;
     final state = detailKey.currentState;
     if (state == null || !state.mounted) return;
     try {
-      final list = (raw['tabs'] as List).cast<Map<String, dynamic>>();
-      for (final m in list) {
-        final tab = _tabFromMap(m);
+      for (final uri in saved.tabs) {
+        final tab = _createTab(uri);
+        if (tab == null) continue;
         if (tab is EditorTab && Repository.get().recordTree.findRecord(tab.uuid) == null) {
           continue;
         }
         state.openTab(tab);
       }
-      final idx = (raw['index'] as int?) ?? 0;
       if (state.tabCount > 0) {
-        state.selectTab(idx.clamp(0, state.tabCount - 1));
+        state.selectTab(saved.index.clamp(0, state.tabCount - 1));
       }
     } catch (_) {}
   }
@@ -193,43 +177,14 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
   }
 
   @override
-  void onWindowResized() async {
-    final size = await windowManager.getSize();
-    AppConfig.prefs
-      ..setDouble(PrefKeys.windowWidth, size.width)
-      ..setDouble(PrefKeys.windowHeight, size.height);
-  }
-
-  @override
   void onAppTerminating() {
     _saveTabs();
     AppConfig.prefs
-      ..setBool(PrefKeys.windowMaximized, isMaximizedNotifier.value)
-      ..setDouble(PrefKeys.windowLeftWidth, leftWidth)
-      ..save();
+      .setBool(PrefKeys.windowMaximized, isMaximizedNotifier.value).save();
     super.onAppTerminating();
   }
 
-  @override
-  void onWindowClose() {
-    performAppTerminate();
-  }
 
-  @override
-  void onWindowMoved() async {
-    final pos = await windowManager.getPosition();
-    AppConfig.prefs
-      ..setDouble(PrefKeys.windowPosX, pos.dx)
-      ..setDouble(PrefKeys.windowPosY, pos.dy);
-  }
-
-  @override
-  void onWindowResize() async {
-    final size = await windowManager.getSize();
-    AppConfig.prefs
-      ..setDouble(PrefKeys.windowWidth, size.width)
-      ..setDouble(PrefKeys.windowHeight, size.height);
-  }
 
   @override
   Widget buildAppWrapper(BuildContext context, Widget child) {
@@ -275,10 +230,6 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
     return null;
   }
 
-  DesktopTab _tabFromMap(Map<String, dynamic> map) {
-    return _createTab(map['uri'] as String)!;
-  }
-
   @override
   Widget buildHome(BuildContext context) {
     return SplitLayout(
@@ -295,4 +246,3 @@ class _DesktopAppState extends BaseAppState<DesktopApp> with WindowListener {
     );
   }
 }
-

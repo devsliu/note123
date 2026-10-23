@@ -11,6 +11,8 @@ import 'package:notee/config/app_config.dart';
 import 'package:notee/config/language_manager.dart';
 
 import 'package:notee/utils/app_logger.dart';
+import 'package:notee/utils/utils.dart';
+import 'package:window_manager/window_manager.dart';
 
 import '../l10n/app_localizations.dart';
 import 'conflict/conflict_list_page.dart';
@@ -103,7 +105,9 @@ class AppNavigatorScope extends InheritedWidget {
   bool updateShouldNotify(AppNavigatorScope oldWidget) => navigator != oldWidget.navigator;
 }
 
-abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBindingObserver implements AppNavigator {
+abstract class BaseAppState<T extends BaseApp> extends State<T>
+    with WidgetsBindingObserver, WindowListener
+    implements AppNavigator {
   SyncState? _lastSyncState;
   bool _appTerminated = false;
 
@@ -114,6 +118,27 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
 
   @override
   void navigate(String uri);
+
+  @override
+  void onWindowClose() {
+    performAppTerminate();
+  }
+
+  @override
+  void onWindowMoved() async {
+    final pos = await windowManager.getPosition();
+    AppConfig.prefs
+      ..setDouble(PrefKeys.windowPosX, pos.dx)
+      ..setDouble(PrefKeys.windowPosY, pos.dy);
+  }
+
+  @override
+  void onWindowResize() async {
+    final size = await windowManager.getSize();
+    AppConfig.prefs
+      ..setDouble(PrefKeys.windowWidth, size.width)
+      ..setDouble(PrefKeys.windowHeight, size.height);
+  }
 
   /// 构建 app 主体（不含 MaterialApp 外壳）。
   Widget buildHome(BuildContext context);
@@ -137,6 +162,9 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
     ReminderNotifier.instance.notificationTapNotifier.addListener(_onNotificationTap);
     Repository.get().syncStateNotifier.addListener(_onSyncStateChanged);
     Repository.get().userSwitchingNotifier.addListener(_onUserSwitchingChanged);
+    if (Utils.isDesktop()) {
+      windowManager.addListener(this);
+    }
   }
 
   @override
@@ -145,6 +173,9 @@ abstract class BaseAppState<T extends BaseApp> extends State<T> with WidgetsBind
     Repository.get().syncStateNotifier.removeListener(_onSyncStateChanged);
     Repository.get().userSwitchingNotifier.removeListener(_onUserSwitchingChanged);
     WidgetsBinding.instance.removeObserver(this);
+    if (Utils.isDesktop()) {
+      windowManager.removeListener(this);
+    }
     super.dispose();
   }
 

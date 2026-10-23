@@ -35,11 +35,6 @@ abstract class DesktopTab {
 
   DesktopTab({required this.uri});
 
-  /// Serialize this tab's identity for persistence.
-  /// [uri] already carries the full route (with query), subclasses only need
-  /// to override if extra fields are needed.
-  Map<String, dynamic> toMap() => {'uri': uri};
-
   /// Whether this tab is considered the same as [other] for the purpose of
   /// deduping open tabs (e.g. opening an already-open record focuses it
   /// instead of creating a second tab). Default compares runtime type and uri.
