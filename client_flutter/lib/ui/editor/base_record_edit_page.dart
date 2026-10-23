@@ -230,7 +230,10 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Bas
     // 先等该 uuid 的在飞保存链写完: 关闭后快速重开同一笔记时, 旧页面的 dispose
     // 已发起保存但尚未落盘, 新页面实例的 _saveFuture 是 null, 必须按 uuid 全局等待
     await EditorSaveCoordinator.waitPending(mRecord.uuid);
-    setStateMode(PageState.modeLoad);
+    if (!pageState.isNormal) {
+      //如果后续重新加载新的内容, 则不显示加载中
+      setStateMode(PageState.modeLoad);
+    }
 
     RecordEntry entry = mRecord;
     FileStore? fileStore = Repository.get().fileStore;
