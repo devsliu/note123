@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:notee/config/theme.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 
 import '../../config/language_manager.dart';
 
@@ -35,11 +35,49 @@ class DesktopTabBar extends StatefulWidget {
 
 class _DesktopTabBarState extends State<DesktopTabBar> {
   final _scrollController = ScrollController();
+  final Map<dynamic, GlobalKey> _tabKeys = {};
 
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _syncKeys();
+  }
+
+  @override
+  void didUpdateWidget(covariant DesktopTabBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncKeys();
+    if (oldWidget.currentIndex != widget.currentIndex) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _scrollToSelected();
+      });
+    }
+  }
+
+  /// Keep a persistent GlobalKey per tab so state survives rebuilds and the
+  /// parent can look up a tab's build context for scroll-into-view.
+  void _syncKeys() {
+    for (final tab in widget.tabs) {
+      _tabKeys.putIfAbsent(tab, GlobalKey.new);
+    }
+    _tabKeys.removeWhere((tab, _) => !widget.tabs.contains(tab));
+  }
+
+  void _scrollToSelected() {
+    final idx = widget.currentIndex;
+    if (idx < 0 || idx >= widget.tabs.length) return;
+    final key = _tabKeys[widget.tabs[idx]];
+    if (key == null) return;
+    final ctx = key.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 200), curve: Curves.ease, alignment: 0.0);
   }
 
   @override
@@ -65,7 +103,7 @@ class _DesktopTabBarState extends State<DesktopTabBar> {
           final tab = widget.tabs[i];
           final selected = i == widget.currentIndex;
           return _TabItem(
-            key: ValueKey(tab),
+            key: _tabKeys[tab],
             title: tab.toString(),
             selected: selected,
             onTap: () => widget.onSelectTab(i),
@@ -119,18 +157,6 @@ class _TabItem extends StatefulWidget {
 
 class _TabItemState extends State<_TabItem> {
   bool _hover = false;
-
-  @override
-  void didUpdateWidget(covariant _TabItem oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!oldWidget.selected && widget.selected) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Scrollable.ensureVisible(context, duration: const Duration(milliseconds: 200), curve: Curves.ease);
-        }
-      });
-    }
-  }
 
   Future<void> _showContextMenu(TapUpDetails details) async {
     final menuItems = <PopupMenuEntry<int>>[];
