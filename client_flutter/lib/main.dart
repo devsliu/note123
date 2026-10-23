@@ -34,10 +34,10 @@ Future<void> main() async {
   AppLogger.i('Main', '=== app start ===');
   AppLogger.i('Main', 'platform: $defaultTargetPlatform');
 
-  await AppConfig.init();
+  await AppEnv.init();
   LanguageManager.init();
-  await Repository.init(AppConfig.appRootDir);
-  Repository.get().recordTree.setSortListType(AppConfig.listPageValue.sortType);
+  await Repository.init(AppEnv.appRootDir);
+  Repository.get().recordTree.setSortListType(AppEnv.listPageValue.sortType);
   RecordOpenedState.get().setOpenedFolder("/");
 
   if (Utils.isDesktop()) {
@@ -51,7 +51,7 @@ Future<void> main() async {
 
 Future<void> _initWindows() async {
   await windowManager.ensureInitialized();
-  final p = AppConfig.prefs;
+  final p = AppEnv.prefs;
   final width = p.getDouble(PrefKeys.windowWidth);
   final height = p.getDouble(PrefKeys.windowHeight);
   final posX = p.getDouble(PrefKeys.windowPosX);
@@ -70,7 +70,7 @@ Future<void> _initWindows() async {
   await windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.setResizable(true);
     await windowManager.setMinimumSize(const Size(600, 400));
-    await windowManager.setTitle(AppConfig.appTitle);
+    await windowManager.setTitle(AppEnv.appTitle);
     if (pos != null && !maximized) {
       await windowManager.setPosition(pos);
     }
@@ -83,7 +83,7 @@ Future<void> _initWindows() async {
 }
 
 Widget _buildApp() {
-  switch (AppConfig.getLayoutMode()) {
+  switch (AppEnv.getLayoutMode()) {
     case LayoutMode.desktop:
       return DesktopApp();
     case LayoutMode.pad:

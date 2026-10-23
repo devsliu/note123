@@ -26,7 +26,7 @@ class LanguageManager {
 
   static void init() {
     // Read language setting from preferences
-    final languageCode = AppConfig.prefs.getString(PrefKeys.languageCode);
+    final languageCode = AppEnv.prefs.getString(PrefKeys.languageCode);
     if (languageCode != null) {
       switch (languageCode) {
         case 'system':
@@ -76,7 +76,7 @@ class LanguageManager {
     _locale = locale;
     _l10n = null;
     // Save to preferences
-    AppConfig.prefs.setString(PrefKeys.languageCode, languageCode).save();
+    AppEnv.prefs.setString(PrefKeys.languageCode, languageCode).save();
 
     Reboot.trigger();
   }

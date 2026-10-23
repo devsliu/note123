@@ -322,7 +322,7 @@ class _RecordSearchResultsControlState extends State<RecordSearchResultsControl>
                 },
               );
             },
-            separatorBuilder: (context, index) => AppConfig.listViewDivider(context),
+            separatorBuilder: (context, index) => AppEnv.listViewDivider(context),
           ),
         ),
       ],

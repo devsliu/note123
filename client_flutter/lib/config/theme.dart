@@ -726,7 +726,7 @@ class _SlidePageTransitionsBuilder extends PageTransitionsBuilder {
 }
 
 AppTheme _getSavedTheme() {
-  final keyStr = AppConfig.prefs.getString(_kThemeKey) ?? 'light';
+  final keyStr = AppEnv.prefs.getString(_kThemeKey) ?? 'light';
   final theme = appThemes.firstWhere((t) => t.key == keyStr, orElse: () => appThemes[0]);
   return _applyUniversalThemePatch(theme);
 }
@@ -737,7 +737,7 @@ ThemeData get gAppThemeData => _currentTheme.data;
 
 Future<void> switchAppTheme(AppTheme theme) async {
   if (_currentTheme != theme) {
-    AppConfig.prefs.setString(_kThemeKey, theme.key).save();
+    AppEnv.prefs.setString(_kThemeKey, theme.key).save();
     _currentTheme = _applyUniversalThemePatch(theme);
     // Trigger app reboot
     Reboot.trigger();

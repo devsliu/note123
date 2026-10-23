@@ -25,7 +25,7 @@ class _AppBarSwitcher extends StatelessWidget implements PreferredSizeWidget {
   const _AppBarSwitcher({required this.buildTitleBar});
 
   @override
-  Size get preferredSize => Size.fromHeight(AppConfig.getAppBarHeight());
+  Size get preferredSize => Size.fromHeight(AppEnv.getAppBarHeight());
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +49,7 @@ class _RecordListPageState extends State<RecordListPage> {
   bool _showSearch = false;
 
   String _getFolder() {
-    if (AppConfig.listPageValue.listFilesType == FilesPanelMode.filesTypeTree) {
+    if (AppEnv.listPageValue.listFilesType == FilesPanelMode.filesTypeTree) {
       return "/";
     }
     return RecordOpenedState.get().openedFolder.path;
@@ -61,7 +61,7 @@ class _RecordListPageState extends State<RecordListPage> {
       automaticallyImplyLeading: false,
       titleSpacing: 12,
       showWindowButtons: false,
-      title: AppConfig.appTitle,
+      title: AppEnv.appTitle,
       actions: [
         SyncButton(),
         IconButton(
@@ -74,7 +74,7 @@ class _RecordListPageState extends State<RecordListPage> {
           tooltip: l10n.settings,
           onPressed: () => AppNavigator.of(context).navigate(AppNavigator.uriSettings),
         ),
-        SizedBox(width: desktop ? 4 : AppConfig.pageHorizontalPadding),
+        SizedBox(width: desktop ? 4 : AppEnv.pageHorizontalPadding),
       ],
     );
   }
@@ -103,7 +103,7 @@ class _RecordListPageState extends State<RecordListPage> {
     final bool desktop = Utils.isDesktop();
     return Container(
       color: theme.appBarBackgroundColor,
-      padding: EdgeInsets.symmetric(horizontal: desktop ? 4 : AppConfig.pageHorizontalPadding, vertical: 2.0),
+      padding: EdgeInsets.symmetric(horizontal: desktop ? 4 : AppEnv.pageHorizontalPadding, vertical: 2.0),
       child: IconButtonTheme(
         data: theme.appBarIconButtonTheme,
         child: Row(
@@ -158,7 +158,7 @@ class _RecordListPageState extends State<RecordListPage> {
     final bool desktop = Utils.isDesktop();
     return ListenableBuilder(
       listenable: Listenable.merge([
-        AppConfig.filesPanelModeNotifier,
+        AppEnv.filesPanelModeNotifier,
         Repository.get().userSwitchingNotifier,
         Repository.get().recordTree.countNotifier,
       ]),
@@ -169,7 +169,7 @@ class _RecordListPageState extends State<RecordListPage> {
         if (Repository.get().recordTree.countNotifier.value == 0) {
           return _buildEmptyState(context);
         }
-        FilesPanelMode typeValue = AppConfig.filesPanelModeNotifier.value;
+        FilesPanelMode typeValue = AppEnv.filesPanelModeNotifier.value;
         if (typeValue.panelMode == FilesPanelMode.panelModeTag) {
           return TagFilesControl(shrink: desktop);
         }
@@ -200,10 +200,10 @@ class _RecordListPageState extends State<RecordListPage> {
           return;
         }
         final state = RecordOpenedState.get();
-        final bool onTagsTab = AppConfig.listPageValue.panelMode == FilesPanelMode.panelModeTag;
+        final bool onTagsTab = AppEnv.listPageValue.panelMode == FilesPanelMode.panelModeTag;
         if (onTagsTab ||
             state.openedFolder.path == "/" ||
-            AppConfig.listPageValue.listFilesType != FilesPanelMode.filesTypeFlat) {
+            AppEnv.listPageValue.listFilesType != FilesPanelMode.filesTypeFlat) {
           if (!Navigator.canPop(context)) {
             SystemNavigator.pop();
           } else {

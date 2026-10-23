@@ -31,7 +31,6 @@ class _PadAppState extends BaseAppState<PadApp> {
   final GlobalKey<NavigatorState> _rightNavKey = GlobalKey();
   final _RouteObserver _observer = _RouteObserver();
   bool _restored = false;
-  final DateTime _appStartTime = DateTime.now();
 
   Widget _buildEmptyDetail() {
     return Scaffold(
@@ -43,7 +42,7 @@ class _PadAppState extends BaseAppState<PadApp> {
   @override
   void initState() {
     super.initState();
-    leftWidth = AppConfig.prefs.getDouble(PrefKeys.windowLeftWidth) ?? 0;
+    leftWidth = AppEnv.prefs.getDouble(PrefKeys.windowLeftWidth) ?? 0;
     if (leftWidth == 0) {
       final w = WidgetsBinding.instance.platformDispatcher.views.first;
       leftWidth = (w.physicalSize.width / w.devicePixelRatio / 3).clamp(minLeftWidth, maxLeftWidth);
@@ -66,7 +65,7 @@ class _PadAppState extends BaseAppState<PadApp> {
 
   void _onRecordTreeCountChanged() {
     if (_restored) return;
-    if (DateTime.now().difference(_appStartTime).inSeconds > 10) {
+    if (DateTime.now().difference(AppEnv.appStartTime).inSeconds > 10) {
       _restored = true;
       return;
     }
@@ -76,7 +75,7 @@ class _PadAppState extends BaseAppState<PadApp> {
   }
 
   void _restoreRoute() {
-    final saved = AppConfig.getOpenedTabs();
+    final saved = AppEnv.getOpenedTabs();
     if (saved == null || saved.tabs.isEmpty) return;
     try {
       final uri = saved.tabs.first;
@@ -97,7 +96,7 @@ class _PadAppState extends BaseAppState<PadApp> {
         break;
       }
     }
-    AppConfig.setOpenedTabs(0, topUri != null ? [topUri] : null);
+    AppEnv.setOpenedTabs(0, topUri != null ? [topUri] : null);
   }
 
   Route? _generateRoute(RouteSettings settings) {
@@ -158,10 +157,10 @@ class _PadAppState extends BaseAppState<PadApp> {
       leftWidth: leftWidth,
       minLeftWidth: minLeftWidth,
       maxLeftWidth: maxLeftWidth,
-      draggerTopOffset: AppConfig.getAppBarHeight(),
+      draggerTopOffset: AppEnv.getAppBarHeight(),
       onLeftWidthChanged: (w) {
         leftWidth = w;
-        AppConfig.prefs.setDouble(PrefKeys.windowLeftWidth, w);
+        AppEnv.prefs.setDouble(PrefKeys.windowLeftWidth, w);
       },
       leftChild: RecordListPage(),
       rightChild: ScaffoldMessenger(

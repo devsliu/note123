@@ -81,8 +81,8 @@ class ReminderNotifier with WidgetsBindingObserver {
     final exeDir = File(Platform.resolvedExecutable).parent.path;
     final iconFile = File('$exeDir/data/flutter_assets/assets/icon/app_icon.png');
     final windows = WindowsInitializationSettings(
-      appName: AppConfig.appTitle,
-      appUserModelId: AppConfig.packageName,
+      appName: AppEnv.appTitle,
+      appUserModelId: AppEnv.packageName,
       guid: _windowsGuid,
       iconPath: Uri.file(iconFile.path, windows: true).toString(),
     );

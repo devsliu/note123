@@ -386,7 +386,7 @@ class _TabDropdownState extends State<_TabDropdown> {
     final selected = await showMenu<int>(
       context: context,
       position: RelativeRect.fromLTRB(position.dx, position.dy + size.height, position.dx + size.width, position.dy),
-      popUpAnimationStyle: AppConfig.menuAnimationStyle,
+      popUpAnimationStyle: AppEnv.menuAnimationStyle,
       items: [
         for (int i = 0; i < widget.tabs.length; i++)
           PopupMenuItem<int>(

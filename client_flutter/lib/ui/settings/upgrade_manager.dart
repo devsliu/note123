@@ -59,7 +59,7 @@ class UpgradeManager {
       final subtitle = baseUrl.isEmpty
           ? l10n.upgradeCheckFailed
           : '${l10n.upgradeCheckFailed} · ${l10n.upgradeServerUrl(baseUrl)}';
-      _showDialog(context, title: Text('${AppConfig.appTitle} $currentVersion'), content: Text(subtitle));
+      _showDialog(context, title: Text('${AppEnv.appTitle} $currentVersion'), content: Text(subtitle));
       return;
     }
 
@@ -135,7 +135,7 @@ class UpgradeManager {
       }
       _showDialog(
         context,
-        title: Text('${AppConfig.appTitle} $currentVersion'),
+        title: Text('${AppEnv.appTitle} $currentVersion'),
         content: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,

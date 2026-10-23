@@ -65,7 +65,7 @@ class _RecordFilesListControlState extends State<RecordFilesListControl> {
           },
         );
       },
-      separatorBuilder: (_, i) => widget.showDivider ? AppConfig.listViewDivider(context) : SizedBox.shrink(),
+      separatorBuilder: (_, i) => widget.showDivider ? AppEnv.listViewDivider(context) : SizedBox.shrink(),
     );
   }
 }

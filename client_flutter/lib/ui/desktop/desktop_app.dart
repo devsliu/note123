@@ -97,7 +97,6 @@ class _DesktopAppState extends BaseAppState<DesktopApp> {
   double leftWidth = minLeftWidth;
   final GlobalKey<DesktopTabsPageState> detailKey = GlobalKey<DesktopTabsPageState>();
   bool _tabsRestored = false;
-  final DateTime _appStartTime = DateTime.now();
 
   @override
   void initState() {
@@ -115,7 +114,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> {
 
   void _onRecordTreeCountChanged() {
     if (_tabsRestored) return;
-    if (DateTime.now().difference(_appStartTime).inSeconds > 10) {
+    if (DateTime.now().difference(AppEnv.appStartTime).inSeconds > 10) {
       _tabsRestored = true;
       return;
     }
@@ -126,11 +125,11 @@ class _DesktopAppState extends BaseAppState<DesktopApp> {
 
   void _saveTabs() {
     final state = detailKey.currentState;
-    AppConfig.setOpenedTabs(state?.currentIndex ?? 0, state?.tabs.map((t) => t.uri).toList());
+    AppEnv.setOpenedTabs(state?.currentIndex ?? 0, state?.tabs.map((t) => t.uri).toList());
   }
 
   void _restoreTabs() {
-    final saved = AppConfig.getOpenedTabs();
+    final saved = AppEnv.getOpenedTabs();
     if (saved == null) return;
     final state = detailKey.currentState;
     if (state == null || !state.mounted) return;
@@ -152,7 +151,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> {
   /// 初始化桌面窗口（大小、标题栏、显示等），仅执行一次。
 
   double loadLeftWidth() {
-    double saved = AppConfig.prefs.getDouble(PrefKeys.windowLeftWidth) ?? 0;
+    double saved = AppEnv.prefs.getDouble(PrefKeys.windowLeftWidth) ?? 0;
     if (saved == 0) saved = minLeftWidth;
     return saved;
   }
@@ -179,7 +178,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> {
   @override
   void onAppTerminating() {
     _saveTabs();
-    AppConfig.prefs
+    AppEnv.prefs
       .setBool(PrefKeys.windowMaximized, isMaximizedNotifier.value).save();
     super.onAppTerminating();
   }
@@ -239,7 +238,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> {
       draggerTopOffset: kWindowToolbarHeight,
       onLeftWidthChanged: (w) {
         leftWidth = w;
-        AppConfig.prefs.setDouble(PrefKeys.windowLeftWidth, w);
+        AppEnv.prefs.setDouble(PrefKeys.windowLeftWidth, w);
       },
       leftChild: RecordListPage(),
       rightChild: ScaffoldMessenger(child: DesktopTabsPage(key: detailKey)),

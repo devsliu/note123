@@ -127,7 +127,7 @@ abstract class BaseAppState<T extends BaseApp> extends State<T>
   @override
   void onWindowMoved() async {
     final pos = await windowManager.getPosition();
-    AppConfig.prefs
+    AppEnv.prefs
       ..setDouble(PrefKeys.windowPosX, pos.dx)
       ..setDouble(PrefKeys.windowPosY, pos.dy);
   }
@@ -135,7 +135,7 @@ abstract class BaseAppState<T extends BaseApp> extends State<T>
   @override
   void onWindowResize() async {
     final size = await windowManager.getSize();
-    AppConfig.prefs
+    AppEnv.prefs
       ..setDouble(PrefKeys.windowWidth, size.width)
       ..setDouble(PrefKeys.windowHeight, size.height);
   }
@@ -201,7 +201,7 @@ abstract class BaseAppState<T extends BaseApp> extends State<T>
 
   /// 进程即将终止时调用（覆盖以执行额外的持久化）。
   void onAppTerminating() {
-    AppConfig.prefs.save();
+    AppEnv.prefs.save();
     EditorSaveCoordinator.flushAll();
   }
 

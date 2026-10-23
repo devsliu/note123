@@ -84,13 +84,13 @@ class RecordListActions {
   static Widget allRecordsButton(BuildContext context) {
     final recordTree = Repository.get().recordTree;
     return ListenableBuilder(
-      listenable: Listenable.merge([recordTree.countNotifier, AppConfig.filesPanelModeNotifier]),
+      listenable: Listenable.merge([recordTree.countNotifier, AppEnv.filesPanelModeNotifier]),
       builder: (context, _) {
         return _TabButton(
           label: l10n.allRecords,
-          active: AppConfig.listPageValue.panelMode == FilesPanelMode.panelModeList,
+          active: AppEnv.listPageValue.panelMode == FilesPanelMode.panelModeList,
           count: max(0, recordTree.countNotifier.value),
-          onTap: () => AppConfig.setFilesPanelMode(FilesPanelMode.panelModeList),
+          onTap: () => AppEnv.setFilesPanelMode(FilesPanelMode.panelModeList),
         );
       },
     );
@@ -100,13 +100,13 @@ class RecordListActions {
   /// count.
   static Widget tagsButton(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([Repository.get().tagTree.tagCountNotifier, AppConfig.filesPanelModeNotifier]),
+      listenable: Listenable.merge([Repository.get().tagTree.tagCountNotifier, AppEnv.filesPanelModeNotifier]),
       builder: (context, _) {
         return _TabButton(
           label: l10n.tags,
-          active: AppConfig.listPageValue.panelMode == FilesPanelMode.panelModeTag,
+          active: AppEnv.listPageValue.panelMode == FilesPanelMode.panelModeTag,
           count: Repository.get().tagTree.tagCountNotifier.value,
-          onTap: () => AppConfig.setFilesPanelMode(FilesPanelMode.panelModeTag),
+          onTap: () => AppEnv.setFilesPanelMode(FilesPanelMode.panelModeTag),
         );
       },
     );
@@ -117,16 +117,16 @@ class RecordListActions {
   /// when the Tags tab is active.
   static Widget viewToggleButton(BuildContext context) {
     return ValueListenableBuilder<FilesPanelMode>(
-      valueListenable: AppConfig.filesPanelModeNotifier,
+      valueListenable: AppEnv.filesPanelModeNotifier,
       builder: (context, _, _) {
-        if (AppConfig.listPageValue.panelMode == FilesPanelMode.panelModeTag) return SizedBox.shrink();
+        if (AppEnv.listPageValue.panelMode == FilesPanelMode.panelModeTag) return SizedBox.shrink();
         return PopupMenuButton<String>(
-          icon: Icon(_listTypeIcon(AppConfig.listPageValue.listFilesType)),
+          icon: Icon(_listTypeIcon(AppEnv.listPageValue.listFilesType)),
           iconColor: Theme.of(context).appBarIconColor,
           tooltip: l10n.sortType,
           onSelected: (value) {
-            AppConfig.setFilesPanelModeListType(value);
-            Repository.get().recordTree.setSortListType(AppConfig.listPageValue.sortType);
+            AppEnv.setFilesPanelModeListType(value);
+            Repository.get().recordTree.setSortListType(AppEnv.listPageValue.sortType);
             RecordOpenedState.get().setOpenedFolder("/");
           },
           itemBuilder: (context) => _noteListMenuItems(),
@@ -284,9 +284,9 @@ class RecordListActions {
 
   static Widget newFolderButton(BuildContext context, ReturnCallback<String> getFolder) {
     return ValueListenableBuilder<FilesPanelMode>(
-      valueListenable: AppConfig.filesPanelModeNotifier,
+      valueListenable: AppEnv.filesPanelModeNotifier,
       builder: (context, _, _) {
-        final type = AppConfig.listPageValue.listFilesType;
+        final type = AppEnv.listPageValue.listFilesType;
         if (type == FilesPanelMode.filesTypeFlat || type == FilesPanelMode.filesTypeTree) {
           return IconButton(
             onPressed: () {

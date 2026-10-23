@@ -178,7 +178,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
         title: Text(l10n.calendar),
         actions: [
           segmented,
-          SizedBox(width: AppConfig.pageHorizontalPadding),
+          SizedBox(width: AppEnv.pageHorizontalPadding),
         ],
       ),
       body: _buildBody(context),
@@ -387,7 +387,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     return ListTile(
       dense: shrink,
       visualDensity: shrink ? const VisualDensity(vertical: -4) : null,
-      contentPadding: const EdgeInsets.only(left: AppConfig.pageHorizontalPadding, right: 8),
+      contentPadding: const EdgeInsets.only(left: AppEnv.pageHorizontalPadding, right: 8),
       onTap: () => _openRecord(entry.recordUuid),
       title: Text(
         task.name.isEmpty ? l10n.unnamedTask : task.name,

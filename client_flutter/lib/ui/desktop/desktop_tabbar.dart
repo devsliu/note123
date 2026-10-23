@@ -213,7 +213,7 @@ class _TabItemState extends State<_TabItem> {
       context: context,
       position: menuPosition,
       items: menuItems,
-      popUpAnimationStyle: AppConfig.menuAnimationStyle,
+      popUpAnimationStyle: AppEnv.menuAnimationStyle,
     );
 
     switch (value) {

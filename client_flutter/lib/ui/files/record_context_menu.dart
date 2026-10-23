@@ -63,7 +63,7 @@ Future<void> showRecordContextMenu(
     context: context,
     position: menuPosition,
     items: actions,
-    popUpAnimationStyle: AppConfig.menuAnimationStyle,
+    popUpAnimationStyle: AppEnv.menuAnimationStyle,
   );
   if (context.mounted == false || result == null) return;
 

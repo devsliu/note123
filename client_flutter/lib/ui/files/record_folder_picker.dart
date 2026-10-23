@@ -123,8 +123,7 @@ class RecordFolderPickerState extends State<RecordFolderPicker> {
           horizontalTitleGap: 8,
           minLeadingWidth: 0,
           contentPadding: EdgeInsets.only(
-            left: AppConfig.pageHorizontalPadding,
-            right: AppConfig.pageHorizontalPadding,
+            left: AppEnv.pageHorizontalPadding, right: AppEnv.pageHorizontalPadding,
           ),
           leading: const Icon(Icons.folder_outlined, size: 20),
           title: Text(name),

@@ -9,7 +9,7 @@ import 'package:notee/l10n/app_localizations.dart';
 
 /// Global app configuration + directory initialization.
 /// Project-specific constants/initialization, not generic.
-class AppConfig {
+class AppEnv {
   static const String appTitle = "Notee";
 
   static const String packageName = "com.lhg.notee";
@@ -43,6 +43,9 @@ class AppConfig {
 
   /// Persistent preferences store (prefs.json).
   static late final KvStore prefs;
+
+  /// App 启动时间，用于限制 tabs 恢复的等待窗口。
+  static final DateTime appStartTime = DateTime.now();
 
   /// 保存打开的 tabs：[index] 为当前选中 tab 下标，[tabs] 为 uri 列表。
   /// 当 [tabs] 为 null/空，或 rememberOpenTabs 关闭时清除已保存的 tabs。
@@ -82,8 +85,8 @@ class AppConfig {
     prefs = KvStore('$appRootDir/prefs.json');
     prefs.save();
 
-    final saved = AppConfig.prefs.getString(PrefKeys.filesPanelMode);
-    AppConfig.filesPanelModeNotifier.value = saved != null
+    final saved = AppEnv.prefs.getString(PrefKeys.filesPanelMode);
+    AppEnv.filesPanelModeNotifier.value = saved != null
         ? FilesPanelMode._parse(saved)
         : FilesPanelMode(
             FilesPanelMode.panelModeList,
@@ -104,7 +107,7 @@ class AppConfig {
   /// 当前布局模式: 优先使用 pref 中手动设置的值,
   /// pref 为空时按屏幕短边宽度自动判断 (>=600 为 pad)
   static String getLayoutMode() {
-    final saved = AppConfig.prefs.getString(PrefKeys.layoutMode);
+    final saved = AppEnv.prefs.getString(PrefKeys.layoutMode);
     if (saved == LayoutMode.pad || saved == LayoutMode.phone || saved == LayoutMode.desktop) {
       return saved!;
     }
@@ -118,20 +121,20 @@ class AppConfig {
 
   /// 设置布局模式并重启 app 使 PadApp/PhoneApp 切换生效
   static Future<void> setLayoutMode(String mode) async {
-    AppConfig.prefs.setString(PrefKeys.layoutMode, mode).save();
+    AppEnv.prefs.setString(PrefKeys.layoutMode, mode).save();
     Reboot.trigger();
   }
 
   static void setFilesPanelMode(String panelMode) => _updateFilesPanelMode(
-    FilesPanelMode(panelMode, AppConfig.listPageValue.listFilesType, AppConfig.listPageValue.tagFilesType),
+    FilesPanelMode(panelMode, AppEnv.listPageValue.listFilesType, AppEnv.listPageValue.tagFilesType),
   );
   static void setFilesPanelModeListType(String listType) => _updateFilesPanelMode(
-    FilesPanelMode(AppConfig.listPageValue.panelMode, listType, AppConfig.listPageValue.tagFilesType),
+    FilesPanelMode(AppEnv.listPageValue.panelMode, listType, AppEnv.listPageValue.tagFilesType),
   );
 
   static void _updateFilesPanelMode(FilesPanelMode next) {
-    AppConfig.filesPanelModeNotifier.value = next;
-    AppConfig.prefs.setString(PrefKeys.filesPanelMode, next.toString()).save();
+    AppEnv.filesPanelModeNotifier.value = next;
+    AppEnv.prefs.setString(PrefKeys.filesPanelMode, next.toString()).save();
   }
 
   static double getAppBarHeight() =>

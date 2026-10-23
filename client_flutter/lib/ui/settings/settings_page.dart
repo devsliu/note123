@@ -171,7 +171,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _onLayoutModeTap() async {
-    final current = AppConfig.getLayoutMode();
+    final current = AppEnv.getLayoutMode();
     final isDesktop = Utils.isDesktop();
     final options = isDesktop
         ? [LayoutMode.desktop, LayoutMode.pad, LayoutMode.phone]
@@ -199,7 +199,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
 
     if (selected != null && selected != current) {
-      await AppConfig.setLayoutMode(selected);
+      await AppEnv.setLayoutMode(selected);
     }
   }
 
@@ -234,7 +234,7 @@ class _SettingsPageState extends State<SettingsPage> {
           : null,
       backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppConfig.pageHorizontalPadding),
+        padding: const EdgeInsets.all(AppEnv.pageHorizontalPadding),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -260,7 +260,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
                 divider,
-                ListTile(onTap: _onAppFolderTap, title: Text(l10n.dataDirectory), subtitle: Text(AppConfig.appRootDir)),
+                ListTile(onTap: _onAppFolderTap, title: Text(l10n.dataDirectory), subtitle: Text(AppEnv.appRootDir)),
                 divider,
                 ListTile(onTap: _onThemeTap, title: Text(l10n.theme), subtitle: Text(gAppTheme.getName(l10n))),
                 divider,
@@ -273,14 +273,14 @@ class _SettingsPageState extends State<SettingsPage> {
                 ListTile(
                   onTap: _onLayoutModeTap,
                   title: Text(l10n.layoutMode),
-                  subtitle: Text(LayoutMode.getName(AppConfig.getLayoutMode(), l10n)),
+                  subtitle: Text(LayoutMode.getName(AppEnv.getLayoutMode(), l10n)),
                 ),
-                if (AppConfig.getLayoutMode() == LayoutMode.desktop) ...[
+                if (AppEnv.getLayoutMode() == LayoutMode.desktop) ...[
                   divider,
                   SwitchListTile.adaptive(
-                    value: AppConfig.prefs.getBool(PrefKeys.rememberOpenTabs) ?? true,
+                    value: AppEnv.prefs.getBool(PrefKeys.rememberOpenTabs) ?? true,
                     onChanged: (v) {
-                      AppConfig.prefs.setBool(PrefKeys.rememberOpenTabs, v).save();
+                      AppEnv.prefs.setBool(PrefKeys.rememberOpenTabs, v).save();
                       setState(() {});
                     },
                     title: Text(l10n.rememberOpenTabs),
@@ -335,8 +335,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildVersionSubtitle() {
     var current = '$version ($_buildNumber)';
-    if (AppConfig.buildGitCommit.isNotEmpty) current += ' · ${AppConfig.buildGitCommit}';
-    if (AppConfig.buildTime.isNotEmpty) current += ' · ${AppConfig.buildTime}';
+    if (AppEnv.buildGitCommit.isNotEmpty) current += ' · ${AppEnv.buildGitCommit}';
+    if (AppEnv.buildTime.isNotEmpty) current += ' · ${AppEnv.buildTime}';
     return Text(current);
   }
 
@@ -345,9 +345,9 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _onAppFolderTap() {
-    Clipboard.setData(ClipboardData(text: AppConfig.appRootDir));
+    Clipboard.setData(ClipboardData(text: AppEnv.appRootDir));
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${l10n.dataDirCopied}: ${AppConfig.appRootDir}'), duration: const Duration(seconds: 2)),
+      SnackBar(content: Text('${l10n.dataDirCopied}: ${AppEnv.appRootDir}'), duration: const Duration(seconds: 2)),
     );
   }
 

@@ -134,7 +134,7 @@ class SyncStateWidget extends StatelessWidget {
           return Container(
             color: Colors.green.withAlpha(30),
             width: double.infinity,
-            padding: AppConfig.itemPadding,
+            padding: AppEnv.itemPadding,
             child: Text(
               "${l10n.syncSuccess} $timeStr",
               style: const TextStyle(color: Colors.green),
@@ -147,7 +147,7 @@ class SyncStateWidget extends StatelessWidget {
           return Container(
             color: Colors.blue.withAlpha(30),
             width: double.infinity,
-            padding: AppConfig.itemPadding,
+            padding: AppEnv.itemPadding,
             child: Text(l10n.syncing, style: const TextStyle(color: Colors.blue)),
           );
         }
@@ -170,7 +170,7 @@ class SyncStateWidget extends StatelessWidget {
           child: Container(
             color: (state.isConflict ? Colors.orange : theme.colorScheme.error).withAlpha(30),
             width: double.infinity,
-            padding: AppConfig.pagePadding,
+            padding: AppEnv.pagePadding,
             child: Text(
               _syncErrorText(state),
               style: TextStyle(color: state.isConflict ? Colors.orange : theme.colorScheme.error),

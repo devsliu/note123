@@ -174,8 +174,8 @@ class _RecordRecyclerPageState extends State<RecordRecyclerPage> implements Desk
               _buildBody(context),
               if (_folders.isNotEmpty || _singles.isNotEmpty)
                 Positioned(
-                  right: AppConfig.pageHorizontalPadding,
-                  bottom: AppConfig.pageHorizontalPadding,
+                  right: AppEnv.pageHorizontalPadding,
+                  bottom: AppEnv.pageHorizontalPadding,
                   child: FloatingActionButton(
                     onPressed: _clear,
                     tooltip: l10n.clearRecycler,
@@ -200,7 +200,7 @@ class _RecordRecyclerPageState extends State<RecordRecyclerPage> implements Desk
             icon: const Icon(Icons.delete_forever_outlined),
             tooltip: l10n.clearRecycler,
           ),
-          SizedBox(width: AppConfig.pageHorizontalPadding),
+          SizedBox(width: AppEnv.pageHorizontalPadding),
         ],
       ),
       body: _buildBody(context),

@@ -27,7 +27,7 @@ class RecordMoveControl extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
-              padding: AppConfig.pagePadding,
+              padding: AppEnv.pagePadding,
               child: Text(title, style: Theme.of(context).textTheme.titleLarge),
             ),
             SizedBox(height: 8),
@@ -56,10 +56,10 @@ class RecordMoveControl extends StatelessWidget {
                     Navigator.pop(context);
                   },
                 ),
-                SizedBox(width: AppConfig.pageHorizontalPadding),
+                SizedBox(width: AppEnv.pageHorizontalPadding),
               ],
             ),
-            SizedBox(height: AppConfig.pageVerticalPadding),
+            SizedBox(height: AppEnv.pageVerticalPadding),
           ],
         ),
       ),

@@ -17,7 +17,7 @@ PreferredSizeWidget createPlatformAppBar({
   double? titleSpacing,
 }) {
   final isDesktop = Utils.isDesktop();
-  final layoutMode = AppConfig.getLayoutMode();
+  final layoutMode = AppEnv.getLayoutMode();
   final useDesktopBar = isDesktop && layoutMode == LayoutMode.desktop;
 
   Widget effectiveTitle = titleWidget ?? Text(title ?? '');
@@ -27,7 +27,7 @@ PreferredSizeWidget createPlatformAppBar({
 
   final effectiveLeading =
       leading ?? (onBack != null ? IconButton(icon: const Icon(Icons.arrow_back), onPressed: onBack) : null);
-  final resolvedSpacing = titleSpacing ?? AppConfig.pageHorizontalPadding;
+  final resolvedSpacing = titleSpacing ?? AppEnv.pageHorizontalPadding;
 
   return AppBar(
     title: effectiveTitle,
@@ -37,7 +37,7 @@ PreferredSizeWidget createPlatformAppBar({
     backgroundColor: backgroundColor,
     foregroundColor: foregroundColor,
     titleSpacing: resolvedSpacing,
-    toolbarHeight: AppConfig.getAppBarHeight(),
+    toolbarHeight: AppEnv.getAppBarHeight(),
     elevation: useDesktopBar ? 0 : null,
     scrolledUnderElevation: useDesktopBar ? 0 : null,
     leadingWidth: useDesktopBar && effectiveLeading != null ? 48 : null,
