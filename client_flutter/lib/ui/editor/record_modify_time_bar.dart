@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/filesync/record_ext.dart';
@@ -20,18 +18,10 @@ class RecordModifyTimeBar extends StatefulWidget {
 }
 
 class _RecordModifyTimeBarState extends BaseState<RecordModifyTimeBar> {
-  StreamSubscription<RecordEvent>? _treeSub;
-
   @override
   void initState() {
     super.initState();
-    _treeSub = Repository.get().recordTree.onEvent.listen(_onEvent);
-  }
-
-  @override
-  void dispose() {
-    _treeSub?.cancel();
-    super.dispose();
+    subscribe(Repository.get().recordTree.onEvent, _onEvent);
   }
 
   void _onEvent(RecordEvent event) {

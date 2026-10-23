@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:notee/filesync/record_tree.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/model/record_opened_state.dart';
@@ -25,18 +23,11 @@ class RecordFilesListControl extends StatefulWidget {
 
 class _RecordFilesListControlState extends BaseState<RecordFilesListControl> {
   final RecordTree recordTree = Repository.get().recordTree;
-  StreamSubscription<RecordEvent>? _treeSub;
   @override
   void initState() {
     super.initState();
-    _treeSub = recordTree.onEvent.listen((_) => safeSetState());
+    subscribe(recordTree.onEvent, (_) => safeSetState());
     listen(RecordOpenedState.get().openedFileNotifier, safeSetState);
-  }
-
-  @override
-  void dispose() {
-    _treeSub?.cancel();
-    super.dispose();
   }
 
   @override

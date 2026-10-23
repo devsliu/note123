@@ -62,7 +62,6 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Bas
 
   /// Current record — non-final, replaced in _onTreeChanged when sync delivers a new one.
   late RecordEntry mRecord;
-  StreamSubscription<RecordEvent>? _treeSub;
 
   /// Transition to a new page state; buildCount resets to 0 so the next build
   /// signals a fresh state transition.
@@ -79,7 +78,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Bas
     EditorSaveCoordinator.register(this);
 
     mRecord = Repository.get().recordTree.findRecord(widget.uuid)!;
-    _treeSub = Repository.get().recordTree.onEvent.listen(_onTreeChanged);
+    subscribe(Repository.get().recordTree.onEvent, _onTreeChanged);
 
     // loadContent() routes locked records to password mode (sPageModePass)
     loadContent();
@@ -89,7 +88,6 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Bas
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _treeSub?.cancel();
     EditorSaveCoordinator.unregister(this);
     // Kick off save chain — coalescing inside saveRecord guarantees latest dirty content
     // gets saved even if a prior save is still in-flight. The returned Future continues

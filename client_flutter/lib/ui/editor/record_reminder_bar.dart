@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -41,18 +40,10 @@ class ReminderBar extends StatefulWidget {
 }
 
 class _ReminderBarState extends BaseState<ReminderBar> {
-  StreamSubscription<RecordEvent>? _treeSub;
-
   @override
   void initState() {
     super.initState();
-    _treeSub = Repository.get().recordTree.onEvent.listen(_onEvent);
-  }
-
-  @override
-  void dispose() {
-    _treeSub?.cancel();
-    super.dispose();
+    subscribe(Repository.get().recordTree.onEvent, _onEvent);
   }
 
   void _onEvent(RecordEvent event) {

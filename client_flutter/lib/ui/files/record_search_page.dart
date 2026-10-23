@@ -231,14 +231,13 @@ class RecordSearchResultsControl extends StatefulWidget {
 class _RecordSearchResultsControlState extends BaseState<RecordSearchResultsControl> {
   final RecordTree recordTree = Repository.get().recordTree;
   SearchIndex? get _searchIndex => Repository.get().searchIndex;
-  StreamSubscription<RecordEvent>? _treeSub;
   List<_SearchResult> _results = const [];
   bool _loading = false;
 
   @override
   void initState() {
     super.initState();
-    _treeSub = recordTree.onEvent.listen((_) => _runSearch());
+    subscribe(recordTree.onEvent, (_) => _runSearch());
     listen(RecordOpenedState.get().openedFileNotifier, safeSetState);
     _runSearch();
   }
@@ -247,12 +246,6 @@ class _RecordSearchResultsControlState extends BaseState<RecordSearchResultsCont
   void didUpdateWidget(covariant RecordSearchResultsControl oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.query != widget.query) _runSearch();
-  }
-
-  @override
-  void dispose() {
-    _treeSub?.cancel();
-    super.dispose();
   }
 
   Future<void> _runSearch() async {

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/record_tree.dart';
@@ -61,7 +59,6 @@ class _TagFileWidget extends TreeFileWidget {
 class _TagFilesControlState extends BaseState<TagFilesControl> {
   final recordTree = Repository.get().recordTree;
   final TreeViewController _treeController = TreeViewController();
-  StreamSubscription<TagTreeEvent>? _tagSub;
 
   /// Stable tree nodes. Created once in initState with all tags expanded.
   /// Subsequent refreshes only update children (records), never replace nodes,
@@ -76,14 +73,8 @@ class _TagFilesControlState extends BaseState<TagFilesControl> {
   void initState() {
     super.initState();
     _buildInitialTree();
-    _tagSub = Repository.get().tagTree.onEvent.listen(_onTagEvent);
+    subscribe(Repository.get().tagTree.onEvent, _onTagEvent);
     listen(RecordOpenedState.get().openedFileNotifier, safeSetState);
-  }
-
-  @override
-  void dispose() {
-    _tagSub?.cancel();
-    super.dispose();
   }
 
   void _onTagEvent(TagTreeEvent event) {

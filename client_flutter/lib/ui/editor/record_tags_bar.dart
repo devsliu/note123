@@ -1,5 +1,4 @@
-﻿import 'dart:async';
-
+﻿
 import 'package:flutter/material.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/filesync/repository.dart';
@@ -30,22 +29,14 @@ class TagBar extends StatefulWidget {
 }
 
 class _TagBarState extends BaseState<TagBar> {
-  StreamSubscription<TagTreeEvent>? _tagSub;
-
   @override
   void initState() {
     super.initState();
-    _tagSub = Repository.get().tagTree.onEvent.listen((event) {
+    subscribe(Repository.get().tagTree.onEvent, (event) {
       if (event.type == TagTreeEvent.typeRebuild || event.uuid == widget.uuid) {
         if (mounted) safeSetState();
       }
     });
-  }
-
-  @override
-  void dispose() {
-    _tagSub?.cancel();
-    super.dispose();
   }
 
   @override

@@ -25,7 +25,6 @@ class _RecordFilesTreeControlState extends BaseState<RecordFilesTreeControl> {
   final RecordTree recordTree = Repository.get().recordTree;
 
   final TreeViewController _treeController = TreeViewController();
-  StreamSubscription<RecordEvent>? _treeSub;
 
   /// Convert RecordTree to recursive TreeViewNode structure
 
@@ -50,15 +49,9 @@ class _RecordFilesTreeControlState extends BaseState<RecordFilesTreeControl> {
   @override
   void initState() {
     super.initState();
-    _treeSub = recordTree.onEvent.listen((_) => safeSetState());
+    subscribe(recordTree.onEvent, (_) => safeSetState());
     listen(RecordOpenedState.get().openedFolderNotifier, onFolderChanged);
     listen(RecordOpenedState.get().openedFileNotifier, safeSetState);
-  }
-
-  @override
-  void dispose() {
-    _treeSub?.cancel();
-    super.dispose();
   }
 
   @override

@@ -22,20 +22,13 @@ class RecordFilesFlatControl extends StatefulWidget {
 
 class _RecordFilesFlatControlState extends BaseState<RecordFilesFlatControl> {
   final RecordTree recordTree = Repository.get().recordTree;
-  StreamSubscription<RecordEvent>? _treeSub;
 
   @override
   void initState() {
     super.initState();
-    _treeSub = recordTree.onEvent.listen((_) => safeSetState());
+    subscribe(recordTree.onEvent, (_) => safeSetState());
     listen(RecordOpenedState.get().openedFileNotifier, safeSetState);
     listen(RecordOpenedState.get().openedFolderNotifier, safeSetState);
-  }
-
-  @override
-  void dispose() {
-    _treeSub?.cancel();
-    super.dispose();
   }
 
   void onClickFolder(int index, TreeContentFolder folder) {
