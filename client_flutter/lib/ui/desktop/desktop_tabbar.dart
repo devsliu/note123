@@ -54,14 +54,6 @@ class _DesktopTabBarState extends State<DesktopTabBar> {
   }
 
   Widget _buildTabBar(BuildContext context, double tabHeight) {
-    final List<GlobalKey> tabKeys = List.generate(widget.tabs.length, (index) => GlobalKey());
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients && widget.currentIndex >= 0 && widget.currentIndex < widget.tabs.length) {
-        _scrollToCurrentTab(tabKeys);
-      }
-    });
-
     return SingleChildScrollView(
       controller: _scrollController,
       scrollDirection: Axis.horizontal,
@@ -73,7 +65,7 @@ class _DesktopTabBarState extends State<DesktopTabBar> {
           final tab = widget.tabs[i];
           final selected = i == widget.currentIndex;
           return _TabItem(
-            key: tabKeys[i],
+            key: ValueKey(tab),
             title: tab.toString(),
             selected: selected,
             onTap: () => widget.onSelectTab(i),
@@ -89,52 +81,6 @@ class _DesktopTabBarState extends State<DesktopTabBar> {
         }),
       ),
     );
-  }
-
-  void _scrollToCurrentTab(List<GlobalKey> tabKeys) {
-    if (widget.currentIndex < 0 || widget.currentIndex >= tabKeys.length) return;
-
-    final currentTabKey = tabKeys[widget.currentIndex];
-    final RenderBox? renderBox = currentTabKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-
-    // Get current tab position
-    final tabPosition = renderBox.localToGlobal(Offset.zero);
-    final tabWidth = renderBox.size.width;
-
-    // Get scroll container position
-    final scrollViewContext = _scrollController.position.context.storageContext;
-    final RenderBox? scrollViewRenderBox = scrollViewContext.findRenderObject() as RenderBox?;
-    if (scrollViewRenderBox == null) return;
-
-    final scrollViewPosition = scrollViewRenderBox.localToGlobal(Offset.zero);
-    final scrollViewWidth = scrollViewRenderBox.size.width;
-
-    // Calculate relative position
-    final relativePosition = tabPosition.dx - scrollViewPosition.dx;
-    final currentOffset = _scrollController.offset;
-    final tabLeft = relativePosition + currentOffset;
-    final tabRight = tabLeft + tabWidth;
-
-    // Calculate scroll target position
-    double targetOffset = currentOffset;
-    const padding = 0; // Add some padding
-
-    if (tabLeft < currentOffset + padding) {
-      // Tab not visible on left side, scroll left
-      targetOffset = tabLeft - padding;
-    } else if (tabRight > currentOffset + scrollViewWidth - padding) {
-      // Tab not visible on right side, scroll right
-      targetOffset = tabRight - scrollViewWidth + padding;
-    }
-
-    // Ensure not out of bounds
-    targetOffset = targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent);
-
-    // Scroll to target position
-    if (targetOffset != currentOffset) {
-      _scrollController.animateTo(targetOffset, duration: const Duration(milliseconds: 200), curve: Curves.ease);
-    }
   }
 }
 
@@ -173,6 +119,18 @@ class _TabItem extends StatefulWidget {
 
 class _TabItemState extends State<_TabItem> {
   bool _hover = false;
+
+  @override
+  void didUpdateWidget(covariant _TabItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!oldWidget.selected && widget.selected) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          Scrollable.ensureVisible(context, duration: const Duration(milliseconds: 200), curve: Curves.ease);
+        }
+      });
+    }
+  }
 
   Future<void> _showContextMenu(TapUpDetails details) async {
     final menuItems = <PopupMenuEntry<int>>[];
