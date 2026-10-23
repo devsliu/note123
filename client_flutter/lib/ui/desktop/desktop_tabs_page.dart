@@ -51,8 +51,9 @@ abstract class DesktopTab {
 
   /// Called when [openTab] finds an existing equal tab. Subclasses can pull
   /// updated data from [newTab] (e.g. a new search keyword) so the existing
-  /// page can react instead of opening a duplicate tab.
-  void refresh(DesktopTab newTab) {}
+  /// page can react instead of opening a duplicate tab. Returns true if data
+  /// actually changed and the page widget needs rebuilding.
+  bool refresh(DesktopTab newTab) => false;
 
   /// Build the page widget for this tab. [key] is the state key the detail
   /// closePageCallback page ifself can close the tab.
@@ -156,8 +157,9 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
   void openTab(DesktopTab tab) {
     final idx = _tabs.indexWhere((impl) => impl.tab.equal(tab));
     if (idx != -1) {
-      _tabs[idx].tab.refresh(tab);
-      _buildTabPage(_tabs[idx]);
+      if (_tabs[idx].tab.refresh(tab)) {
+        _buildTabPage(_tabs[idx]);
+      }
       selectTab(idx);
       return;
     }

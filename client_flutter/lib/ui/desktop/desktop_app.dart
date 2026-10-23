@@ -41,10 +41,12 @@ class EditorTab extends DesktopTab {
   }
 
   @override
-  void refresh(DesktopTab newTab) {
+  bool refresh(DesktopTab newTab) {
     if (newTab is EditorTab && newTab.keyword != keyword) {
       keyword = newTab.keyword;
+      return true;
     }
+    return false;
   }
 
   @override
