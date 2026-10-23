@@ -8,7 +8,7 @@ import 'package:notee/filesync/table_record.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/filesync/search_index.dart';
 import 'package:notee/model/record_opened_state.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/utils/state_ext.dart';
@@ -106,9 +106,8 @@ class _RecordSearchPageState extends State<RecordSearchPage> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     final fg = Theme.of(context).appBarTheme.foregroundColor;
-    return createPlatformAppBar(
+    return createAppBar(
       automaticallyImplyLeading: false,
-      showWindowButtons: false,
       onBack: widget.onBack,
       titleWidget: TextField(
         controller: _controller,

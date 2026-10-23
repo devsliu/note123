@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/filesync/table_record.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:two_dimensional_scrollables/two_dimensional_scrollables.dart';
 
 import '../../config/language_manager.dart';
@@ -155,7 +155,7 @@ class _RecordDatabasePageState extends State<RecordDatabasePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: createPlatformAppBar(title: '${l10n.database} ${_items.length}', showWindowButtons: false),
+      appBar: createAppBar(title: '${l10n.database} ${_items.length}'),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _items.isEmpty

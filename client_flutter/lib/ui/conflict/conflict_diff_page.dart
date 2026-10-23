@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:notee/filesync/file_store.dart';
 import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/repository.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/ui/editor/base_record_edit_page.dart';
 import 'package:notee/ui/editor/record_flow_editor_page.dart';
 import 'package:notee/utils/app_logger.dart';
@@ -318,7 +318,7 @@ class _ConflictDiffPageState extends State<ConflictDiffPage> {
     final record = widget.record;
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: createPlatformAppBar(
+      appBar: createAppBar(
         title: "",
         actions: [
           if (_isFileConflict)

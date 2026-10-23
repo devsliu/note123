@@ -3,7 +3,7 @@
 import 'package:notee/filesync/http_api.dart';
 import 'package:notee/filesync/user.dart';
 import 'package:notee/ui/settings/record_operates_page.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/ui/settings/server_api_stats_page.dart';
 import 'package:notee/ui/settings/record_database_page.dart';
 import 'package:flutter/material.dart';
@@ -230,7 +230,7 @@ class _SettingsPageState extends State<SettingsPage> {
     final divider = Divider(height: 1, thickness: 1, color: theme.colorScheme.outline.withAlpha(80));
     return Scaffold(
       appBar: widget.showAppBar
-          ? createPlatformAppBar(title: l10n.settings, showWindowButtons: false, onBack: () => Navigator.pop(context))
+          ? createAppBar(title: l10n.settings, onBack: () => Navigator.pop(context))
           : null,
       backgroundColor: theme.colorScheme.surface,
       body: SingleChildScrollView(

@@ -4,7 +4,7 @@ import 'package:notee/ui/desktop/desktop_title_bar.dart';
 
 import '../../utils/utils.dart';
 
-PreferredSizeWidget createPlatformAppBar({
+PreferredSizeWidget createAppBar({
   String? title,
   Widget? titleWidget,
   List<Widget>? actions,
@@ -13,16 +13,15 @@ PreferredSizeWidget createPlatformAppBar({
   bool automaticallyImplyLeading = true,
   Color? backgroundColor,
   Color? foregroundColor,
-  bool showWindowButtons = true,
   double? titleSpacing,
 }) {
   final isDesktop = Utils.isDesktop();
-  final layoutMode = AppEnv.getLayoutMode();
-  final useDesktopBar = isDesktop && layoutMode == LayoutMode.desktop;
+  final useDesktopBar = isDesktop && AppEnv.getLayoutMode() == LayoutMode.desktop;
+  final appBarHeight = AppEnv.getAppBarHeight();
 
   Widget effectiveTitle = titleWidget ?? Text(title ?? '');
   if (isDesktop) {
-    effectiveTitle = WindowMoveBar(child: effectiveTitle);
+    effectiveTitle = WindowMoveBar(titleBarHeight: appBarHeight, child: effectiveTitle);
   }
 
   final effectiveLeading =
@@ -33,15 +32,16 @@ PreferredSizeWidget createPlatformAppBar({
     title: effectiveTitle,
     leading: effectiveLeading,
     automaticallyImplyLeading: automaticallyImplyLeading && effectiveLeading == null,
-    actions: [...?actions, if (isDesktop && showWindowButtons) const WindowManagerButtons()],
+    actions: [
+      ...?actions, //if (isDesktop && showWindowButtons) const WindowManagerButtons()
+    ],
     backgroundColor: backgroundColor,
     foregroundColor: foregroundColor,
     titleSpacing: resolvedSpacing,
-    toolbarHeight: AppEnv.getAppBarHeight(),
+    toolbarHeight: appBarHeight,
     elevation: useDesktopBar ? 0 : null,
     scrolledUnderElevation: useDesktopBar ? 0 : null,
-    leadingWidth: useDesktopBar && effectiveLeading != null ? 48 : null,
-    actionsPadding: useDesktopBar && showWindowButtons ? EdgeInsets.zero : null,
+    leadingWidth: appBarHeight,
     flexibleSpace: useDesktopBar ? const WindowMoveBar() : null,
   );
 }

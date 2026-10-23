@@ -3,7 +3,7 @@ import 'package:notee/config/app_config.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/filesync/database.dart';
 import 'package:notee/filesync/repository.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/utils/utils.dart';
 import 'package:notee/ui/desktop/desktop_tabs_page.dart';
 
@@ -190,7 +190,7 @@ class _RecordRecyclerPageState extends State<RecordRecyclerPage> implements Desk
     }
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      appBar: createPlatformAppBar(
+      appBar: createAppBar(
         onBack: widget.closeCallback != null ? () => widget.closeCallback!(context) : null,
         titleSpacing: 0,
         title: l10n.recycler,

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/record_tree.dart';
 import 'package:notee/ui/base_app.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/ui/editor/record_flow_editor_page.dart';
 import 'package:notee/ui/files/record_list_page.dart';
 import 'package:notee/ui/calendar/calendar_page.dart';
@@ -69,8 +69,7 @@ class PhoneRecordDetailPageState<T extends PhoneRecordDetailPage> extends Record
   }
 
   PreferredSizeWidget buildAppBar(BuildContext context, RecordEntry record) {
-    return createPlatformAppBar(
-      showWindowButtons: false,
+    return createAppBar(
       leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.arrow_back)),
       titleSpacing: 0,
       titleWidget: StreamBuilder<RecordEvent>(

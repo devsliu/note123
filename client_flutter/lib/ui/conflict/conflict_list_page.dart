@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/repository.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/ui/conflict/conflict_diff_page.dart';
 import 'package:notee/config/language_manager.dart';
 
@@ -83,7 +83,7 @@ class _ConflictListPageState extends State<ConflictListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: createPlatformAppBar(title: l10n.syncConflictTitle(_conflicts.length)),
+      appBar: createAppBar(title: l10n.syncConflictTitle(_conflicts.length)),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _conflicts.isEmpty

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:notee/filesync/record_ext.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/ui/common/input_dialog.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/ui/files/record_move_dialog.dart';
 import 'package:notee/config/language_manager.dart';
 
@@ -124,10 +124,9 @@ Future<void> batchTagSelected(BuildContext context) async {
 /// App bar shown while multi-select is active: count + tag/move/delete/close actions.
 PreferredSizeWidget buildMultiSelectAppBar(BuildContext context) {
   final count = MultiSelectState.instance.count;
-  return createPlatformAppBar(
+  return createAppBar(
     automaticallyImplyLeading: false,
     titleSpacing: 12,
-    showWindowButtons: false,
     title: l10n.selectedCount(count),
     actions: [
       IconButton(

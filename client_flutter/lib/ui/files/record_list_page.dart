@@ -2,7 +2,7 @@
 import 'package:flutter/services.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/model/record_opened_state.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/files/record_files_flat_control.dart';
 import 'package:notee/ui/files/record_files_list_control.dart';
@@ -57,10 +57,9 @@ class _RecordListPageState extends State<RecordListPage> {
 
   PreferredSizeWidget _buildTitleBar(BuildContext context) {
     final bool desktop = Utils.isDesktop();
-    return createPlatformAppBar(
+    return createAppBar(
       automaticallyImplyLeading: false,
       titleSpacing: 12,
-      showWindowButtons: false,
       title: AppEnv.appTitle,
       actions: [
         SyncButton(),

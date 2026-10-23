@@ -1,5 +1,5 @@
 import 'package:notee/filesync/http_api.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -114,7 +114,7 @@ class _ServerApiStatsPageState extends State<ServerApiStatsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: createPlatformAppBar(title: l10n.apiCallStats, showWindowButtons: false),
+      appBar: createAppBar(title: l10n.apiCallStats),
       body: FutureBuilder<List<APIStat>>(
         future: _futureStats,
         builder: (context, snapshot) {

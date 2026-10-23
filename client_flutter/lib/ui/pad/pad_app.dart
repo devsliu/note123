@@ -5,7 +5,7 @@ import 'package:notee/filesync/repository.dart';
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/calendar/calendar_page.dart';
 import 'package:notee/ui/common/empty_detail_placeholder.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/ui/common/split_layout.dart';
 import 'package:notee/ui/files/record_recycler_page.dart';
 import 'package:notee/config/language_manager.dart';
@@ -34,7 +34,7 @@ class _PadAppState extends BaseAppState<PadApp> {
 
   Widget _buildEmptyDetail() {
     return Scaffold(
-      appBar: createPlatformAppBar(showWindowButtons: false),
+      appBar: createAppBar(),
       body: EmptyDetailPlaceholder(title: l10n.pleaseSelectRecord),
     );
   }

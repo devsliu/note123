@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:notee/config/app_config.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/filesync/repository.dart';
@@ -173,8 +173,7 @@ class _CalendarPageState extends State<CalendarPage> implements DesktopTabPageSt
     }
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
-      appBar: createPlatformAppBar(
-        showWindowButtons: false,
+      appBar: createAppBar(
         title: l10n.calendar,
         leading: IconButton(onPressed: () => widget.closeCallback(context), icon: Icon(Icons.arrow_back)),
         titleSpacing: 0,

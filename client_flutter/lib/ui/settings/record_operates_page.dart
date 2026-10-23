@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notee/ui/common/platform_app_bar.dart';
+import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/utils/app_logger.dart';
 import 'package:notee/utils/utils.dart';
 
@@ -168,8 +168,7 @@ class _LogsPageState extends State<LogsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: createPlatformAppBar(
-        showWindowButtons: false,
+      appBar: createAppBar(
         titleWidget: _buildTitle(),
         actions: [
           IconButton(icon: const Icon(Icons.delete_outline), tooltip: '清空', onPressed: _clearLogs),
