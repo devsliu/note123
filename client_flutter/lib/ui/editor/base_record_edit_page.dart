@@ -378,6 +378,7 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
       return;
     }
     await fileStore.createWorkFile(uuid, writeContent);
+    md5Ref.value = md5;
     await Repository.get().editRecord(
       uuid,
       true,
@@ -386,8 +387,6 @@ abstract class BaseRecordEditPageState<T extends BaseRecordEditPage> extends Sta
       locked: effLocked,
       md5: md5,
     );
-    // md5Ref 只在写盘+落库都成功后更新: 中途失败时保留旧值, 重试不会被上面的短路跳过
-    md5Ref.value = md5;
   }
 
   Widget buildContentWidget(String plaintext, bool reload);
