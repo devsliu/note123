@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/config/theme.dart';
 import 'package:notee/config/app_config.dart';
+import 'package:notee/ui/desktop/window_state.dart';
 import 'package:flutter/material.dart';
 import 'package:notee/ui/desktop/desktop_tabbar.dart';
 import 'package:notee/ui/common/empty_detail_placeholder.dart';
@@ -114,16 +115,32 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
   int get tabCount => _tabs.length;
   int currentIndex = 0;
   final ValueNotifier<int> _pageReadyNotifier = ValueNotifier<int>(-1);
+  Size _lockedEditorSize = Size.zero;
+  bool _wasAnimating = false;
 
   @override
   void initState() {
     super.initState();
+    isWindowAnimatingNotifier.addListener(_onAnimatingChanged);
   }
 
   List<DesktopTab> get tabs => _tabs.map((impl) => impl.tab).toList();
 
+  void _onAnimatingChanged() {
+    final nowAnimating = isWindowAnimatingNotifier.value;
+    if (nowAnimating && !_wasAnimating) {
+      final renderBox = context.findRenderObject() as RenderBox?;
+      if (renderBox != null && renderBox.hasSize) {
+        _lockedEditorSize = Size(renderBox.size.width, renderBox.size.height - kWindowToolbarHeight);
+      }
+    }
+    _wasAnimating = nowAnimating;
+    setState(() {});
+  }
+
   @override
   void dispose() {
+    isWindowAnimatingNotifier.removeListener(_onAnimatingChanged);
     _pageReadyNotifier.dispose();
     // Remove in three segments so the currently selected tab is closed last.
     final idx = currentIndex.clamp(0, max(0, _tabs.length - 1)).toInt();
@@ -327,15 +344,30 @@ class DesktopTabsPageState extends State<DesktopTabsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isAnimating = isWindowAnimatingNotifier.value;
+    final editor = _tabs.isEmpty
+        ? EmptyDetailPlaceholder(title: l10n.pleaseSelectRecord)
+        : IndexedStack(index: currentIndex, children: _tabs.map((impl) => impl.page!).toList());
     return Material(
       color: theme.scaffoldBackgroundColor,
       child: Column(
         children: [
           buildTabbar(context),
+          // 窗口动画期间锁定编辑器尺寸，避免富文本编辑器随窗口连续重布局导致闪烁。
+          // Expanded 占据 Column 剩余空间；OverflowBox 允许编辑器使用锁定尺寸而不断言溢出；ClipRect 裁剪超出部分。
           Expanded(
-            child: _tabs.isEmpty
-                ? EmptyDetailPlaceholder(title: l10n.pleaseSelectRecord)
-                : IndexedStack(index: currentIndex, children: _tabs.map((impl) => impl.page!).toList()),
+            child: isAnimating && _lockedEditorSize.width > 0
+                ? ClipRect(
+                    child: OverflowBox(
+                      minWidth: 0,
+                      maxWidth: double.infinity,
+                      minHeight: 0,
+                      maxHeight: double.infinity,
+                      alignment: Alignment.topLeft,
+                      child: SizedBox(width: _lockedEditorSize.width, height: _lockedEditorSize.height, child: editor),
+                    ),
+                  )
+                : editor,
           ),
         ],
       ),

@@ -170,7 +170,7 @@ class _DesktopAppState extends BaseAppState<DesktopApp> {
 
   void _startWindowAnimation() {
     isWindowAnimatingNotifier.value = true;
-    Future.delayed(const Duration(milliseconds: 300), () {
+    Future.delayed(const Duration(milliseconds: 600), () {
       isWindowAnimatingNotifier.value = false;
     });
   }
