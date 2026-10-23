@@ -7,7 +7,7 @@ import 'package:notee/filesync/repository.dart';
 import 'package:notee/filesync/sync_engine.dart';
 import 'package:notee/model/reminder_notifier.dart';
 import 'package:notee/config/theme.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 import 'package:notee/config/language_manager.dart';
 
 import 'package:notee/utils/app_logger.dart';

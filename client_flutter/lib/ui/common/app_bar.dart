@@ -1,5 +1,5 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 import 'package:notee/ui/desktop/desktop_title_bar.dart';
 
 import '../../utils/utils.dart';

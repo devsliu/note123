@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:notee/config/language_manager.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 
 import 'package:notee/ui/base_app.dart';
 import 'package:notee/ui/desktop/desktop_title_bar.dart';

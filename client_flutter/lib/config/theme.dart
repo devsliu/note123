@@ -2,7 +2,7 @@
 import 'package:flutter/services.dart';
 import 'package:notee/utils/reboot.dart';
 
-import 'app_config.dart';
+import 'app_env.dart';
 import '../l10n/app_localizations.dart';
 
 // primary: primary color (e.g., buttons, AppBar background)

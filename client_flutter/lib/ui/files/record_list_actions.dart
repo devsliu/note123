@@ -4,7 +4,7 @@ import 'dart:typed_data';
 import 'package:appflowy_editor/appflowy_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:notee/filesync/record_ext.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/model/record_opened_state.dart';

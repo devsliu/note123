@@ -4,7 +4,7 @@ import 'package:archive/archive_io.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/filesync/http_api.dart';
 import 'package:notee/utils/app_logger.dart';

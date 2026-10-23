@@ -5,7 +5,7 @@ import '../l10n/app_localizations.dart';
 
 import 'package:flutter/material.dart';
 
-import 'app_config.dart';
+import 'app_env.dart';
 enum LanguageOption {
   system, // Follow system
   chinese, // Chinese

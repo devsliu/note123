@@ -9,7 +9,7 @@ import 'package:notee/ui/settings/record_database_page.dart';
 import 'package:flutter/material.dart';
 import 'package:notee/config/theme.dart';
 import 'package:notee/ui/settings/theme_selector_dialog.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 

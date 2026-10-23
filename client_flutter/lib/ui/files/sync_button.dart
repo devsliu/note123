@@ -6,7 +6,7 @@ import 'package:notee/filesync/sync_engine.dart';
 import 'package:notee/filesync/user.dart';
 import 'package:notee/filesync/http_api.dart';
 
-import '../../config/app_config.dart';
+import '../../config/app_env.dart';
 import '../settings/login_dialog.dart';
 import '../conflict/conflict_list_page.dart';
 import '../../config/language_manager.dart';

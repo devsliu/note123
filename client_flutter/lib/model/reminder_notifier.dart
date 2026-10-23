@@ -7,7 +7,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:notee/filesync/repository.dart';
 import 'package:notee/filesync/reminder_tree.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;

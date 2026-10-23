@@ -9,7 +9,7 @@ import 'package:notee/ui/common/app_bar.dart';
 import 'package:notee/ui/common/split_layout.dart';
 import 'package:notee/ui/files/record_recycler_page.dart';
 import 'package:notee/config/language_manager.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 
 import 'package:notee/ui/files/record_list_page.dart';
 import 'package:notee/ui/phone/phone_app.dart';

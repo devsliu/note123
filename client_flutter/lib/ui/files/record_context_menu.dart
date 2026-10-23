@@ -14,7 +14,7 @@ import 'package:notee/ui/files/record_move_dialog.dart';
 import 'package:notee/ui/files/record_multi_select.dart';
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/utils/utils.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 import 'package:flutter/material.dart';
 
 Future<void> showRecordContextMenu(

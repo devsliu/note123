@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:notee/config/language_manager.dart';
 import 'package:notee/config/theme.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 import 'package:notee/ui/desktop/window_state.dart';
 import 'package:flutter/material.dart';
 import 'package:notee/ui/desktop/desktop_tabbar.dart';

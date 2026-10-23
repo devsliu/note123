@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:notee/config/app_config.dart';
+import 'package:notee/config/app_env.dart';
 import 'package:notee/ui/common/app_bar.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:notee/config/language_manager.dart';
