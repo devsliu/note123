@@ -317,42 +317,72 @@ class RecordFlowEditorPageState<T extends RecordFlowEditorPage> extends BaseReco
       document ??= Document.blank()..root.insert(paragraphNode(delta: Delta()..insert(plaintext)), index: 0);
     }
 
-    // Preserve selection across document reload (e.g. remote sync refresh)
-    final savedSelection = editorState.selection;
+    final newNodes = document.root.children.toList();
 
-    editorState.dispose();
-    editorState = EditorState(document: document);
-    editorScrollController?.dispose();
-    editorScrollController = EditorScrollController(editorState: editorState);
-    listenContentChange();
+    // Collapsed selection at the end of a given node's text.
+    Selection selectionAtNodeEnd(Node node) => Selection(
+      start: Position(path: node.path, offset: node.delta?.toPlainText().length ?? 0),
+      end: Position(path: node.path, offset: node.delta?.toPlainText().length ?? 0),
+    );
+    final newRecordSelection = newNodes.isNotEmpty ? selectionAtNodeEnd(newNodes.first) : null;
 
-    if (isNewRecord) {
-      // New document: place cursor at heading end
-      final nodes = document.root.children;
-      if (nodes.isNotEmpty) {
-        final node = nodes.first;
-        final delta = node.delta;
-        final len = delta?.toPlainText().length ?? 0;
-        editorState.updateSelectionWithReason(
-          Selection(
-            start: Position(path: [0], offset: len),
-            end: Position(path: [0], offset: len),
-          ),
-        );
+    // First load (no scroll controller yet): create fresh state.
+    if (editorScrollController == null) {
+      editorState.dispose();
+      editorState = EditorState(document: document);
+      editorScrollController = EditorScrollController(editorState: editorState);
+      listenContentChange();
+
+      if (isNewRecord) {
+        editorState.updateSelectionWithReason(newRecordSelection);
       }
       _focusNode.requestFocus();
+      _handleKeywordJump();
+      return;
+    }
+
+    final savedSelection = editorState.selection;
+    final existingCount = editorState.document.root.children.length;
+    const noHistory = ApplyOptions(recordUndo: false);
+
+    // Clamp the saved selection to the new document. If the new document is
+    // shorter, the old path may be out of range → reset to the end of the last node.
+    Selection? validSelection;
+    if (isNewRecord) {
+      validSelection = newRecordSelection;
     } else if (savedSelection != null) {
-      // Existing document: restore previous cursor position (clamped to valid range)
-      Timer.run(() {
-        if (!mounted) return;
-        editorState.updateSelectionWithReason(savedSelection);
-      });
-      if (Utils.isDesktop()) {
-        _focusNode.requestFocus();
+      final node = document.nodeAtPath(savedSelection.start.path);
+      if (node != null) {
+        final maxOffset = node.delta?.toPlainText().length ?? 0;
+        validSelection = Selection(
+          start: Position(path: savedSelection.start.path, offset: savedSelection.start.offset.clamp(0, maxOffset)),
+          end: Position(path: savedSelection.end.path, offset: savedSelection.end.offset.clamp(0, maxOffset),
+          ),
+        );
+      } else if (newNodes.isNotEmpty) {
+        validSelection = selectionAtNodeEnd(newNodes.last);
       }
     }
 
-    // 搜索结果跳转：关键字非空且尚未跳转时定位到首次匹配位置
+    if (existingCount > 0) {
+      final deleteTxn = editorState.transaction;
+      deleteTxn.deleteNodesAtPath([0], existingCount);
+      editorState.apply(deleteTxn, options: noHistory, withUpdateSelection: false);
+    }
+    if (newNodes.isNotEmpty) {
+      final insertTxn = editorState.transaction;
+      insertTxn.insertNodes([0], newNodes);
+      insertTxn.afterSelection = validSelection;
+      editorState.apply(insertTxn, options: noHistory);
+    }
+
+    if (Utils.isDesktop()) {
+      _focusNode.requestFocus();
+    }
+    _handleKeywordJump();
+  }
+
+  void _handleKeywordJump() {
     final keyword = widget.keyword;
     if (keyword != null && keyword.isNotEmpty && !_keywordJumped) {
       _keywordJumped = true;
