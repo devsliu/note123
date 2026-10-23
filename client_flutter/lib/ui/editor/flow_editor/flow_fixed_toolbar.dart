@@ -40,15 +40,12 @@ class FixedToolbar extends StatefulWidget {
 }
 
 class _FixedToolbarState extends State<FixedToolbar> {
-  late final StreamSubscription _transactionSubscription;
+  StreamSubscription? _transactionSubscription;
 
   @override
   void initState() {
     super.initState();
-    widget.editorState.selectionNotifier.addListener(_onSelectionChanged);
-    _transactionSubscription = widget.editorState.transactionStream.listen((_) {
-      if (mounted) setState(() {});
-    });
+    _bindEditorState();
   }
 
   @override
@@ -56,15 +53,23 @@ class _FixedToolbarState extends State<FixedToolbar> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.editorState != widget.editorState) {
       oldWidget.editorState.selectionNotifier.removeListener(_onSelectionChanged);
-      widget.editorState.selectionNotifier.addListener(_onSelectionChanged);
+      _transactionSubscription?.cancel();
+      _bindEditorState();
     }
   }
 
   @override
   void dispose() {
     widget.editorState.selectionNotifier.removeListener(_onSelectionChanged);
-    _transactionSubscription.cancel();
+    _transactionSubscription?.cancel();
     super.dispose();
+  }
+
+  void _bindEditorState() {
+    widget.editorState.selectionNotifier.addListener(_onSelectionChanged);
+    _transactionSubscription = widget.editorState.transactionStream.listen((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   void _onSelectionChanged() {
